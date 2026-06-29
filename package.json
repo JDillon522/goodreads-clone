@@ -1,0 +1,38 @@
+{
+  "name": "bookshelf",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bookshelf full-stack personal reading tracker.",
+  "workspaces": [
+    "backend"
+  ],
+  "overrides": {
+    "@nestjs/platform-express": {
+      "multer": "2.2.0"
+    },
+    "@nestjs/swagger": {
+      "js-yaml": "5.2.0"
+    },
+    "cosmiconfig": {
+      "js-yaml": "5.2.0"
+    }
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:backend": "npm run build -w backend",
+    "dev:backend": "npm run start:dev -w backend",
+    "start:backend": "npm run start -w backend",
+    "start:backend:prod": "npm run start:prod -w backend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:backend": "npm run typecheck -w backend",
+    "docker:up": "docker compose up --build",
+    "docker:up:prod": "docker compose -f docker-compose.yml up --build",
+    "docker:down": "docker compose down",
+    "docker:down:prod": "docker compose -f docker-compose.yml down",
+    "docker:db": "docker compose up -d db"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}

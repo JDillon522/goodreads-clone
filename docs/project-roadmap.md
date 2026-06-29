@@ -2,12 +2,13 @@
 
 ## Current Direction
 
-Bookshelf is a full-stack personal reading tracker built backend-first. Establish the data model, authorization, Docker environment, API boundaries, and persistence rules before building frontend buttons or screens.
+Bookshelf is a full-stack personal reading tracker built backend-first. Establish the data model, authorization, Docker environment, Swagger-tested API boundaries, and persistence rules before building frontend buttons or screens.
 
 Authoritative v1 defaults:
 
 - Build the full-stack app, not the frontend-only alternative.
 - Start with the backend: Nest.js, Postgres, Docker, auth, migrations, seed data, and book API integration.
+- Keep Swagger/OpenAPI available before frontend work so backend contracts can be exercised directly.
 - Use Nest-owned database auth with bearer tokens unless later changed.
 - Use `data/sample-books.json` for guest/demo data.
 - Do not rely on `starter/tailwind.css` or `data/sample-books.csv`; both were intentionally removed.
@@ -26,7 +27,7 @@ Authoritative v1 defaults:
 - Set up root npm workspace structure for `backend/`, later `frontend/`, and infrastructure scripts.
 - Scaffold the Nest backend.
 - Add Docker Compose for backend, Postgres, and future proxy/frontend services.
-- Add env templates, a health check endpoint, and local startup scripts.
+- Add env templates, a health check endpoint, Swagger/OpenAPI, and local startup scripts.
 
 ### 3. Database Model + Migrations
 
@@ -114,6 +115,9 @@ Authoritative v1 defaults:
 | 2026-06-29 | Use `sample-books.json` only | `starter/tailwind.css` and `data/sample-books.csv` were intentionally removed. |
 | 2026-06-29 | Defer stretch goals | Differentiators wait until the core product foundation is stable. |
 | 2026-06-29 | Recommended defaults: npm workspaces, Prisma, Open Library | These stand unless explicitly changed later. |
+| 2026-06-29 | Add Swagger before frontend work | Backend contracts should be testable at `/docs` before UI implementation starts. |
+| 2026-06-29 | Keep Postgres internal to Docker network | Do not bind DB to host `5432`; backend reaches it by Compose service name `db`. |
+| 2026-06-29 | Split Docker Compose base and override | Base Compose uses the production backend target; override uses the development target, bind mounts, and Nest watch mode. |
 
 ## Open Questions
 
@@ -131,3 +135,6 @@ Authoritative v1 defaults:
 - Confirmed repository is pre-scaffold: `backend/` and `frontend/` are effectively empty.
 - Confirmed `data/sample-books.json` exists with 45 sample records.
 - Recorded backend-first direction and staged implementation plan.
+- Completed Stage 2 foundation: root npm workspace, Nest backend, Swagger/OpenAPI, health endpoint, Docker Compose, backend Dockerfile, and env templates.
+- Verified backend build, typecheck, audit, local health/Swagger endpoints, Docker image build, and Compose runtime smoke test.
+- Split Compose behavior so dev settings live in `docker-compose.override.yml` and production-style defaults stay in `docker-compose.yml`.

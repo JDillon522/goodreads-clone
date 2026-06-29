@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      target: development
+    env_file:
+      - backend/.env.docker
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      API_PREFIX: api
+      CORS_ORIGIN: http://localhost:4200
+      DATABASE_URL: postgresql://bookshelf:bookshelf@db:5432/bookshelf?schema=public
+      JWT_ACCESS_SECRET: dev-only-access-secret-replace-before-deploy
+      JWT_REFRESH_SECRET: dev-only-refresh-secret-replace-before-deploy
+      PASSWORD_RESET_TOKEN_TTL_MINUTES: 30
+    volumes:
+      - .:/app
+      - backend-node-modules:/app/node_modules
+    command: npm run start:dev -w backend
+
+volumes:
+  backend-node-modules:
