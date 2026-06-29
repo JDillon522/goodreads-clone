@@ -36,7 +36,7 @@ Authoritative v1 defaults:
 - Model users, auth tokens, password reset tokens, books, shelves, library items, progress history, goals, preferences, activity events, and cached external book metadata.
 - Add seed flow for default shelves and guest/sample data.
 
-### 4. Authentication + Authorization
+### 4. Authentication + Authorization - DONE
 
 - Implement email/password signup, signin, signout, bearer JWT access tokens, refresh/session handling, and password reset token flow.
 - Protect user-owned routes.
@@ -122,11 +122,13 @@ Authoritative v1 defaults:
 | 2026-06-29 | Approved Stage 3 defaults | Use Prisma, Postgres-backed guest sessions with expiration, Open Library first, and short-lived access tokens plus stored refresh sessions. |
 | 2026-06-29 | Duplicate detection priority | Detect user-library duplicates by ISBN-13, ISBN-10, provider key, then normalized title plus primary author. Store a dedupe key on library items and enforce owner-scoped uniqueness. |
 | 2026-06-29 | Prisma 7 driver adapter | Use `@prisma/adapter-pg` and `pg`; PrismaClient requires an explicit adapter. |
+| 2026-06-29 | Stage 4 auth defaults | Use `argon2id` password hashing, 15-minute JWT access tokens, 30-day opaque refresh tokens stored as SHA-256 hashes, and JSON token responses for Swagger testing. |
+| 2026-06-29 | Password reset testing path | Development/test password reset requests return the reset token in JSON; production must hide it until email delivery is implemented. |
 
 ## Open Questions
 
 - Decide deployment target details after local Docker and backend contracts are stable.
-- Decide whether to add real email delivery or keep password reset tokens Swagger/dev-log testable until deployment.
+- Decide when to add real email delivery for password reset tokens.
 
 ## Session Notes
 
@@ -143,3 +145,7 @@ Authoritative v1 defaults:
 - Completed Stage 3 foundation: Prisma config, initial Postgres schema, generated client, initial migration, Prisma service/module, and seed script for 45 sample books plus demo guest session data.
 - Verified Stage 3 with build, typecheck, Jest, ESLint, format/Prisma validation, npm audit, production Docker build, Compose health/readiness/Swagger smoke test, and seed row counts.
 - Hardened Swagger setup into a dedicated config helper with stable `/docs` and `/docs-json` endpoints, stable operation IDs, bearer auth persistence, product-area tags, and readiness failure documentation.
+- Completed Stage 4 auth: signup, signin, current user, refresh rotation, signout, and password reset request/confirm endpoints.
+- Added `AccessTokenGuard`, `CurrentUser` decorator, `AuthModule`, `UsersModule`, default shelf/preference creation on signup, and Swagger DTOs for auth responses.
+- Verified Stage 4 with backend typecheck, ESLint, and Jest coverage for auth service, access token guard, user defaults, and health endpoints.
+- Smoke-tested Stage 4 in Docker through health, Swagger JSON, signup, bearer `me`, refresh, password reset request/confirm, and signout; removed the temporary smoke account afterward.

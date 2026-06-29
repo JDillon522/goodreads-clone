@@ -15,10 +15,19 @@ The backend listens on `http://localhost:3000` by default.
 
 - Health check: `GET /api/health`
 - Readiness check: `GET /api/health/ready`
+- Signup: `POST /api/auth/signup`
+- Signin: `POST /api/auth/signin`
+- Current user: `GET /api/auth/me`
+- Refresh session: `POST /api/auth/refresh`
+- Signout: `POST /api/auth/signout`
+- Password reset request: `POST /api/auth/password-reset/request`
+- Password reset confirm: `POST /api/auth/password-reset/confirm`
 - Swagger UI: `GET /docs`
 - OpenAPI JSON: `GET /docs-json`
 
 Swagger is the backend contract testing surface before frontend work. It uses stable operation IDs, keeps bearer auth between requests, and groups endpoints by product area.
+
+Auth uses short-lived JWT access tokens and opaque refresh tokens stored as hashes in Postgres. In development and test, password reset requests return the reset token in the JSON response so the flow can be tested directly from Swagger. Production hides that token; real email delivery can be added later.
 
 ## Database
 
