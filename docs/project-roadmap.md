@@ -10,26 +10,27 @@ Authoritative v1 defaults:
 - Start with the backend: Nest.js, Postgres, Docker, auth, migrations, seed data, and book API integration.
 - Keep Swagger/OpenAPI available before frontend work so backend contracts can be exercised directly.
 - Use Nest-owned database auth with bearer tokens unless later changed.
+- Use Prisma with the Postgres driver adapter for schema, migrations, generated types, and DB access.
 - Use `data/sample-books.json` for guest/demo data.
 - Do not rely on `starter/tailwind.css` or `data/sample-books.csv`; both were intentionally removed.
 - Defer stretch goals and differentiators until the core backend/data foundation is stable.
 
 ## Stage Plan
 
-### 1. Context + Repo Contract
+### 1. Context + Repo Contract - DONE
 
 - Update `AGENTS.md` to point to this roadmap.
 - Record intentional deletions: no `starter/tailwind.css`, no `data/sample-books.csv`.
 - Lock defaults: npm workspaces, Prisma, Open Library first, stretch goals later.
 
-### 2. Workspace + Docker Foundation
+### 2. Workspace + Docker Foundation - DONE
 
 - Set up root npm workspace structure for `backend/`, later `frontend/`, and infrastructure scripts.
 - Scaffold the Nest backend.
 - Add Docker Compose for backend, Postgres, and future proxy/frontend services.
 - Add env templates, a health check endpoint, Swagger/OpenAPI, and local startup scripts.
 
-### 3. Database Model + Migrations
+### 3. Database Model + Migrations - DONE
 
 - Use Prisma with Postgres.
 - Model users, auth tokens, password reset tokens, books, shelves, library items, progress history, goals, preferences, activity events, and cached external book metadata.
@@ -118,14 +119,14 @@ Authoritative v1 defaults:
 | 2026-06-29 | Add Swagger before frontend work | Backend contracts should be testable at `/docs` before UI implementation starts. |
 | 2026-06-29 | Keep Postgres internal to Docker network | Do not bind DB to host `5432`; backend reaches it by Compose service name `db`. |
 | 2026-06-29 | Split Docker Compose base and override | Base Compose uses the production backend target; override uses the development target, bind mounts, and Nest watch mode. |
+| 2026-06-29 | Approved Stage 3 defaults | Use Prisma, Postgres-backed guest sessions with expiration, Open Library first, and short-lived access tokens plus stored refresh sessions. |
+| 2026-06-29 | Duplicate detection priority | Detect user-library duplicates by ISBN-13, ISBN-10, provider key, then normalized title plus primary author. Store a dedupe key on library items and enforce owner-scoped uniqueness. |
+| 2026-06-29 | Prisma 7 driver adapter | Use `@prisma/adapter-pg` and `pg`; PrismaClient requires an explicit adapter. |
 
 ## Open Questions
 
-- Confirm final package manager: npm workspaces is the current default.
-- Confirm Prisma as the database migration/modeling tool before scaffolding backend dependencies.
-- Confirm Open Library as the first book provider before implementing the provider module.
-- Decide whether guest sessions live in Postgres with TTL cleanup or stay server/session-scoped for v1.
 - Decide deployment target details after local Docker and backend contracts are stable.
+- Decide whether to add real email delivery or keep password reset tokens Swagger/dev-log testable until deployment.
 
 ## Session Notes
 
@@ -138,3 +139,7 @@ Authoritative v1 defaults:
 - Completed Stage 2 foundation: root npm workspace, Nest backend, Swagger/OpenAPI, health endpoint, Docker Compose, backend Dockerfile, and env templates.
 - Verified backend build, typecheck, audit, local health/Swagger endpoints, Docker image build, and Compose runtime smoke test.
 - Split Compose behavior so dev settings live in `docker-compose.override.yml` and production-style defaults stay in `docker-compose.yml`.
+- Completed Stage 2.5 hardening: environment validation, DB readiness endpoint, lint/format/test scripts, Docker utility scripts, and Swagger system endpoint structure.
+- Completed Stage 3 foundation: Prisma config, initial Postgres schema, generated client, initial migration, Prisma service/module, and seed script for 45 sample books plus demo guest session data.
+- Verified Stage 3 with build, typecheck, Jest, ESLint, format/Prisma validation, npm audit, production Docker build, Compose health/readiness/Swagger smoke test, and seed row counts.
+- Hardened Swagger setup into a dedicated config helper with stable `/docs` and `/docs-json` endpoints, stable operation IDs, bearer auth persistence, product-area tags, and readiness failure documentation.

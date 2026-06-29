@@ -1,9 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { setupSwagger } from './config/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -26,27 +26,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Bookshelf API')
-    .setDescription('Backend API for Bookshelf, a personal reading tracker.')
-    .setVersion('0.1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Paste a Bookshelf bearer token here after signing in.',
-      },
-      'bearer',
-    )
-    .build();
-
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, swaggerDocument, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  setupSwagger(app, apiPrefix);
 
   await app.listen(port);
 }

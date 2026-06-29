@@ -11,6 +11,8 @@ RUN npm install
 
 COPY . .
 
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 npm run prisma:generate -w backend
+
 EXPOSE 3000
 
 CMD ["npm", "run", "start:dev", "-w", "backend"]
@@ -21,7 +23,7 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run build -w backend
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 npm run prisma:generate -w backend && npm run build -w backend
 
 FROM base AS production
 
@@ -30,6 +32,7 @@ ENV NODE_ENV=production
 RUN npm ci --omit=dev
 
 COPY --from=build /app/backend/dist ./backend/dist
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 3000
 

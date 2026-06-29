@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ActivityEventType {
+  BOOK_ADDED
+  BOOK_MOVED
+  PROGRESS_UPDATED
+  BOOK_FINISHED
+  RATING_UPDATED
+  NOTES_UPDATED
+  GOAL_SET
+  GOAL_COMPLETED
+  SHELF_CREATED
+  SHELF_RENAMED
+  SHELF_DELETED
+  GUEST_SESSION_CREATED
+}
+
+enum BookProvider {
+  GOOGLE_BOOKS
+  MANUAL
+  OPEN_LIBRARY
+  SAMPLE
+}
+
+enum ProgressTrackingMode {
+  PAGE
+  PERCENT
+}
+
+enum ThemePreference {
+  DARK
+  LIGHT
+  SYSTEM
+}
+
+model User {
+  id                  String               @id @default(uuid()) @db.Uuid
+  email               String               @unique
+  passwordHash        String
+  displayName         String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  activityEvents      ActivityEvent[]
+  libraryItems        LibraryItem[]
+  passwordResetTokens PasswordResetToken[]
+  preferences         UserPreference?
+  refreshTokens       AuthRefreshToken[]
+  readingGoals        ReadingGoal[]
+  shelves             Shelf[]
+}
+
+model AuthRefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model GuestSession {
+  id             String          @id @default(uuid()) @db.Uuid
+  tokenHash      String          @unique
+  label          String?
+  expiresAt      DateTime
+  lastSeenAt     DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  activityEvents ActivityEvent[]
+  libraryItems   LibraryItem[]
+  preferences    UserPreference?
+  readingGoals   ReadingGoal[]
+  shelves        Shelf[]
+
+  @@index([expiresAt])
+}
+
+model Book {
+  id                      String        @id @default(uuid()) @db.Uuid
+  sourceProvider          BookProvider
+  sourceId                String
+  sourceUrl               String?
+  openLibraryWorkKey      String?
+  openLibraryEditionKey   String?
+  title                   String
+  subtitle                String?
+  primaryAuthor           String?
+  authors                 String[]      @default([])
+  description             String?
+  publisher               String?
+  publishedDate           String?
+  pageCount               Int?
+  coverUrl                String?
+  isbn10                  String?
+  isbn13                  String?
+  genres                  String[]      @default([])
+  normalizedTitle         String
+  normalizedPrimaryAuthor String?
+  rawProviderPayload      Json?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  libraryItems            LibraryItem[]
+
+  @@unique([sourceProvider, sourceId])
+  @@index([isbn10])
+  @@index([isbn13])
+  @@index([normalizedTitle, normalizedPrimaryAuthor])
+}
+
+model Shelf {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String?       @db.Uuid
+  guestSessionId String?       @db.Uuid
+  name           String
+  slug           String
+  position       Int
+  isDefault      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  libraryItems   LibraryItem[]
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slug])
+  @@unique([guestSessionId, slug])
+  @@index([userId, position])
+  @@index([guestSessionId, position])
+}
+
+model LibraryItem {
+  id                String                 @id @default(uuid()) @db.Uuid
+  userId            String?                @db.Uuid
+  guestSessionId    String?                @db.Uuid
+  bookId            String                 @db.Uuid
+  shelfId           String                 @db.Uuid
+  dedupeKey         String
+  rating            Int?
+  notes             String?
+  currentPage       Int?
+  currentPercent    Decimal?               @db.Decimal(5, 2)
+  progressUpdatedAt DateTime?
+  dateAdded         DateTime               @default(now())
+  dateFinished      DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  activityEvents    ActivityEvent[]
+  book              Book                   @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  guestSession      GuestSession?          @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  progressEntries   ReadingProgressEntry[]
+  shelf             Shelf                  @relation(fields: [shelfId], references: [id], onDelete: Restrict)
+  user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@unique([guestSessionId, bookId])
+  @@unique([userId, dedupeKey])
+  @@unique([guestSessionId, dedupeKey])
+  @@index([shelfId])
+  @@index([dateFinished])
+  @@index([rating])
+}
+
+model ReadingProgressEntry {
+  id             String               @id @default(uuid()) @db.Uuid
+  libraryItemId  String               @db.Uuid
+  trackingMode   ProgressTrackingMode
+  currentPage    Int?
+  currentPercent Decimal?             @db.Decimal(5, 2)
+  createdAt      DateTime             @default(now())
+  libraryItem    LibraryItem          @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+
+  @@index([libraryItemId, createdAt])
+}
+
+model ReadingGoal {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String?       @db.Uuid
+  guestSessionId String?       @db.Uuid
+  year           Int
+  targetBooks    Int
+  completedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year])
+  @@unique([guestSessionId, year])
+  @@index([year])
+}
+
+model UserPreference {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String?         @unique @db.Uuid
+  guestSessionId String?         @unique @db.Uuid
+  theme          ThemePreference @default(SYSTEM)
+  defaultShelfId String?         @db.Uuid
+  displayMode    String          @default("grid")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  guestSession   GuestSession?   @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityEvent {
+  id             String            @id @default(uuid()) @db.Uuid
+  userId         String?           @db.Uuid
+  guestSessionId String?           @db.Uuid
+  libraryItemId  String?           @db.Uuid
+  type           ActivityEventType
+  metadata       Json?
+  occurredAt     DateTime          @default(now())
+  guestSession   GuestSession?     @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  libraryItem    LibraryItem?      @relation(fields: [libraryItemId], references: [id], onDelete: SetNull)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+  @@index([guestSessionId, occurredAt])
+  @@index([libraryItemId])
+  @@index([type])
+}
+
+model ExternalBookCache {
+  id               String       @id @default(uuid()) @db.Uuid
+  provider         BookProvider
+  providerKey      String
+  query            String?
+  rawPayload       Json
+  normalizedResult Json?
+  expiresAt        DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([provider, providerKey])
+  @@index([query])
+  @@index([expiresAt])
+}

@@ -1,11 +1,23 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiServiceUnavailableResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+import { PrismaService } from '../database/prisma.service';
 import { HealthResponseDto } from './dto/health-response.dto';
+import {
+  ReadinessResponseDto,
+  ReadinessUnavailableResponseDto,
+} from './dto/readiness-response.dto';
 
 @ApiTags('System')
 @Controller('health')
 export class HealthController {
+  public constructor(private readonly prismaService: PrismaService) {}
+
   @Get()
   @ApiOperation({ summary: 'Check backend service health' })
   @ApiOkResponse({ type: HealthResponseDto })
@@ -16,6 +28,37 @@ export class HealthController {
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.round(process.uptime()),
       version: process.env.npm_package_version ?? '0.1.0',
+    };
+  }
+
+  @Get('ready')
+  @ApiOperation({ summary: 'Check backend readiness, including database connectivity' })
+  @ApiOkResponse({ type: ReadinessResponseDto })
+  @ApiServiceUnavailableResponse({
+    description: 'The backend is running but at least one required dependency is unavailable.',
+    type: ReadinessUnavailableResponseDto,
+  })
+  public async getReadiness(): Promise<ReadinessResponseDto> {
+    try {
+      await this.prismaService.$queryRaw`SELECT 1`;
+    } catch {
+      throw new ServiceUnavailableException({
+        status: 'error',
+        service: 'bookshelf-backend',
+        timestamp: new Date().toISOString(),
+        checks: {
+          database: 'unavailable',
+        },
+      });
+    }
+
+    return {
+      status: 'ready',
+      service: 'bookshelf-backend',
+      timestamp: new Date().toISOString(),
+      checks: {
+        database: 'available',
+      },
     };
   }
 }
