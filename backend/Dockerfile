@@ -32,6 +32,7 @@ ENV NODE_ENV=production
 RUN npm ci --omit=dev
 
 COPY --from=build /app/backend/dist ./backend/dist
+COPY --from=build /app/data ./data
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 3000

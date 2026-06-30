@@ -36,6 +36,7 @@
     "start:backend:prod": "npm run start:prod -w backend",
     "test": "npm run test --workspaces --if-present",
     "test:backend": "npm run test -w backend",
+    "test:e2e:backend": "npm run test:e2e -w backend",
     "lint": "npm run lint --workspaces --if-present",
     "lint:backend": "npm run lint -w backend",
     "typecheck": "npm run typecheck --workspaces --if-present",

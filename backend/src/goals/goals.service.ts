@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ActivityEventType } from '@prisma/client';
+import { ActivityEventType, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
-import { OwnerContext } from '../common/owner/owner-context';
+import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { ReadingGoalResponseDto } from './dto/reading-goal-response.dto';
 import { UpdateReadingGoalRequestDto } from './dto/update-reading-goal-request.dto';
@@ -27,12 +27,10 @@ export class GoalsService {
   }
 
   public async getGoalForYear(owner: OwnerContext, year: number): Promise<ReadingGoalResponseDto> {
-    const goal = await this.prisma.readingGoal.findUnique({
+    const goal = await this.prisma.readingGoal.findFirst({
       where: {
-        userId_year: {
-          userId: owner.userId,
-          year,
-        },
+        ...this.ownerWhere(owner),
+        year,
       },
     });
 
@@ -53,19 +51,14 @@ export class GoalsService {
         create: {
           completedAt,
           targetBooks: dto.targetBooks,
-          userId: owner.userId,
+          ...ownerRecord(owner),
           year,
         },
         update: {
           completedAt,
           targetBooks: dto.targetBooks,
         },
-        where: {
-          userId_year: {
-            userId: owner.userId,
-            year,
-          },
-        },
+        where: this.uniqueGoalWhere(owner, year),
       });
 
       await this.activityService.emitWithExecutor(transaction, {
@@ -105,7 +98,7 @@ export class GoalsService {
           gte: start,
           lt: end,
         },
-        userId: owner.userId,
+        ...this.ownerWhere(owner),
       },
     });
   }
@@ -138,5 +131,25 @@ export class GoalsService {
       targetBooks: goal.targetBooks,
       year: goal.year,
     };
+  }
+
+  private ownerWhere(owner: OwnerContext): ReturnType<typeof ownerRecord> {
+    return ownerRecord(owner);
+  }
+
+  private uniqueGoalWhere(owner: OwnerContext, year: number): Prisma.ReadingGoalWhereUniqueInput {
+    return owner.type === 'user'
+      ? {
+          userId_year: {
+            userId: owner.userId,
+            year,
+          },
+        }
+      : {
+          guestSessionId_year: {
+            guestSessionId: owner.guestSessionId,
+            year,
+          },
+        };
   }
 }

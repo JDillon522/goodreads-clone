@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ActivityEventType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../database/prisma.service';
-import type { OwnerContext } from '../common/owner/owner-context';
+import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 
 type ActivityInput = {
   libraryItemId?: string;
@@ -27,7 +27,7 @@ export class ActivityService {
         libraryItemId: input.libraryItemId,
         metadata: input.metadata,
         type: input.type,
-        userId: input.owner.userId,
+        ...ownerRecord(input.owner),
       },
     });
   }

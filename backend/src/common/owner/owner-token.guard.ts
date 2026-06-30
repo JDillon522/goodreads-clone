@@ -1,0 +1,96 @@
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
+import type { AccessTokenPayload } from '../../auth/types/access-token-payload';
+import type { HttpHeaderValue } from '../../auth/types/authenticated-request';
+import { PrismaService } from '../../database/prisma.service';
+import { hashOpaqueToken } from '../security/opaque-token';
+import { guestOwnerContext, userOwnerContext } from './owner-context';
+import type { OwnerRequest } from './owner-request';
+
+@Injectable()
+export class OwnerTokenGuard implements CanActivate {
+  public constructor(
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  public async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<OwnerRequest>();
+    const token = this.extractBearerToken(request.headers.authorization);
+
+    if (!token) {
+      throw new UnauthorizedException('Missing bearer token.');
+    }
+
+    if (await this.attachUserOwner(request, token)) {
+      return true;
+    }
+
+    if (await this.attachGuestOwner(request, token)) {
+      return true;
+    }
+
+    throw new UnauthorizedException('Invalid or expired bearer token.');
+  }
+
+  private async attachGuestOwner(request: OwnerRequest, token: string): Promise<boolean> {
+    const guestSession = await this.prisma.guestSession.findUnique({
+      select: { expiresAt: true, id: true },
+      where: { tokenHash: hashOpaqueToken(token) },
+    });
+
+    if (!guestSession || guestSession.expiresAt <= new Date()) {
+      return false;
+    }
+
+    await this.prisma.guestSession.update({
+      data: { lastSeenAt: new Date() },
+      where: { id: guestSession.id },
+    });
+
+    request.owner = guestOwnerContext(guestSession.id);
+
+    return true;
+  }
+
+  private async attachUserOwner(request: OwnerRequest, token: string): Promise<boolean> {
+    try {
+      const payload = await this.jwtService.verifyAsync<AccessTokenPayload>(token, {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      });
+
+      if (payload.type !== 'access' || !payload.sub) {
+        return false;
+      }
+
+      request.owner = userOwnerContext(payload.sub);
+      request.user = {
+        email: payload.email,
+        id: payload.sub,
+      };
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private extractBearerToken(header: HttpHeaderValue): string | undefined {
+    const value = Array.isArray(header) ? header[0] : header;
+
+    if (!value) {
+      return undefined;
+    }
+
+    const [scheme, token] = value.split(' ');
+
+    if (scheme?.toLowerCase() !== 'bearer' || !token) {
+      return undefined;
+    }
+
+    return token;
+  }
+}

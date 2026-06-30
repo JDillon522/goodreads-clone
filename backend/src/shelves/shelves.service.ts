@@ -7,7 +7,7 @@ import {
 import { ActivityEventType, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
-import { OwnerContext } from '../common/owner/owner-context';
+import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { CreateShelfRequestDto } from './dto/create-shelf-request.dto';
 import { ShelfResponseDto } from './dto/shelf-response.dto';
@@ -47,7 +47,7 @@ export class ShelvesService {
           name,
           position,
           slug,
-          userId: owner.userId,
+          ...ownerRecord(owner),
         },
         include: shelfInclude,
       });
@@ -142,7 +142,7 @@ export class ShelvesService {
 
     if (ownedIds.size !== requestedIds.size || dto.shelfIds.some((id) => !ownedIds.has(id))) {
       throw new BadRequestException(
-        'Shelf order must include every shelf owned by this user exactly once.',
+        'Shelf order must include every shelf owned by this library exactly once.',
       );
     }
 
@@ -212,7 +212,7 @@ export class ShelvesService {
   }
 
   private ownerWhere(owner: OwnerContext): Prisma.ShelfWhereInput {
-    return { userId: owner.userId };
+    return ownerRecord(owner);
   }
 
   private toShelfResponse(shelf: ShelfWithCount): ShelfResponseDto {

@@ -17,8 +17,9 @@ export function setupSwagger(app: INestApplication, apiPrefix: string): void {
       {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Paste a Bookshelf bearer token here after signing in.',
+        bearerFormat: 'JWT or guest token',
+        description:
+          'Paste a signed-in user access token or a guest token. Auth-only routes require a user access token.',
       },
       'bearer',
     )

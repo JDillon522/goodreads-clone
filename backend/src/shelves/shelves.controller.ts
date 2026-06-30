@@ -19,10 +19,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import type { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { userOwnerContext } from '../common/owner/owner-context';
+import { CurrentOwner } from '../common/owner/current-owner.decorator';
+import type { OwnerContext } from '../common/owner/owner-context';
+import { OwnerTokenGuard } from '../common/owner/owner-token.guard';
 import { CreateShelfRequestDto } from './dto/create-shelf-request.dto';
 import { ShelfResponseDto } from './dto/shelf-response.dto';
 import { UpdateShelfOrderRequestDto } from './dto/update-shelf-order-request.dto';
@@ -32,55 +31,55 @@ import { ShelvesService } from './shelves.service';
 @ApiBearerAuth('bearer')
 @ApiTags('Shelves')
 @Controller('shelves')
-@UseGuards(AccessTokenGuard)
+@UseGuards(OwnerTokenGuard)
 export class ShelvesController {
   public constructor(private readonly shelvesService: ShelvesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a custom shelf.' })
+  @ApiOperation({ summary: 'Create a custom shelf for the current library owner.' })
   @ApiCreatedResponse({ type: ShelfResponseDto })
   public createShelf(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Body() dto: CreateShelfRequestDto,
   ): Promise<ShelfResponseDto> {
-    return this.shelvesService.createShelf(userOwnerContext(user.id), dto);
+    return this.shelvesService.createShelf(owner, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an empty custom shelf.' })
   @ApiNoContentResponse()
   public async deleteShelf(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) shelfId: string,
   ): Promise<void> {
-    await this.shelvesService.deleteShelf(userOwnerContext(user.id), shelfId);
+    await this.shelvesService.deleteShelf(owner, shelfId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'List shelves for the authenticated user.' })
+  @ApiOperation({ summary: 'List shelves for the current library owner.' })
   @ApiOkResponse({ type: ShelfResponseDto, isArray: true })
-  public listShelves(@CurrentUser() user: AuthenticatedUser): Promise<ShelfResponseDto[]> {
-    return this.shelvesService.listShelves(userOwnerContext(user.id));
+  public listShelves(@CurrentOwner() owner: OwnerContext): Promise<ShelfResponseDto[]> {
+    return this.shelvesService.listShelves(owner);
   }
 
   @Put('order')
   @ApiOperation({ summary: 'Replace shelf ordering.' })
   @ApiOkResponse({ type: ShelfResponseDto, isArray: true })
   public updateShelfOrder(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Body() dto: UpdateShelfOrderRequestDto,
   ): Promise<ShelfResponseDto[]> {
-    return this.shelvesService.updateShelfOrder(userOwnerContext(user.id), dto);
+    return this.shelvesService.updateShelfOrder(owner, dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Rename a shelf without changing its internal slug.' })
   @ApiOkResponse({ type: ShelfResponseDto })
   public updateShelf(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) shelfId: string,
     @Body() dto: UpdateShelfRequestDto,
   ): Promise<ShelfResponseDto> {
-    return this.shelvesService.updateShelf(userOwnerContext(user.id), shelfId, dto);
+    return this.shelvesService.updateShelf(owner, shelfId, dto);
   }
 }

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
 import { ActivityModule } from '../activity/activity.module';
-import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { OwnerTokenGuard } from '../common/owner/owner-token.guard';
 import { DatabaseModule } from '../database/database.module';
 import { LibraryController } from './library.controller';
 import { LibraryService } from './library.service';
@@ -11,6 +11,6 @@ import { LibraryService } from './library.service';
   controllers: [LibraryController],
   exports: [LibraryService],
   imports: [ActivityModule, DatabaseModule, JwtModule.register({})],
-  providers: [AccessTokenGuard, LibraryService],
+  providers: [OwnerTokenGuard, LibraryService],
 })
 export class LibraryModule {}

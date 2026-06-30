@@ -19,10 +19,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { AccessTokenGuard } from '../auth/guards/access-token.guard';
-import type { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { userOwnerContext } from '../common/owner/owner-context';
+import { CurrentOwner } from '../common/owner/current-owner.decorator';
+import type { OwnerContext } from '../common/owner/owner-context';
+import { OwnerTokenGuard } from '../common/owner/owner-token.guard';
 import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
 import { LibraryItemResponseDto } from './dto/library-item-response.dto';
 import { LibraryQueryDto } from './dto/library-query.dto';
@@ -34,80 +33,80 @@ import { LibraryService } from './library.service';
 @ApiBearerAuth('bearer')
 @ApiTags('Library')
 @Controller('library')
-@UseGuards(AccessTokenGuard)
+@UseGuards(OwnerTokenGuard)
 export class LibraryController {
   public constructor(private readonly libraryService: LibraryService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Add a normalized book to the authenticated user library.' })
+  @ApiOperation({ summary: 'Add a normalized book to the current owner library.' })
   @ApiCreatedResponse({ type: LibraryItemResponseDto })
   public addLibraryItem(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Body() dto: AddLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
-    return this.libraryService.addLibraryItem(userOwnerContext(user.id), dto);
+    return this.libraryService.addLibraryItem(owner, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a library item.' })
   @ApiNoContentResponse()
   public async deleteLibraryItem(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
   ): Promise<void> {
-    await this.libraryService.deleteLibraryItem(userOwnerContext(user.id), libraryItemId);
+    await this.libraryService.deleteLibraryItem(owner, libraryItemId);
   }
 
   @Get()
   @ApiOperation({ summary: 'List library items, optionally filtered by shelf.' })
   @ApiOkResponse({ type: LibraryItemResponseDto, isArray: true })
   public listLibraryItems(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Query() query: LibraryQueryDto,
   ): Promise<LibraryItemResponseDto[]> {
-    return this.libraryService.listLibraryItems(userOwnerContext(user.id), query);
+    return this.libraryService.listLibraryItems(owner, query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a library item by id.' })
   @ApiOkResponse({ type: LibraryItemResponseDto })
   public getLibraryItem(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
   ): Promise<LibraryItemResponseDto> {
-    return this.libraryService.getLibraryItem(userOwnerContext(user.id), libraryItemId);
+    return this.libraryService.getLibraryItem(owner, libraryItemId);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update rating and notes for a library item.' })
   @ApiOkResponse({ type: LibraryItemResponseDto })
   public updateLibraryItem(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
     @Body() dto: UpdateLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
-    return this.libraryService.updateLibraryItem(userOwnerContext(user.id), libraryItemId, dto);
+    return this.libraryService.updateLibraryItem(owner, libraryItemId, dto);
   }
 
   @Patch(':id/shelf')
   @ApiOperation({ summary: 'Move a library item to another shelf.' })
   @ApiOkResponse({ type: LibraryItemResponseDto })
   public moveLibraryItem(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
     @Body() dto: MoveLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
-    return this.libraryService.moveLibraryItem(userOwnerContext(user.id), libraryItemId, dto);
+    return this.libraryService.moveLibraryItem(owner, libraryItemId, dto);
   }
 
   @Post(':id/progress')
   @ApiOperation({ summary: 'Append a progress update and update completion state.' })
   @ApiOkResponse({ type: LibraryItemResponseDto })
   public updateProgress(
-    @CurrentUser() user: AuthenticatedUser,
+    @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
     @Body() dto: UpdateProgressRequestDto,
   ): Promise<LibraryItemResponseDto> {
-    return this.libraryService.updateProgress(userOwnerContext(user.id), libraryItemId, dto);
+    return this.libraryService.updateProgress(owner, libraryItemId, dto);
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ThemePreference } from '@prisma/client';
 import type { User } from '@prisma/client';
 
+import { defaultShelves } from '../common/shelves/default-shelves';
 import { PrismaService } from '../database/prisma.service';
 
 export type AuthUserRecord = Pick<User, 'createdAt' | 'displayName' | 'email' | 'id'>;
@@ -11,12 +12,6 @@ export type CreateUserInput = {
   email: string;
   passwordHash: string;
 };
-
-const defaultShelves = [
-  { isDefault: true, name: 'Want to Read', position: 0, slug: 'want-to-read' },
-  { isDefault: true, name: 'Currently Reading', position: 1, slug: 'currently-reading' },
-  { isDefault: true, name: 'Read', position: 2, slug: 'read' },
-] as const;
 
 @Injectable()
 export class UsersService {

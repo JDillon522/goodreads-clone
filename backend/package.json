@@ -18,6 +18,7 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "test": "jest",
+    "test:e2e": "RUN_E2E=true jest --runInBand --testRegex \".*\\\\.e2e-spec\\\\.ts$\"",
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

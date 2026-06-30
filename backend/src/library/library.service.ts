@@ -7,7 +7,7 @@ import {
 import { ActivityEventType, BookProvider, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
-import { OwnerContext } from '../common/owner/owner-context';
+import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
 import { BookInputDto } from './dto/book-input.dto';
@@ -44,7 +44,7 @@ export class LibraryService {
       const book = await this.upsertBook(transaction, dto.book);
       const duplicate = await transaction.libraryItem.findFirst({
         where: {
-          userId: owner.userId,
+          ...this.ownerWhere(owner),
           OR: [{ bookId: book.id }, { dedupeKey: dto.book.dedupeKey }],
         },
       });
@@ -58,7 +58,7 @@ export class LibraryService {
           bookId: book.id,
           dedupeKey: dto.book.dedupeKey,
           shelfId: shelf.id,
-          userId: owner.userId,
+          ...ownerRecord(owner),
         },
         include: libraryItemInclude,
       });
@@ -107,7 +107,7 @@ export class LibraryService {
       include: libraryItemInclude,
       orderBy: [{ dateAdded: 'desc' }, { createdAt: 'desc' }],
       where: {
-        userId: owner.userId,
+        ...this.ownerWhere(owner),
         ...(query.shelfId ? { shelfId: query.shelfId } : {}),
       },
     });
@@ -293,7 +293,7 @@ export class LibraryService {
       select: { id: true, slug: true },
       where: {
         slug,
-        userId: owner.userId,
+        ...this.ownerWhere(owner),
       },
     });
 
@@ -312,7 +312,7 @@ export class LibraryService {
       include: libraryItemInclude,
       where: {
         id: libraryItemId,
-        userId: owner.userId,
+        ...this.ownerWhere(owner),
       },
     });
 
@@ -332,7 +332,7 @@ export class LibraryService {
       select: { id: true, slug: true },
       where: {
         id: shelfId,
-        userId: owner.userId,
+        ...this.ownerWhere(owner),
       },
     });
 
@@ -353,7 +353,7 @@ export class LibraryService {
       return (await this.getDefaultShelf(executor, owner, 'read')).id;
     }
 
-    if (!isComplete && item.shelf.slug === 'read') {
+    if (!isComplete && (item.shelf.slug === 'read' || item.shelf.slug === 'want-to-read')) {
       return (await this.getDefaultShelf(executor, owner, 'currently-reading')).id;
     }
 
@@ -448,6 +448,10 @@ export class LibraryService {
         },
       },
     });
+  }
+
+  private ownerWhere(owner: OwnerContext): ReturnType<typeof ownerRecord> {
+    return ownerRecord(owner);
   }
 }
 

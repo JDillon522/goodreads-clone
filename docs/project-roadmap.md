@@ -55,14 +55,14 @@ Authoritative v1 defaults:
 - Ensure a book belongs to exactly one shelf per user.
 - Emit activity events for important actions.
 
-### 7. Guest Mode Backend
+### 7. Guest Mode Backend - DONE
 
 - Add `POST /guest/session`.
 - Seed temporary guest library data from `data/sample-books.json`.
 - Use the same API shapes as authenticated users.
 - Make guest data session-scoped with expiration/cleanup, not permanent account data.
 
-### 8. Backend Test + Hardening Pass
+### 8. Backend Test + Hardening Pass - DONE
 
 - Add unit tests for normalization, duplicate detection, auth guards, shelf rules, goal pace, and progress completion.
 - Add e2e/API tests for signup, guest session, book search, add book, move shelf, update progress, and goal update.
@@ -132,6 +132,10 @@ Authoritative v1 defaults:
 | 2026-06-30 | Stage 6 shelf behavior | Default shelves cannot be deleted, but names can be changed; slugs remain stable for internal rules. |
 | 2026-06-30 | Stage 6 library behavior | Add-to-library uses normalized book DTOs, upserts app-owned books, rejects owner duplicates, and keeps each library item on exactly one shelf. |
 | 2026-06-30 | Stage 6 progress behavior | Page or percent progress is supported; 100% completion marks `dateFinished` and moves the item to the `read` shelf when available. |
+| 2026-06-30 | Stage 7 guest token behavior | `POST /api/guest/session` creates a 7-day opaque guest token and seeds an active-reader demo library. |
+| 2026-06-30 | Stage 7 owner API behavior | Shelves, library, progress, and goals now accept either signed-in user access tokens or guest tokens through the same endpoints. |
+| 2026-06-30 | Stage 7 guest cleanup | Expired guest sessions are deleted through a cleanup service method; cascade deletes remove guest-owned shelves, items, progress, goals, preferences, and activity events while shared books remain. |
+| 2026-06-30 | Stage 8 progress transition hardening | Starting progress on a `want-to-read` item moves it to `currently-reading`; completion still moves items to `read`. |
 
 ## Open Questions
 
@@ -169,3 +173,6 @@ Authoritative v1 defaults:
 - Added activity events for shelf creation/rename/delete, book add/move/finish, progress updates, ratings, notes, and goal updates.
 - Added pure rule coverage for shelf deletion/slugging, progress completion, text normalization, and annual goal pace.
 - Verified Stage 6 against the running Docker backend with signup, shelves, add-to-library, duplicate rejection, rating/notes, progress completion, goal completion, and Swagger path checks; removed temporary smoke users afterward.
+- Completed Stage 7 guest mode: `POST /api/guest/session`, opaque guest bearer tokens, 7-day default expiration, active-reader demo seeding from `data/sample-books.json`, owner-token guard, guest cleanup service, and production Docker access to sample data.
+- Refactored shelves, library, progress, and goals to use shared owner context so the same API routes support authenticated users and guest sessions without duplicating controllers.
+- Completed Stage 8 hardening: added guest service and owner-token guard unit tests, added Docker-backed API workflow e2e tests, and verified cleanup removes temporary e2e users and guest sessions.

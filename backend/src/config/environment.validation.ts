@@ -4,6 +4,7 @@ type Environment = {
   API_PREFIX: string;
   CORS_ORIGIN: string;
   DATABASE_URL: string;
+  GUEST_SESSION_TTL_DAYS: number;
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
   NODE_ENV: 'development' | 'test' | 'production';
@@ -27,6 +28,7 @@ const environmentSchema = Joi.object<Environment>({
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgresql', 'postgres'] })
     .default(defaultDatabaseUrl),
+  GUEST_SESSION_TTL_DAYS: Joi.number().integer().positive().default(7),
   JWT_ACCESS_SECRET: Joi.string().min(32).default(devAccessSecret),
   JWT_REFRESH_SECRET: Joi.string().min(32).default(devRefreshSecret),
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
