@@ -27,6 +27,8 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+certs/*.pem
+certs/*.crt
 
 # IDE
 .vscode/

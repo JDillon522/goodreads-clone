@@ -7,6 +7,11 @@ type Environment = {
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
   NODE_ENV: 'development' | 'test' | 'production';
+  OPEN_LIBRARY_BASE_URL: string;
+  OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS: number;
+  OPEN_LIBRARY_REQUEST_TIMEOUT_MS: number;
+  OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS: number;
+  OPEN_LIBRARY_USER_AGENT: string;
   PASSWORD_RESET_TOKEN_TTL_MINUTES: number;
   PORT: number;
 };
@@ -25,6 +30,14 @@ const environmentSchema = Joi.object<Environment>({
   JWT_ACCESS_SECRET: Joi.string().min(32).default(devAccessSecret),
   JWT_REFRESH_SECRET: Joi.string().min(32).default(devRefreshSecret),
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
+  OPEN_LIBRARY_BASE_URL: Joi.string().uri().default('https://openlibrary.org'),
+  OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS: Joi.number().integer().positive().default(168),
+  OPEN_LIBRARY_REQUEST_TIMEOUT_MS: Joi.number().integer().positive().default(8000),
+  OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS: Joi.number().integer().positive().default(24),
+  OPEN_LIBRARY_USER_AGENT: Joi.string()
+    .trim()
+    .min(10)
+    .default('Bookshelf/0.1.0 (local development; contact: local@example.com)'),
   PASSWORD_RESET_TOKEN_TTL_MINUTES: Joi.number().integer().positive().default(30),
   PORT: Joi.number().port().default(3000),
 }).unknown(true);

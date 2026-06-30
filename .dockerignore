@@ -7,6 +7,8 @@ backend/coverage
 .git
 .env
 .env.*
+certs/*.pem
+certs/*.crt
 npm-debug.log*
 Dockerfile
 docker-compose.yml

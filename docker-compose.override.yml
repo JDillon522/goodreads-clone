@@ -13,6 +13,12 @@ services:
       JWT_ACCESS_SECRET: dev-only-access-secret-replace-before-deploy
       JWT_REFRESH_SECRET: dev-only-refresh-secret-replace-before-deploy
       PASSWORD_RESET_TOKEN_TTL_MINUTES: 30
+      OPEN_LIBRARY_BASE_URL: https://openlibrary.org
+      OPEN_LIBRARY_USER_AGENT: "Bookshelf/0.1.0 (local development; contact: local@example.com)"
+      OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS: 24
+      OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS: 168
+      OPEN_LIBRARY_REQUEST_TIMEOUT_MS: 8000
+      NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-/app/certs/local-ca.pem}
     volumes:
       - .:/app
       - backend-node-modules:/app/node_modules

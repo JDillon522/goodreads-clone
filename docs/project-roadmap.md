@@ -42,7 +42,7 @@ Authoritative v1 defaults:
 - Protect user-owned routes.
 - Add ownership checks so one user cannot touch another user's library data.
 
-### 5. Book API Boundary
+### 5. Book API Boundary - DONE
 
 - Integrate Open Library behind Nest.
 - Normalize external results into app-shaped book DTOs.
@@ -124,6 +124,11 @@ Authoritative v1 defaults:
 | 2026-06-29 | Prisma 7 driver adapter | Use `@prisma/adapter-pg` and `pg`; PrismaClient requires an explicit adapter. |
 | 2026-06-29 | Stage 4 auth defaults | Use `argon2id` password hashing, 15-minute JWT access tokens, 30-day opaque refresh tokens stored as SHA-256 hashes, and JSON token responses for Swagger testing. |
 | 2026-06-29 | Password reset testing path | Development/test password reset requests return the reset token in JSON; production must hide it until email delivery is implemented. |
+| 2026-06-29 | Stage 5 book provider defaults | Book search is public; Open Library is hidden behind Nest-owned DTOs; missing covers stay `null`; search cache TTL is 24 hours and detail cache TTL is 7 days. |
+| 2026-06-29 | Open Library detail route shape | Use `GET /api/books/open-library/:type/:id` with `type` as `works` or `books` and `id` as the bare Open Library id. |
+| 2026-06-29 | Open Library request timeout | Outbound Open Library calls use an 8-second default timeout so provider slowness fails as a mapped API error. |
+| 2026-06-29 | Runtime TLS stance | Do not disable TLS verification by default for external book API calls; local self-signed certificate interception should be handled with a trusted CA via `NODE_EXTRA_CA_CERTS`. |
+| 2026-06-29 | Local CA startup helper | `npm run dev:backend` and `npm run docker:up` auto-detect `certs/local-ca.pem`; direct `docker compose up` also points the dev backend at `/app/certs/local-ca.pem`. |
 
 ## Open Questions
 
@@ -149,3 +154,7 @@ Authoritative v1 defaults:
 - Added `AccessTokenGuard`, `CurrentUser` decorator, `AuthModule`, `UsersModule`, default shelf/preference creation on signup, and Swagger DTOs for auth responses.
 - Verified Stage 4 with backend typecheck, ESLint, and Jest coverage for auth service, access token guard, user defaults, and health endpoints.
 - Smoke-tested Stage 4 in Docker through health, Swagger JSON, signup, bearer `me`, refresh, password reset request/confirm, and signout; removed the temporary smoke account afterward.
+- Completed Stage 5 book provider boundary: public Open Library search, Open Library work/edition detail endpoint, normalized book DTOs, provider response caching, error mapping, cache TTL env settings, and outbound request timeout config.
+- Added normalization coverage for sparse provider data, missing covers/authors, ISBN selection, duplicate work grouping, and service cache behavior.
+- Verified Stage 5 with backend build, typecheck, ESLint, Jest, Prettier/Prisma validation, npm audit, Docker health/readiness, and Swagger book path registration.
+- Live Open Library smoke through Node was blocked locally by `SELF_SIGNED_CERT_IN_CHAIN`; the code returns a 503 for that failure and documentation records the trusted-CA fix instead of disabling runtime TLS.
