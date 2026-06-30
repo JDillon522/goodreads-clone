@@ -68,7 +68,7 @@ Authoritative v1 defaults:
 - Add e2e/API tests for signup, guest session, book search, add book, move shelf, update progress, and goal update.
 - Add validation DTOs, exception mapping, and helpful error messages.
 
-### 9. Frontend Foundation
+### 9. Frontend Foundation - DONE
 
 - Scaffold Angular after backend contracts are stable.
 - Use standalone components, signals, strict typing, explicit access modifiers, and the existing design tokens.
@@ -136,6 +136,12 @@ Authoritative v1 defaults:
 | 2026-06-30 | Stage 7 owner API behavior | Shelves, library, progress, and goals now accept either signed-in user access tokens or guest tokens through the same endpoints. |
 | 2026-06-30 | Stage 7 guest cleanup | Expired guest sessions are deleted through a cleanup service method; cascade deletes remove guest-owned shelves, items, progress, goals, preferences, and activity events while shared books remain. |
 | 2026-06-30 | Stage 8 progress transition hardening | Starting progress on a `want-to-read` item moves it to `currently-reading`; completion still moves items to `read`. |
+| 2026-06-30 | Stage 9 design foundation | Shared frontend CSS follows Atomic Design layers; atoms style only primitive HTML tags, and unproven shared layers stay blank until real components justify selectors. |
+| 2026-06-30 | Stage 9 API type generation | Use `openapi-typescript` for type/interface-only frontend API contract generation from `/docs-json`; do not generate runtime DTO classes or Angular services. |
+| 2026-06-30 | Stage 9 Angular foundation | Use Angular v22 standalone lazy routes, `ChangeDetectionStrategy.OnPush`, signals, and signal forms for frontend foundation work. |
+| 2026-06-30 | Stage 9 session storage | Store authenticated access/refresh tokens in `localStorage`; store guest tokens and guest expiration state in `sessionStorage`. |
+| 2026-06-30 | Stage 9 proxy topology | Add nginx as the browser-facing container on `localhost:8080`; dev routes non-API traffic to Angular dev server and `/api`, `/docs`, `/docs-json` to Nest. Production proxy serves Angular static assets and forwards API/docs traffic to the backend. |
+| 2026-06-30 | Stage 9 visual direction | Move tokens away from the starter beige/brown palette toward a cleaner neutral/teal foundation while keeping all colors adjustable through CSS variables. |
 
 ## Open Questions
 
@@ -176,3 +182,7 @@ Authoritative v1 defaults:
 - Completed Stage 7 guest mode: `POST /api/guest/session`, opaque guest bearer tokens, 7-day default expiration, active-reader demo seeding from `data/sample-books.json`, owner-token guard, guest cleanup service, and production Docker access to sample data.
 - Refactored shelves, library, progress, and goals to use shared owner context so the same API routes support authenticated users and guest sessions without duplicating controllers.
 - Completed Stage 8 hardening: added guest service and owner-token guard unit tests, added Docker-backed API workflow e2e tests, and verified cleanup removes temporary e2e users and guest sessions.
+- Completed Stage 9 frontend foundation: Angular workspace, standalone lazy routes, route shell, minimal landing page, auth/reset screens, guest entry, library/shelf/search/book detail/goals/settings pages, typed API client, bearer-token interceptor, auth/guest/session/theme services, OpenAPI type aliases, and signal-form wiring.
+- Added frontend Atomic Design CSS scaffolding with variables plus tag-only atoms, light/dark theme tokens, Phosphor icons, and route-scoped styles for the initial foundation UI.
+- Added Docker frontend dev image and nginx proxy dev/production images; `docker compose up` now exposes the app through `http://localhost:8080`, proxies `/api`, `/docs`, and `/docs-json` to the backend, and keeps the frontend dev server internal.
+- Verified Stage 9 with `ngc`, frontend typecheck, frontend unit tests, local production frontend build, dev/prod Docker proxy builds, Compose startup, proxy `/api/health`, proxy deep-route fallback, and `POST /api/guest/session` through nginx.

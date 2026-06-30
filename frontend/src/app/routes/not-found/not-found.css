@@ -1,0 +1,23 @@
+.not-found {
+  display: grid;
+  min-block-size: 100dvh;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.not-found i {
+  color: var(--color-accent);
+  font-size: var(--text-3xl);
+}
+
+.not-found p {
+  color: var(--color-text-secondary);
+}
+
+.not-found a {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+}

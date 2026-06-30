@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
 
 FROM base AS development
 

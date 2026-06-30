@@ -1,0 +1,61 @@
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/app/library">
+      <i class="ph-bold ph-books" aria-hidden="true"></i>
+      <span>Bookshelf</span>
+    </a>
+
+    <nav class="nav-list" aria-label="App">
+      <a routerLink="/app/library" routerLinkActive="is-active">
+        <i class="ph ph-books" aria-hidden="true"></i>
+        <span>Library</span>
+      </a>
+      <a routerLink="/app/search" routerLinkActive="is-active">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <span>Search</span>
+      </a>
+      <a routerLink="/app/goals" routerLinkActive="is-active">
+        <i class="ph ph-target" aria-hidden="true"></i>
+        <span>Goals</span>
+      </a>
+      <a routerLink="/app/settings" routerLinkActive="is-active">
+        <i class="ph ph-sliders-horizontal" aria-hidden="true"></i>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <section class="shelves" aria-labelledby="shelves-heading">
+      <h2 id="shelves-heading">Shelves</h2>
+      @if (isLoadingShelves()) {
+        <p class="muted">Loading shelves...</p>
+      } @else {
+        <nav class="nav-list nav-list--compact" aria-label="Shelves">
+          @for (shelf of shelves(); track shelf.id) {
+            <a [routerLink]="['/app/shelves', shelf.id]" routerLinkActive="is-active">
+              <span>{{ shelf.name }}</span>
+              <span class="count">{{ shelf.itemCount }}</span>
+            </a>
+          }
+        </nav>
+      }
+    </section>
+
+    <div class="sidebar__footer">
+      @if (session.isGuest() && session.guestHasUnsavedChanges()) {
+        <p class="guest-note">Your changes last until {{ session.guestExpiresAt() | date: 'short' }} unless you create an account.</p>
+      }
+      <button class="icon-button" type="button" (click)="theme.toggle()" aria-label="Toggle theme">
+        @if (theme.effectiveTheme() === 'dark') {
+          <i class="ph ph-sun" aria-hidden="true"></i>
+        } @else {
+          <i class="ph ph-moon" aria-hidden="true"></i>
+        }
+      </button>
+      <button class="sign-out" type="button" (click)="signOut()">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="shell__main">
+    <router-outlet />
+  </main>
+</div>

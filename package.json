@@ -4,7 +4,8 @@
   "private": true,
   "description": "Bookshelf full-stack personal reading tracker.",
   "workspaces": [
-    "backend"
+    "backend",
+    "frontend"
   ],
   "overrides": {
     "@hono/node-server": "1.19.13",
@@ -24,11 +25,14 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build:backend": "npm run build -w backend",
+    "build:frontend": "npm run build -w bookshelf-frontend",
+    "api:types": "openapi-typescript http://localhost:3000/docs-json -o frontend/src/app/core/api/bookshelf-api.types.ts",
     "db:generate": "npm run prisma:generate -w backend",
     "db:migrate:dev": "docker compose run --rm backend npm run db:migrate:dev -w backend",
     "db:migrate:deploy": "docker compose run --rm backend npm run db:migrate:deploy -w backend",
     "db:seed": "docker compose run --rm backend npm run db:seed -w backend",
     "dev:backend": "node scripts/with-local-ca.mjs host npm run start:dev -w backend",
+    "dev:frontend": "npm run start -w bookshelf-frontend -- --host 0.0.0.0 --port 4200",
     "format": "npm run format --workspaces --if-present",
     "format:backend": "npm run format -w backend",
     "format:check": "npm run format:check --workspaces --if-present",
@@ -36,11 +40,13 @@
     "start:backend:prod": "npm run start:prod -w backend",
     "test": "npm run test --workspaces --if-present",
     "test:backend": "npm run test -w backend",
+    "test:frontend": "npm run test -w bookshelf-frontend",
     "test:e2e:backend": "npm run test:e2e -w backend",
     "lint": "npm run lint --workspaces --if-present",
     "lint:backend": "npm run lint -w backend",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "typecheck:backend": "npm run typecheck -w backend",
+    "typecheck:frontend": "npm run typecheck -w bookshelf-frontend",
     "docker:up": "node scripts/with-local-ca.mjs docker docker compose up --build",
     "docker:up:prod": "docker compose -f docker-compose.yml up --build",
     "docker:down": "docker compose down",
@@ -52,5 +58,8 @@
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0"
   }
 }

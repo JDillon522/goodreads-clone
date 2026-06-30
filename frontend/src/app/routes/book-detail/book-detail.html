@@ -1,0 +1,60 @@
+<section class="page">
+  <a class="back-link" routerLink="/app/library">
+    <i class="ph ph-arrow-left" aria-hidden="true"></i>
+    <span>Library</span>
+  </a>
+
+  @if (isLoading()) {
+    <p class="muted">Loading book...</p>
+  } @else if (error() && !item()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  } @else if (item()) {
+    <article class="book-detail">
+      <div class="book-cover">
+        @if (coverUrl()) {
+          <img [src]="coverUrl()" [alt]="item()!.book.title + ' cover'" />
+        } @else {
+          <i class="ph ph-book-open-text" aria-hidden="true"></i>
+        }
+      </div>
+
+      <div class="book-copy">
+        <p class="eyebrow">{{ item()!.shelf.name }}</p>
+        <h1>{{ item()!.book.title }}</h1>
+        <p class="author">{{ primaryAuthor() }}</p>
+        <p class="description">{{ description() }}</p>
+
+        <form class="progress-form" (submit)="submitProgress($event)">
+          <h2>Progress</h2>
+          <label>
+            <span>Mode</span>
+            <select [formField]="progressForm.trackingMode">
+              <option value="PAGE">Pages</option>
+              <option value="PERCENT">Percent</option>
+            </select>
+          </label>
+          @if (progressForm.trackingMode().value() === 'PAGE') {
+            <label>
+              <span>Current page</span>
+              <input type="number" [formField]="progressForm.currentPage" />
+            </label>
+          } @else {
+            <label>
+              <span>Current percent</span>
+              <input type="number" [formField]="progressForm.currentPercent" />
+            </label>
+          }
+          <button class="primary-button" type="submit" [disabled]="progressForm().submitting()">
+            {{ progressForm().submitting() ? 'Saving...' : 'Save progress' }}
+          </button>
+          @if (status()) {
+            <p class="success-message">{{ status() }}</p>
+          }
+          @if (error()) {
+            <p class="error-message" role="alert">{{ error() }}</p>
+          }
+        </form>
+      </div>
+    </article>
+  }
+</section>

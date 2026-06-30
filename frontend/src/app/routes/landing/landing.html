@@ -1,0 +1,66 @@
+<main class="landing">
+  <nav class="landing__nav" aria-label="Primary">
+    <a class="brand" routerLink="/">
+      <i class="ph-bold ph-books" aria-hidden="true"></i>
+      <span>Bookshelf</span>
+    </a>
+    <div class="landing__actions">
+      <button class="icon-button" type="button" (click)="theme.toggle()" aria-label="Toggle theme">
+        @if (theme.effectiveTheme() === 'dark') {
+          <i class="ph ph-sun" aria-hidden="true"></i>
+        } @else {
+          <i class="ph ph-moon" aria-hidden="true"></i>
+        }
+      </button>
+      <a class="text-link" routerLink="/auth/sign-in">Sign in</a>
+    </div>
+  </nav>
+
+  <section class="landing__hero">
+    <div class="landing__copy">
+      <p class="eyebrow">Personal reading, minus the clutter</p>
+      <h1>Bookshelf</h1>
+      <p class="lede">
+        Track what you are reading, keep shelves clean, and turn progress into something visible without
+        Goodreads-shaped sadness.
+      </p>
+      <div class="landing__cta">
+        <button class="primary-button" type="button" (click)="startGuest()" [disabled]="isStartingGuest()">
+          <i class="ph-bold ph-lightning" aria-hidden="true"></i>
+          <span>{{ isStartingGuest() ? 'Starting...' : 'Try guest mode' }}</span>
+        </button>
+        <a class="secondary-button" routerLink="/auth/sign-up">
+          <i class="ph ph-user-plus" aria-hidden="true"></i>
+          <span>Create account</span>
+        </a>
+      </div>
+      @if (error()) {
+        <p class="error-message" role="alert">{{ error() }}</p>
+      }
+    </div>
+
+    <div class="preview-panel" aria-label="Bookshelf preview">
+      <div class="preview-panel__header">
+        <span>Now reading</span>
+        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+      </div>
+      <div class="preview-book">
+        <div class="preview-book__cover">
+          <i class="ph-bold ph-book-open-text" aria-hidden="true"></i>
+        </div>
+        <div>
+          <p class="preview-book__title">The Left Hand of Darkness</p>
+          <p class="preview-book__meta">152 pages tracked</p>
+        </div>
+      </div>
+      <div class="preview-progress" aria-hidden="true">
+        <span></span>
+      </div>
+      <div class="preview-stats">
+        <span>6 read</span>
+        <span>12 goal</span>
+        <span>On pace</span>
+      </div>
+    </div>
+  </section>
+</main>

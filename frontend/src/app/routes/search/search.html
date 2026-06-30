@@ -1,0 +1,49 @@
+<section class="page">
+  <header class="page__header">
+    <p class="eyebrow">Open Library</p>
+    <h1>Find a book</h1>
+  </header>
+
+  <form class="search-form" (submit)="submitSearch($event)">
+    <label>
+      <span>Search by title, author, ISBN, or subject</span>
+      <input type="search" autocomplete="off" [formField]="searchForm.query" />
+    </label>
+    <button class="primary-button" type="submit" [disabled]="searchForm().submitting()">
+      <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+      <span>{{ searchForm().submitting() ? 'Searching...' : 'Search' }}</span>
+    </button>
+  </form>
+
+  @if (status()) {
+    <p class="success-message">{{ status() }}</p>
+  }
+  @if (error()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  }
+
+  @if (results().length > 0) {
+    <p class="muted">{{ total() }} results found. Showing the first {{ results().length }}.</p>
+    <div class="results-list">
+      @for (book of results(); track book.providerKey) {
+        <article class="result-card">
+          <div class="result-card__cover">
+            @if (coverUrl(book)) {
+              <img [src]="coverUrl(book)" [alt]="book.title + ' cover'" loading="lazy" />
+            } @else {
+              <i class="ph ph-book-open-text" aria-hidden="true"></i>
+            }
+          </div>
+          <div class="result-card__body">
+            <h2>{{ book.title }}</h2>
+            <p>{{ primaryAuthor(book) }}</p>
+            <p class="muted">{{ publishedDate(book) }}</p>
+          </div>
+          <button class="secondary-button" type="button" (click)="addBook(book)" [disabled]="addingKey() === book.providerKey">
+            {{ addingKey() === book.providerKey ? 'Adding...' : 'Add' }}
+          </button>
+        </article>
+      }
+    </div>
+  }
+</section>

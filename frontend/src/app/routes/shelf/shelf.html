@@ -1,0 +1,41 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">Shelf</p>
+      <h1>{{ currentShelf()?.name ?? 'Shelf' }}</h1>
+    </div>
+    <a class="primary-button" routerLink="/app/search">
+      <i class="ph ph-plus" aria-hidden="true"></i>
+      <span>Add book</span>
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="muted">Loading shelf...</p>
+  } @else if (error()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  } @else if (items().length === 0) {
+    <div class="empty-state">
+      <h2>This shelf is empty</h2>
+      <p>Add books from search, then move them here when shelf controls arrive.</p>
+    </div>
+  } @else {
+    <div class="book-grid">
+      @for (item of items(); track item.id) {
+        <a class="book-card" [routerLink]="['/app/books', item.id]">
+          <div class="book-card__cover">
+            @if (coverUrl(item)) {
+              <img [src]="coverUrl(item)" [alt]="item.book.title + ' cover'" loading="lazy" />
+            } @else {
+              <i class="ph ph-book-open-text" aria-hidden="true"></i>
+            }
+          </div>
+          <div>
+            <p class="book-card__title">{{ item.book.title }}</p>
+            <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

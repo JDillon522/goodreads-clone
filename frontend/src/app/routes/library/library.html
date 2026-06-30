@@ -1,0 +1,44 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">Library</p>
+      <h1>Your books</h1>
+    </div>
+    <a class="primary-button" routerLink="/app/search">
+      <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+      <span>Add book</span>
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="muted">Loading library...</p>
+  } @else if (error()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  } @else if (items().length === 0) {
+    <div class="empty-state">
+      <i class="ph ph-books" aria-hidden="true"></i>
+      <h2>No books yet</h2>
+      <p>Search Open Library and add the first book to this shelf stack.</p>
+      <a class="secondary-button" routerLink="/app/search">Search books</a>
+    </div>
+  } @else {
+    <div class="book-grid">
+      @for (item of items(); track item.id) {
+        <a class="book-card" [routerLink]="['/app/books', item.id]">
+          <div class="book-card__cover">
+            @if (coverUrl(item)) {
+              <img [src]="coverUrl(item)" [alt]="item.book.title + ' cover'" loading="lazy" />
+            } @else {
+              <i class="ph ph-book-open-text" aria-hidden="true"></i>
+            }
+          </div>
+          <div class="book-card__body">
+            <p class="book-card__title">{{ item.book.title }}</p>
+            <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
+            <p class="book-card__shelf">{{ item.shelf.name }} · {{ progressLabel(item) }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

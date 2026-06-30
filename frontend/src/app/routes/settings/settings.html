@@ -1,0 +1,27 @@
+<section class="page">
+  <header class="page__header">
+    <p class="eyebrow">Settings</p>
+    <h1>Session and theme</h1>
+  </header>
+
+  <section class="settings-panel">
+    <h2>Theme</h2>
+    <div class="segmented-control" aria-label="Theme preference">
+      <button type="button" (click)="setTheme('light')" [class.is-active]="theme.preference() === 'light'">Light</button>
+      <button type="button" (click)="setTheme('dark')" [class.is-active]="theme.preference() === 'dark'">Dark</button>
+      <button type="button" (click)="setTheme('system')" [class.is-active]="theme.preference() === 'system'">System</button>
+    </div>
+  </section>
+
+  <section class="settings-panel">
+    <h2>Session</h2>
+    <p class="muted">
+      @if (session.isGuest()) {
+        Guest session expires {{ session.guestExpiresAt() | date: 'medium' }}.
+      } @else {
+        Signed in as {{ session.userEmail() ?? 'your account' }}.
+      }
+    </p>
+    <button class="danger-button" type="button" (click)="signOut()">Sign out</button>
+  </section>
+</section>

@@ -1,0 +1,212 @@
+.landing {
+  min-block-size: 100dvh;
+  padding: var(--space-5);
+}
+
+.landing__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-inline-size: var(--page-max-width);
+  margin-inline: auto;
+}
+
+.brand,
+.landing__actions,
+.landing__cta,
+.preview-book,
+.preview-panel__header,
+.preview-stats {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
+
+.brand i {
+  color: var(--color-accent);
+  font-size: var(--text-xl);
+}
+
+.landing__actions,
+.landing__cta {
+  gap: var(--space-3);
+}
+
+.text-link {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.text-link:hover {
+  color: var(--color-text-primary);
+}
+
+.icon-button,
+.primary-button,
+.secondary-button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.icon-button {
+  display: grid;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  place-items: center;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.landing__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 27rem);
+  gap: var(--space-12);
+  align-items: center;
+  max-inline-size: var(--page-max-width);
+  min-block-size: calc(100dvh - 7rem);
+  margin-inline: auto;
+  padding-block: var(--space-16);
+}
+
+.landing__copy {
+  max-inline-size: 42rem;
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+
+h1 {
+  margin-block-start: var(--space-4);
+  font-size: var(--text-3xl);
+}
+
+.lede {
+  max-inline-size: 34rem;
+  margin-block-start: var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.landing__cta {
+  flex-wrap: wrap;
+  margin-block-start: var(--space-8);
+}
+
+.primary-button,
+.secondary-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-4);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
+
+.primary-button {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.secondary-button {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+}
+
+.error-message {
+  margin-block-start: var(--space-4);
+  color: var(--color-error);
+}
+
+.preview-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+}
+
+.preview-panel__header,
+.preview-stats {
+  justify-content: space-between;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.preview-book {
+  gap: var(--space-4);
+  margin-block-start: var(--space-8);
+}
+
+.preview-book__cover {
+  display: grid;
+  inline-size: 5.5rem;
+  aspect-ratio: 2 / 3;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(150deg, var(--color-accent-subtle), var(--color-bg-tertiary));
+  color: var(--color-accent);
+  font-size: var(--text-3xl);
+}
+
+.preview-book__title {
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+}
+
+.preview-book__meta {
+  margin-block-start: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.preview-progress {
+  overflow: hidden;
+  block-size: 0.5rem;
+  margin-block: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+}
+
+.preview-progress span {
+  display: block;
+  inline-size: 52%;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-progress);
+}
+
+@media (max-width: 760px) {
+  .landing {
+    padding: var(--space-4);
+  }
+
+  .landing__hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-block: var(--space-10);
+  }
+}
+
+@media (min-width: 760px) {
+  h1 {
+    font-size: 4.5rem;
+  }
+}

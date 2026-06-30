@@ -1,0 +1,39 @@
+<main class="auth-page">
+  <form class="auth-panel" (submit)="submitSignUp($event)">
+    <a class="brand" routerLink="/">
+      <i class="ph-bold ph-books" aria-hidden="true"></i>
+      <span>Bookshelf</span>
+    </a>
+    <header>
+      <h1>Create account</h1>
+      <p>Save shelves permanently and keep guest-mode chaos contained.</p>
+    </header>
+
+    <label>
+      <span>Display name</span>
+      <input type="text" autocomplete="name" [formField]="signUpForm.displayName" />
+    </label>
+
+    <label>
+      <span>Email</span>
+      <input type="email" autocomplete="email" [formField]="signUpForm.email" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" autocomplete="new-password" [formField]="signUpForm.password" />
+    </label>
+
+    @if (error()) {
+      <p class="error-message" role="alert">{{ error() }}</p>
+    }
+
+    <button class="primary-button" type="submit" [disabled]="signUpForm().submitting()">
+      {{ signUpForm().submitting() ? 'Creating...' : 'Create account' }}
+    </button>
+
+    <p class="auth-link">
+      Already have an account? <a routerLink="/auth/sign-in">Sign in</a>
+    </p>
+  </form>
+</main>

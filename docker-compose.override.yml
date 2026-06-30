@@ -30,5 +30,29 @@ services:
       - backend-node-modules:/app/node_modules
     command: npm run start:dev -w backend
 
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+    container_name: bookshelf-frontend
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - frontend-node-modules:/app/node_modules
+      - frontend-workspace-node-modules:/app/frontend/node_modules
+    expose:
+      - "4200"
+    command: npm run start -w bookshelf-frontend -- --host 0.0.0.0 --port 4200 --poll 2000
+
+  proxy:
+    build:
+      target: development
+    depends_on:
+      - backend
+      - frontend
+
 volumes:
   backend-node-modules:
+  frontend-node-modules:
+  frontend-workspace-node-modules:

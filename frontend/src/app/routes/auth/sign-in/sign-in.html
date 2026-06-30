@@ -1,0 +1,37 @@
+<main class="auth-page">
+  <form class="auth-panel" (submit)="submitSignIn($event)">
+    <a class="brand" routerLink="/">
+      <i class="ph-bold ph-books" aria-hidden="true"></i>
+      <span>Bookshelf</span>
+    </a>
+    <header>
+      <h1>Sign in</h1>
+      <p>Return to your shelves and reading progress.</p>
+    </header>
+
+    <label>
+      <span>Email</span>
+      <input type="email" autocomplete="email" [formField]="signInForm.email" />
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" autocomplete="current-password" [formField]="signInForm.password" />
+    </label>
+
+    @if (error()) {
+      <p class="error-message" role="alert">{{ error() }}</p>
+    }
+
+    <button class="primary-button" type="submit" [disabled]="signInForm().submitting()">
+      {{ signInForm().submitting() ? 'Signing in...' : 'Sign in' }}
+    </button>
+
+    <p class="auth-link">
+      No account yet? <a routerLink="/auth/sign-up">Create one</a>
+    </p>
+    <p class="auth-link">
+      <a routerLink="/auth/password-reset">Forgot password?</a>
+    </p>
+  </form>
+</main>
