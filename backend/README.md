@@ -24,6 +24,10 @@ The backend listens on `http://localhost:3000` by default.
 - Password reset confirm: `POST /api/auth/password-reset/confirm`
 - Book search: `GET /api/books/search?query=kindred&page=1&limit=10`
 - Open Library detail: `GET /api/books/open-library/works/OL123W` or `GET /api/books/open-library/books/OL123M`
+- Shelves: `GET /api/shelves`, `POST /api/shelves`, `PATCH /api/shelves/:id`, `DELETE /api/shelves/:id`, `PUT /api/shelves/order`
+- Library: `GET /api/library`, `POST /api/library`, `GET /api/library/:id`, `PATCH /api/library/:id`, `DELETE /api/library/:id`
+- Library movement/progress: `PATCH /api/library/:id/shelf`, `POST /api/library/:id/progress`
+- Reading goals: `GET /api/goals/current`, `GET /api/goals/:year`, `PUT /api/goals/:year`
 - Swagger UI: `GET /docs`
 - OpenAPI JSON: `GET /docs-json`
 
@@ -32,6 +36,8 @@ Swagger is the backend contract testing surface before frontend work. It uses st
 Auth uses short-lived JWT access tokens and opaque refresh tokens stored as hashes in Postgres. In development and test, password reset requests return the reset token in the JSON response so the flow can be tested directly from Swagger. Production hides that token; real email delivery can be added later.
 
 Book search is public. Open Library calls are normalized into app-owned DTOs and cached in `ExternalBookCache`. Missing provider data stays nullable; the frontend owns visual fallbacks like placeholder covers.
+
+Shelves, library items, progress, ratings, notes, and goals require bearer auth. Library add uses a normalized book DTO from search/detail, upserts the app-owned book record, rejects duplicates, creates a single shelf assignment, and emits activity events for meaningful actions.
 
 Open Library settings:
 
@@ -75,6 +81,6 @@ npm run docker:up:prod
 ```
 
 The Compose stack starts Postgres and the backend. The local development database URL is declared in `backend/.env.docker`.
-Postgres is exposed only inside the Compose network; the backend reaches it at the `db` service hostname.
+The backend reaches Postgres at the `db` service hostname inside the Compose network. In local development, `docker-compose.override.yml` also exposes Postgres on `127.0.0.1:5433` for tools like PGAdmin; the production-style Compose file keeps the database internal.
 
 Note: local Docker builds use a scoped `NODE_TLS_REJECT_UNAUTHORIZED=0` only for `prisma generate` because this machine's network presents a self-signed certificate chain for Prisma engine downloads. That setting is not applied to runtime.

@@ -9,6 +9,7 @@ import { AccessTokenGuard } from './guards/access-token.guard';
 
 @Module({
   controllers: [AuthController],
+  exports: [AccessTokenGuard],
   imports: [DatabaseModule, JwtModule.register({}), UsersModule],
   providers: [AccessTokenGuard, AuthService],
 })

@@ -49,7 +49,7 @@ Authoritative v1 defaults:
 - Handle missing covers, missing ISBNs, missing page counts, sparse authors, duplicate editions, rate limits, and API failures.
 - Cache provider responses where useful.
 
-### 6. Library Core APIs
+### 6. Library Core APIs - DONE
 
 - Build endpoints for shelves, shelf ordering, add-to-library, duplicate detection, moving books, deleting library items, book detail, ratings, notes, progress updates, and annual goals.
 - Ensure a book belongs to exactly one shelf per user.
@@ -129,6 +129,9 @@ Authoritative v1 defaults:
 | 2026-06-29 | Open Library request timeout | Outbound Open Library calls use an 8-second default timeout so provider slowness fails as a mapped API error. |
 | 2026-06-29 | Runtime TLS stance | Do not disable TLS verification by default for external book API calls; local self-signed certificate interception should be handled with a trusted CA via `NODE_EXTRA_CA_CERTS`. |
 | 2026-06-29 | Local CA startup helper | `npm run dev:backend` and `npm run docker:up` auto-detect `certs/local-ca.pem`; direct `docker compose up` also points the dev backend at `/app/certs/local-ca.pem`. |
+| 2026-06-30 | Stage 6 shelf behavior | Default shelves cannot be deleted, but names can be changed; slugs remain stable for internal rules. |
+| 2026-06-30 | Stage 6 library behavior | Add-to-library uses normalized book DTOs, upserts app-owned books, rejects owner duplicates, and keeps each library item on exactly one shelf. |
+| 2026-06-30 | Stage 6 progress behavior | Page or percent progress is supported; 100% completion marks `dateFinished` and moves the item to the `read` shelf when available. |
 
 ## Open Questions
 
@@ -158,3 +161,11 @@ Authoritative v1 defaults:
 - Added normalization coverage for sparse provider data, missing covers/authors, ISBN selection, duplicate work grouping, and service cache behavior.
 - Verified Stage 5 with backend build, typecheck, ESLint, Jest, Prettier/Prisma validation, npm audit, Docker health/readiness, and Swagger book path registration.
 - Live Open Library smoke through Node was blocked locally by `SELF_SIGNED_CERT_IN_CHAIN`; the code returns a 503 for that failure and documentation records the trusted-CA fix instead of disabling runtime TLS.
+
+### 2026-06-30
+
+- Completed Stage 6 core authenticated APIs: shelves, shelf ordering, library add/list/detail/update/delete, shelf moves, progress updates, and annual reading goals.
+- Added owner-scoped service boundaries so Stage 7 guest mode can reuse the same core logic instead of forking behavior.
+- Added activity events for shelf creation/rename/delete, book add/move/finish, progress updates, ratings, notes, and goal updates.
+- Added pure rule coverage for shelf deletion/slugging, progress completion, text normalization, and annual goal pace.
+- Verified Stage 6 against the running Docker backend with signup, shelves, add-to-library, duplicate rejection, rating/notes, progress completion, goal completion, and Swagger path checks; removed temporary smoke users afterward.
