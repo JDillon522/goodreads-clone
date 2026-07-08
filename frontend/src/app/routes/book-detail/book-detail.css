@@ -61,7 +61,7 @@
   line-height: var(--leading-prose);
 }
 
-.progress-form {
+.detail-panel {
   display: grid;
   gap: var(--space-4);
   max-inline-size: 28rem;
@@ -72,9 +72,59 @@
   padding: var(--space-5);
 }
 
-.progress-form h2 {
+.detail-panel h2 {
   font-family: var(--font-sans);
   font-size: var(--text-lg);
+}
+
+.shelf-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.shelf-chip-list li {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  max-inline-size: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-primary);
+}
+
+.shelf-chip-list span {
+  overflow: hidden;
+  padding-inline: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shelf-chip-list button {
+  display: grid;
+  inline-size: 2rem;
+  block-size: 2rem;
+  place-items: center;
+  border: 0;
+  border-inline-start: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-tertiary);
+}
+
+.shelf-chip-list button:hover,
+.shelf-chip-list button:focus-visible {
+  color: var(--color-error);
+}
+
+.shelf-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
 }
 
 label {
@@ -99,13 +149,24 @@ select:focus-visible {
   outline: 3px solid var(--color-focus-ring);
 }
 
-.primary-button {
+.primary-button,
+.secondary-button {
   min-block-size: 2.75rem;
-  border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
+  padding-inline: var(--space-4);
+  font-weight: var(--font-semibold);
+}
+
+.primary-button {
+  border: 1px solid var(--color-accent);
   background: var(--color-accent);
   color: var(--color-on-accent);
-  font-weight: var(--font-semibold);
+}
+
+.secondary-button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }
 
 .success-message {

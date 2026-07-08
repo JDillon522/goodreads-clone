@@ -2,9 +2,12 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const {
   PrismaClient,
   BookProvider,
+  LibraryItemStatus,
   ProgressTrackingMode,
   ThemePreference,
+  UserRole,
 } = require('@prisma/client');
+const argon2 = require('argon2');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -15,12 +18,16 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg(databaseUrl),
 });
 
+const standardShelves = [
+  { name: 'Unshelved', slug: 'unshelved', position: 0, isDefault: true },
+  { name: 'Want to Read', slug: 'want-to-read', position: 1, isDefault: true },
+  { name: 'Currently Reading', slug: 'currently-reading', position: 2, isDefault: true },
+  { name: 'Read', slug: 'read', position: 3, isDefault: true },
+];
 const defaultShelves = [
-  { name: 'Want to Read', slug: 'want-to-read', position: 0, isDefault: true },
-  { name: 'Currently Reading', slug: 'currently-reading', position: 1, isDefault: true },
-  { name: 'Read', slug: 'read', position: 2, isDefault: true },
-  { name: 'Favorites', slug: 'favorites', position: 3, isDefault: false },
-  { name: 'Book Club', slug: 'book-club', position: 4, isDefault: false },
+  ...standardShelves,
+  { name: 'Favorites', slug: 'favorites', position: 4, isDefault: false },
+  { name: 'Book Club', slug: 'book-club', position: 5, isDefault: false },
 ];
 
 function normalizeText(value) {
@@ -87,6 +94,61 @@ async function main() {
   const sampleBooksPath = path.resolve(__dirname, '../../data/sample-books.json');
   const books = JSON.parse(fs.readFileSync(sampleBooksPath, 'utf8'));
   const year = new Date().getUTCFullYear();
+  const adminPasswordHash = await argon2.hash('Password123!', {
+    type: argon2.argon2id,
+  });
+
+  const adminUser = await prisma.user.upsert({
+    where: { username: 'admin' },
+    create: {
+      email: 'admin@bookshelf.local',
+      username: 'admin',
+      displayName: 'Bookshelf Admin',
+      passwordHash: adminPasswordHash,
+      role: UserRole.ADMIN,
+    },
+    update: {
+      deactivatedAt: null,
+      displayName: 'Bookshelf Admin',
+      email: 'admin@bookshelf.local',
+      passwordHash: adminPasswordHash,
+      role: UserRole.ADMIN,
+    },
+  });
+
+  const adminShelves = {};
+
+  for (const shelf of standardShelves) {
+    adminShelves[shelf.slug] = await prisma.shelf.upsert({
+      where: {
+        userId_slug: {
+          userId: adminUser.id,
+          slug: shelf.slug,
+        },
+      },
+      create: {
+        userId: adminUser.id,
+        ...shelf,
+      },
+      update: {
+        ...shelf,
+        deactivatedAt: null,
+      },
+    });
+  }
+
+  await prisma.userPreference.upsert({
+    where: { userId: adminUser.id },
+    create: {
+      userId: adminUser.id,
+      theme: ThemePreference.SYSTEM,
+      defaultShelfId: adminShelves.unshelved.id,
+    },
+    update: {
+      theme: ThemePreference.SYSTEM,
+      defaultShelfId: adminShelves.unshelved.id,
+    },
+  });
 
   const guestSession = await prisma.guestSession.upsert({
     where: { tokenHash: 'seed:demo-guest-session' },
@@ -125,11 +187,11 @@ async function main() {
     create: {
       guestSessionId: guestSession.id,
       theme: ThemePreference.SYSTEM,
-      defaultShelfId: shelves['want-to-read'].id,
+      defaultShelfId: shelves.unshelved.id,
     },
     update: {
       theme: ThemePreference.SYSTEM,
-      defaultShelfId: shelves['want-to-read'].id,
+      defaultShelfId: shelves.unshelved.id,
     },
   });
 
@@ -218,7 +280,6 @@ async function main() {
       create: {
         guestSessionId: guestSession.id,
         bookId: book.id,
-        shelfId: shelf.id,
         dedupeKey: dedupeKeyForBook(sampleBook),
         rating: isRead ? 3 + (index % 3) : null,
         notes: isRead ? `Seed note for ${sampleBook.title}.` : null,
@@ -227,17 +288,45 @@ async function main() {
         progressUpdatedAt: currentPercent !== null ? dateDaysAgo(index + 1) : null,
         dateAdded: dateDaysAgo(90 - index),
         dateFinished: isRead ? dateDaysAgo(60 - index) : null,
+        status: isRead
+          ? LibraryItemStatus.READ
+          : isCurrentlyReading
+            ? LibraryItemStatus.READING
+            : LibraryItemStatus.WANT_TO_READ,
+        shelves: {
+          create: {
+            shelfId: shelf.id,
+          },
+        },
       },
       update: {
         bookId: book.id,
-        shelfId: shelf.id,
         rating: isRead ? 3 + (index % 3) : null,
         notes: isRead ? `Seed note for ${sampleBook.title}.` : null,
         currentPage,
         currentPercent,
         progressUpdatedAt: currentPercent !== null ? dateDaysAgo(index + 1) : null,
         dateFinished: isRead ? dateDaysAgo(60 - index) : null,
+        status: isRead
+          ? LibraryItemStatus.READ
+          : isCurrentlyReading
+            ? LibraryItemStatus.READING
+            : LibraryItemStatus.WANT_TO_READ,
       },
+    });
+
+    await prisma.libraryItemShelf.upsert({
+      where: {
+        libraryItemId_shelfId: {
+          libraryItemId: libraryItem.id,
+          shelfId: shelf.id,
+        },
+      },
+      create: {
+        libraryItemId: libraryItem.id,
+        shelfId: shelf.id,
+      },
+      update: {},
     });
 
     if (isCurrentlyReading) {
@@ -268,7 +357,9 @@ async function main() {
     },
   });
 
-  console.log(`Seeded ${books.length} sample books and demo guest session ${guestSession.id}.`);
+  console.log(
+    `Seeded admin user, ${books.length} sample books, and demo guest session ${guestSession.id}.`,
+  );
 }
 
 main()

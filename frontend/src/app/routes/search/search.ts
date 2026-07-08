@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
 import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { ActivatedRoute } from '@angular/router';
 
-import type { NormalizedBook } from '../../core/api/api.types';
+import type { NormalizedBook, ShelfResponse } from '../../core/api/api.types';
 import { Books } from '../../core/books/books';
 import { Library as LibraryService } from '../../core/library/library';
+import { Shelves } from '../../core/shelves/shelves';
 
 @Component({
   selector: 'app-search',
@@ -13,19 +15,36 @@ import { Library as LibraryService } from '../../core/library/library';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Search {
+  private readonly addBookDialog = viewChild<ElementRef<HTMLDialogElement>>('addBookDialog');
   private readonly books = inject(Books);
   private readonly library = inject(LibraryService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly shelvesService = inject(Shelves);
   private readonly model = signal({ query: '' });
+  private readonly shelfPickerModel = signal({ shelfId: '' });
 
   protected readonly results = signal<NormalizedBook[]>([]);
+  protected readonly shelves = signal<ShelfResponse[]>([]);
+  protected readonly selectedBook = signal<NormalizedBook | null>(null);
   protected readonly total = signal(0);
   protected readonly error = signal<string | null>(null);
   protected readonly status = signal<string | null>(null);
   protected readonly addingKey = signal<string | null>(null);
+  protected readonly isLoadingShelves = signal(true);
   protected readonly searchForm = form(this.model, (path) => {
     required(path.query, { message: 'Search terms are required.' });
     minLength(path.query, 2, { message: 'Use at least 2 characters.' });
   });
+  protected readonly shelfPickerForm = form(this.shelfPickerModel, (path) => {
+    required(path.shelfId, { message: 'Choose a shelf.' });
+  });
+
+  public constructor() {
+    effect(() => {
+      this.shelvesService.version();
+      void this.loadShelves();
+    });
+  }
 
   protected async submitSearch(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -43,14 +62,41 @@ export class Search {
     }
   }
 
-  protected async addBook(book: NormalizedBook): Promise<void> {
+  protected openAddBookDialog(book: NormalizedBook): void {
+    this.error.set(null);
+    this.status.set(null);
+    this.selectedBook.set(book);
+    this.ensureSelectedShelf();
+    this.addBookDialog()?.nativeElement.showModal();
+  }
+
+  protected closeAddBookDialog(): void {
+    this.addBookDialog()?.nativeElement.close();
+    this.selectedBook.set(null);
+  }
+
+  protected async submitAddBook(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+    const book = this.selectedBook();
+
+    if (!book) {
+      return;
+    }
+
     this.error.set(null);
     this.status.set(null);
     this.addingKey.set(book.providerKey);
 
     try {
-      await this.library.add({ book });
-      this.status.set(`${book.title} was added to your library.`);
+      const successful = await submit(this.shelfPickerForm, async (formTree) => {
+        await this.library.add({ book, shelfId: formTree().value().shelfId });
+        this.status.set(`${book.title} was added to your library.`);
+        this.closeAddBookDialog();
+      });
+
+      if (!successful) {
+        this.error.set('That book could not be added.');
+      }
     } catch {
       this.error.set('That book could not be added.');
     } finally {
@@ -68,5 +114,31 @@ export class Search {
 
   protected publishedDate(book: NormalizedBook): string {
     return typeof book.publishedDate === 'string' ? book.publishedDate : 'Unknown year';
+  }
+
+  private async loadShelves(): Promise<void> {
+    this.isLoadingShelves.set(true);
+
+    try {
+      this.shelves.set(await this.shelvesService.list());
+      this.ensureSelectedShelf();
+    } catch {
+      this.error.set('Shelves could not be loaded.');
+    } finally {
+      this.isLoadingShelves.set(false);
+    }
+  }
+
+  private ensureSelectedShelf(): void {
+    const shelves = this.shelves();
+    const currentShelfId = this.shelfPickerModel().shelfId;
+    const preferredShelfId = this.route.snapshot.queryParamMap.get('shelfId') ?? '';
+
+    if (shelves.some((shelf) => shelf.id === currentShelfId)) {
+      return;
+    }
+
+    const preferredShelf = shelves.find((shelf) => shelf.id === preferredShelfId);
+    this.shelfPickerModel.set({ shelfId: preferredShelf?.id ?? shelves[0]?.id ?? '' });
   }
 }

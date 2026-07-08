@@ -22,6 +22,7 @@ import {
 import { CurrentOwner } from '../common/owner/current-owner.decorator';
 import type { OwnerContext } from '../common/owner/owner-context';
 import { OwnerTokenGuard } from '../common/owner/owner-token.guard';
+import { AddLibraryItemShelfRequestDto } from './dto/add-library-item-shelf-request.dto';
 import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
 import { LibraryItemResponseDto } from './dto/library-item-response.dto';
 import { LibraryQueryDto } from './dto/library-query.dto';
@@ -89,7 +90,7 @@ export class LibraryController {
   }
 
   @Patch(':id/shelf')
-  @ApiOperation({ summary: 'Move a library item to another shelf.' })
+  @ApiOperation({ summary: 'Add a shelf membership to a library item.' })
   @ApiOkResponse({ type: LibraryItemResponseDto })
   public moveLibraryItem(
     @CurrentOwner() owner: OwnerContext,
@@ -97,6 +98,31 @@ export class LibraryController {
     @Body() dto: MoveLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
     return this.libraryService.moveLibraryItem(owner, libraryItemId, dto);
+  }
+
+  @Post(':id/shelves')
+  @ApiOperation({ summary: 'Add a shelf membership to a library item.' })
+  @ApiOkResponse({ type: LibraryItemResponseDto })
+  public addShelfToLibraryItem(
+    @CurrentOwner() owner: OwnerContext,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
+    @Body() dto: AddLibraryItemShelfRequestDto,
+  ): Promise<LibraryItemResponseDto> {
+    return this.libraryService.addShelfToLibraryItem(owner, libraryItemId, dto);
+  }
+
+  @Delete(':id/shelves/:shelfId')
+  @ApiOperation({
+    summary:
+      'Remove a shelf membership from a library item, using Unshelved when it would otherwise have none.',
+  })
+  @ApiOkResponse({ type: LibraryItemResponseDto })
+  public removeShelfFromLibraryItem(
+    @CurrentOwner() owner: OwnerContext,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
+    @Param('shelfId', new ParseUUIDPipe({ version: '4' })) shelfId: string,
+  ): Promise<LibraryItemResponseDto> {
+    return this.libraryService.removeShelfFromLibraryItem(owner, libraryItemId, shelfId);
   }
 
   @Post(':id/progress')

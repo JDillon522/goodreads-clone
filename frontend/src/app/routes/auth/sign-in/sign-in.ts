@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { email, form, FormField, required, submit } from '@angular/forms/signals';
+import { form, FormField, required, submit } from '@angular/forms/signals';
 
 import { Auth } from '../../../core/auth/auth';
 
@@ -18,8 +18,7 @@ export class SignIn {
 
   protected readonly error = signal<string | null>(null);
   protected readonly signInForm = form(this.model, (path) => {
-    required(path.email, { message: 'Email is required.' });
-    email(path.email, { message: 'Use a valid email address.' });
+    required(path.email, { message: 'Email or username is required.' });
     required(path.password, { message: 'Password is required.' });
   });
 
@@ -36,6 +35,6 @@ export class SignIn {
       return;
     }
 
-    this.error.set('Check your email and password.');
+    this.error.set('Check your email or username and password.');
   }
 }

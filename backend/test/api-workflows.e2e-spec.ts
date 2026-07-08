@@ -14,6 +14,7 @@ type GuestResponse = {
 
 type ShelfResponse = {
   id: string;
+  name: string;
   slug: string;
 };
 
@@ -24,9 +25,25 @@ type LibraryItemResponse = {
   currentPage: null | number;
   currentPercent: null | number;
   id: string;
-  shelf: {
+  status: 'READ' | 'READING' | 'WANT_TO_READ';
+  shelves: {
+    id: string;
     slug: string;
-  };
+  }[];
+};
+
+type DeleteShelfResponse = {
+  affectedBooks: {
+    libraryItemId: string;
+    shelves: {
+      id: string;
+      name: string;
+      slug: string;
+    }[];
+    title: string;
+  }[];
+  deletedShelfName: string;
+  fallbackShelfId: null | string;
 };
 
 type GoalResponse = {
@@ -72,10 +89,28 @@ describe('Bookshelf API workflows', () => {
 
     const shelves = await request<ShelfResponse[]>('/shelves', { token: accessToken });
     expect(shelves.map((shelf) => shelf.slug)).toEqual([
+      'unshelved',
       'want-to-read',
       'currently-reading',
       'read',
     ]);
+    const unshelved = shelves.find((shelf) => shelf.slug === 'unshelved');
+    const wantToRead = shelves.find((shelf) => shelf.slug === 'want-to-read');
+
+    expect(unshelved).toBeDefined();
+    expect(wantToRead).toBeDefined();
+
+    await requestExpect(`/shelves/${unshelved?.id}`, 400, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+
+    const deleteWantToRead = await request<DeleteShelfResponse>(`/shelves/${wantToRead?.id}`, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+
+    expect(deleteWantToRead.deletedShelfName).toBe('Want to Read');
 
     const book = {
       authors: ['Ursula K. Le Guin'],
@@ -104,11 +139,32 @@ describe('Bookshelf API workflows', () => {
       token: accessToken,
     });
 
+    expect(added.status).toBe('WANT_TO_READ');
+    expect(added.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
+
     await requestExpect('/library', 409, {
       body: { book },
       method: 'POST',
       token: accessToken,
     });
+
+    const manuallyRead = await request<LibraryItemResponse>(`/library/${added.id}`, {
+      body: { status: 'READ' },
+      method: 'PATCH',
+      token: accessToken,
+    });
+
+    expect(manuallyRead.status).toBe('READ');
+    expect(manuallyRead.currentPercent).toBeNull();
+
+    const partialAfterRead = await request<LibraryItemResponse>(`/library/${added.id}/progress`, {
+      body: { currentPage: 152, trackingMode: 'PAGE' },
+      method: 'POST',
+      token: accessToken,
+    });
+
+    expect(partialAfterRead.currentPercent).toBe(50);
+    expect(partialAfterRead.status).toBe('READ');
 
     const progressed = await request<LibraryItemResponse>(`/library/${added.id}/progress`, {
       body: { currentPage: 304, trackingMode: 'PAGE' },
@@ -117,7 +173,59 @@ describe('Bookshelf API workflows', () => {
     });
 
     expect(progressed.currentPercent).toBe(100);
-    expect(progressed.shelf.slug).toBe('read');
+    expect(progressed.status).toBe('READ');
+    expect(progressed.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
+
+    const multiShelf = await request<ShelfResponse>('/shelves', {
+      body: { name: `SciFi ${runId}` },
+      method: 'POST',
+      token: accessToken,
+    });
+    const onMultipleShelves = await request<LibraryItemResponse>(`/library/${added.id}/shelves`, {
+      body: { shelfId: multiShelf.id },
+      method: 'POST',
+      token: accessToken,
+    });
+
+    expect(onMultipleShelves.shelves.map((shelf) => shelf.slug).sort()).toEqual([
+      multiShelf.slug,
+      'unshelved',
+    ]);
+
+    const deleteMultiShelf = await request<DeleteShelfResponse>(`/shelves/${multiShelf.id}`, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+
+    expect(deleteMultiShelf.affectedBooks).toHaveLength(1);
+    expect(deleteMultiShelf.affectedBooks[0].shelves.map((shelf) => shelf.slug)).toEqual([
+      'unshelved',
+    ]);
+
+    const onlyShelf = await request<ShelfResponse>('/shelves', {
+      body: { name: `Only Shelf ${runId}` },
+      method: 'POST',
+      token: accessToken,
+    });
+    await request<LibraryItemResponse>(`/library/${added.id}/shelves`, {
+      body: { shelfId: onlyShelf.id },
+      method: 'POST',
+      token: accessToken,
+    });
+    await request<LibraryItemResponse>(`/library/${added.id}/shelves/${added.shelves[0].id}`, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+
+    const deleteOnlyShelf = await request<DeleteShelfResponse>(`/shelves/${onlyShelf.id}`, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+
+    expect(deleteOnlyShelf.fallbackShelfId).toEqual(expect.any(String));
+    expect(deleteOnlyShelf.affectedBooks[0].shelves.map((shelf) => shelf.slug)).toEqual([
+      'unshelved',
+    ]);
 
     const goal = await request<GoalResponse>(`/goals/${new Date().getUTCFullYear()}`, {
       body: { targetBooks: 1 },
@@ -139,6 +247,7 @@ describe('Bookshelf API workflows', () => {
     const library = await request<LibraryItemResponse[]>('/library', { token: guest.guestToken });
 
     expect(shelves.map((shelf) => shelf.slug)).toEqual([
+      'unshelved',
       'want-to-read',
       'currently-reading',
       'read',
@@ -159,7 +268,8 @@ describe('Bookshelf API workflows', () => {
     );
 
     expect(progressed.currentPage).toBe(1);
-    expect(progressed.shelf.slug).toBe('currently-reading');
+    expect(progressed.status).toBe('READING');
+    expect(progressed.shelves.length).toBeGreaterThanOrEqual(1);
 
     const goal = await request<GoalResponse>('/goals/current', { token: guest.guestToken });
 

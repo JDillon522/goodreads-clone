@@ -11,7 +11,7 @@ export class AddLibraryItemRequestDto {
   book!: BookInputDto;
 
   @ApiPropertyOptional({
-    description: 'Target shelf. Defaults to the user want-to-read shelf.',
+    description: 'Initial target shelf membership. Defaults to the owner Unshelved shelf.',
     example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
     format: 'uuid',
   })

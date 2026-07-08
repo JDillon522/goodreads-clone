@@ -42,6 +42,10 @@ export class Library {
     return 'No progress yet';
   }
 
+  protected shelfLabel(item: LibraryItemResponse): string {
+    return item.shelves.map((shelf) => shelf.name).join(', ') || 'Unshelved';
+  }
+
   private async loadLibrary(): Promise<void> {
     try {
       this.items.set(await this.library.list());

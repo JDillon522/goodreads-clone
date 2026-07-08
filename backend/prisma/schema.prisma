@@ -33,17 +33,31 @@ enum ProgressTrackingMode {
   PERCENT
 }
 
+enum LibraryItemStatus {
+  READ
+  READING
+  WANT_TO_READ
+}
+
 enum ThemePreference {
   DARK
   LIGHT
   SYSTEM
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 model User {
   id                  String               @id @default(uuid()) @db.Uuid
   email               String               @unique
+  username            String?              @unique
   passwordHash        String
   displayName         String?
+  role                UserRole             @default(USER)
+  deactivatedAt       DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   activityEvents      ActivityEvent[]
@@ -133,18 +147,19 @@ model Book {
 }
 
 model Shelf {
-  id             String        @id @default(uuid()) @db.Uuid
-  userId         String?       @db.Uuid
-  guestSessionId String?       @db.Uuid
+  id             String             @id @default(uuid()) @db.Uuid
+  userId         String?            @db.Uuid
+  guestSessionId String?            @db.Uuid
   name           String
   slug           String
   position       Int
-  isDefault      Boolean       @default(false)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
-  libraryItems   LibraryItem[]
-  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isDefault      Boolean            @default(false)
+  deactivatedAt  DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  guestSession   GuestSession?      @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  libraryItems   LibraryItemShelf[]
+  user           User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, slug])
   @@unique([guestSessionId, slug])
@@ -157,8 +172,8 @@ model LibraryItem {
   userId            String?                @db.Uuid
   guestSessionId    String?                @db.Uuid
   bookId            String                 @db.Uuid
-  shelfId           String                 @db.Uuid
   dedupeKey         String
+  status            LibraryItemStatus      @default(WANT_TO_READ)
   rating            Int?
   notes             String?
   currentPage       Int?
@@ -172,16 +187,28 @@ model LibraryItem {
   book              Book                   @relation(fields: [bookId], references: [id], onDelete: Restrict)
   guestSession      GuestSession?          @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
   progressEntries   ReadingProgressEntry[]
-  shelf             Shelf                  @relation(fields: [shelfId], references: [id], onDelete: Restrict)
+  shelves           LibraryItemShelf[]
   user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, bookId])
   @@unique([guestSessionId, bookId])
   @@unique([userId, dedupeKey])
   @@unique([guestSessionId, dedupeKey])
-  @@index([shelfId])
   @@index([dateFinished])
   @@index([rating])
+  @@index([status])
+}
+
+model LibraryItemShelf {
+  id            String      @id @default(uuid()) @db.Uuid
+  libraryItemId String      @db.Uuid
+  shelfId       String      @db.Uuid
+  createdAt     DateTime    @default(now())
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+  shelf         Shelf       @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+
+  @@unique([libraryItemId, shelfId])
+  @@index([shelfId])
 }
 
 model ReadingProgressEntry {

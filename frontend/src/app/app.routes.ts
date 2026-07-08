@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard } from './core/session/admin.guard';
 import { sessionGuard } from './core/session/session.guard';
 
 export const routes: Routes = [
@@ -64,6 +65,12 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./routes/settings/settings').then((m) => m.Settings),
         title: 'Settings - Bookshelf',
+      },
+      {
+        path: 'admin',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./routes/admin/admin').then((m) => m.Admin),
+        title: 'Admin - Bookshelf',
       },
     ],
   },

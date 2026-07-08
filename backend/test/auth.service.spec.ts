@@ -1,6 +1,7 @@
 import { ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '@prisma/client';
 
 import { AuthService } from '../src/auth/auth.service';
 import { PrismaService } from '../src/database/prisma.service';
@@ -9,9 +10,12 @@ import { AuthUserRecord, UsersService } from '../src/users/users.service';
 describe('AuthService', () => {
   const authUser: AuthUserRecord = {
     createdAt: new Date('2026-06-29T12:00:00.000Z'),
+    deactivatedAt: null,
     displayName: 'Ada Reader',
     email: 'reader@example.com',
     id: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
+    role: UserRole.USER,
+    username: null,
   };
   const configService = {
     get: jest.fn().mockImplementation((key: string) => {
@@ -40,10 +44,12 @@ describe('AuthService', () => {
   } as unknown as PrismaService;
   const createWithDefaults = jest.fn().mockResolvedValue(authUser);
   const findByEmail = jest.fn();
+  const findBySigninIdentifier = jest.fn();
   const findById = jest.fn().mockResolvedValue(authUser);
   const usersService = {
     createWithDefaults,
     findByEmail,
+    findBySigninIdentifier,
     findById,
   } as unknown as UsersService;
 
@@ -90,9 +96,12 @@ describe('AuthService', () => {
       tokenType: 'Bearer',
       user: {
         createdAt: '2026-06-29T12:00:00.000Z',
+        deactivatedAt: null,
         displayName: 'Ada Reader',
         email: 'reader@example.com',
         id: authUser.id,
+        role: UserRole.USER,
+        username: null,
       },
     });
   });

@@ -22,19 +22,50 @@
         <i class="ph ph-sliders-horizontal" aria-hidden="true"></i>
         <span>Settings</span>
       </a>
+      @if (session.isAdmin()) {
+        <a routerLink="/app/admin" routerLinkActive="is-active">
+          <i class="ph ph-shield-check" aria-hidden="true"></i>
+          <span>Admin</span>
+        </a>
+      }
     </nav>
 
     <section class="shelves" aria-labelledby="shelves-heading">
       <h2 id="shelves-heading">Shelves</h2>
+      <form class="shelf-create-form" (submit)="submitCreateShelf($event)">
+        <label>
+          <span>New shelf</span>
+          <input type="text" autocomplete="off" [formField]="createShelfForm.name" />
+        </label>
+        <button class="icon-button" type="submit" [disabled]="createShelfForm().submitting()" aria-label="Create shelf">
+          <i class="ph ph-plus" aria-hidden="true"></i>
+        </button>
+      </form>
+      @if (shelfMessage()) {
+        <p class="success-message">{{ shelfMessage() }}</p>
+      }
+      @if (shelfError()) {
+        <p class="error-message" role="alert">{{ shelfError() }}</p>
+      }
       @if (isLoadingShelves()) {
         <p class="muted">Loading shelves...</p>
       } @else {
-        <nav class="nav-list nav-list--compact" aria-label="Shelves">
+        <nav class="shelf-list" aria-label="Shelves">
           @for (shelf of shelves(); track shelf.id) {
-            <a [routerLink]="['/app/shelves', shelf.id]" routerLinkActive="is-active">
-              <span>{{ shelf.name }}</span>
-              <span class="count">{{ shelf.itemCount }}</span>
-            </a>
+            <div class="shelf-row">
+              <a [routerLink]="['/app/shelves', shelf.id]" routerLinkActive="is-active">
+                <span>{{ shelf.name }}</span>
+                <span class="count">{{ shelf.itemCount }}</span>
+              </a>
+              <button class="shelf-action" type="button" (click)="openRenameShelfDialog(shelf)" [attr.aria-label]="'Rename ' + shelf.name">
+                <i class="ph ph-pencil-simple" aria-hidden="true"></i>
+              </button>
+              @if (canDeleteShelf(shelf)) {
+                <button class="shelf-action" type="button" (click)="openDeleteShelfDialog(shelf)" [attr.aria-label]="'Delete ' + shelf.name">
+                  <i class="ph ph-trash" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
           }
         </nav>
       }
@@ -59,3 +90,79 @@
     <router-outlet />
   </main>
 </div>
+
+<dialog #renameShelfDialog class="dialog">
+  <form class="dialog__body" (submit)="submitRenameShelf($event)">
+    <header class="dialog__header">
+      <h2>Rename shelf</h2>
+      <button class="icon-button" type="button" (click)="closeRenameShelfDialog()" aria-label="Close rename shelf dialog">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+    <label>
+      <span>Shelf name</span>
+      <input type="text" autocomplete="off" [formField]="renameShelfForm.name" />
+    </label>
+    <footer class="dialog__actions">
+      <button class="secondary-button" type="button" (click)="closeRenameShelfDialog()">Cancel</button>
+      <button class="primary-button" type="submit" [disabled]="renameShelfForm().submitting()">
+        {{ renameShelfForm().submitting() ? 'Saving...' : 'Save' }}
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog #deleteShelfDialog class="dialog">
+  <section class="dialog__body">
+    <header class="dialog__header">
+      <h2>Delete shelf</h2>
+      <button class="icon-button" type="button" (click)="closeDeleteShelfDialog()" aria-label="Close delete shelf dialog">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (deleteResult()) {
+      <p class="muted">The shelf was deleted. Affected books now live on these shelves:</p>
+      @if (deleteResult()!.affectedBooks.length === 0) {
+        <p class="muted">No books were affected.</p>
+      } @else {
+        <ul class="book-membership-list">
+          @for (book of deleteResult()!.affectedBooks; track book.libraryItemId) {
+            <li>
+              <strong>{{ book.title }}</strong>
+              <span>{{ resultShelfNames(book) }}</span>
+            </li>
+          }
+        </ul>
+      }
+      <footer class="dialog__actions">
+        <button class="primary-button" type="button" (click)="closeDeleteShelfDialog()">Done</button>
+      </footer>
+    } @else {
+      <p class="muted">
+        Delete {{ selectedDeleteShelf()?.name ?? 'this shelf' }}? Books will stay in their other shelves. Books with no
+        remaining shelf will move to Unshelved.
+      </p>
+      @if (isLoadingDeletePreview()) {
+        <p class="muted">Checking books...</p>
+      } @else if (deletePreviewItems().length === 0) {
+        <p class="muted">This shelf is empty.</p>
+      } @else {
+        <ul class="book-membership-list">
+          @for (item of deletePreviewItems(); track item.id) {
+            <li>
+              <strong>{{ item.book.title }}</strong>
+              <span>{{ shelfNames(item) }}</span>
+            </li>
+          }
+        </ul>
+      }
+      <footer class="dialog__actions">
+        <button class="secondary-button" type="button" (click)="closeDeleteShelfDialog()">Cancel</button>
+        <button class="danger-button" type="button" (click)="confirmDeleteShelf()" [disabled]="isDeletingShelf()">
+          {{ isDeletingShelf() ? 'Deleting...' : 'Delete shelf' }}
+        </button>
+      </footer>
+    }
+  </section>
+</dialog>

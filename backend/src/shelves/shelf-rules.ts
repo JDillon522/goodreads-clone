@@ -1,7 +1,7 @@
-const defaultShelfSlugs = new Set(['currently-reading', 'read', 'want-to-read']);
+const defaultShelfSlugs = new Set(['currently-reading', 'read', 'unshelved', 'want-to-read']);
 
-export function canDeleteShelf(isDefault: boolean): boolean {
-  return !isDefault;
+export function canDeleteShelf(slug: string): boolean {
+  return slug !== 'unshelved';
 }
 
 export function isDefaultShelfSlug(slug: string): boolean {

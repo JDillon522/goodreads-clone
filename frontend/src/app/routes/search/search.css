@@ -30,7 +30,8 @@ label {
   font-size: var(--text-sm);
 }
 
-input {
+input,
+select {
   min-block-size: 2.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -38,9 +39,21 @@ input {
   padding-inline: var(--space-3);
 }
 
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   border-color: var(--color-accent);
   outline: 3px solid var(--color-focus-ring);
+}
+
+.icon-button {
+  display: grid;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
 }
 
 .primary-button,
@@ -124,6 +137,42 @@ input:focus-visible {
   font-size: var(--text-lg);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.dialog {
+  inline-size: min(32rem, calc(100vw - var(--space-8)));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dialog__body {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.dialog__header,
+.dialog__actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog__header h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+}
+
+.dialog__actions {
+  justify-content: flex-end;
 }
 
 @media (max-width: 680px) {

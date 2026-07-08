@@ -1,6 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { LibraryItemStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateLibraryItemRequestDto {
   @ApiPropertyOptional({
@@ -28,4 +38,13 @@ export class UpdateLibraryItemRequestDto {
   @IsString()
   @MaxLength(5000)
   notes?: null | string;
+
+  @ApiPropertyOptional({
+    description: 'Set the manual reading status for this library item.',
+    enum: LibraryItemStatus,
+    example: LibraryItemStatus.READING,
+  })
+  @IsOptional()
+  @IsEnum(LibraryItemStatus)
+  status?: LibraryItemStatus;
 }

@@ -1,6 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '@prisma/client';
 
 import { OwnerTokenGuard } from '../src/common/owner/owner-token.guard';
 import type { OwnerRequest } from '../src/common/owner/owner-request';
@@ -16,10 +17,14 @@ describe('OwnerTokenGuard', () => {
   } as unknown as JwtService;
   const guestFindUnique = jest.fn();
   const guestUpdate = jest.fn();
+  const userFindUnique = jest.fn();
   const prismaService = {
     guestSession: {
       findUnique: guestFindUnique,
       update: guestUpdate,
+    },
+    user: {
+      findUnique: userFindUnique,
     },
   } as unknown as PrismaService;
 
@@ -39,6 +44,13 @@ describe('OwnerTokenGuard', () => {
       sub: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
       type: 'access',
     });
+    userFindUnique.mockResolvedValueOnce({
+      deactivatedAt: null,
+      email: 'reader@example.com',
+      id: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
+      role: UserRole.USER,
+      username: null,
+    });
 
     await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
     expect(request.owner).toEqual({
@@ -48,6 +60,8 @@ describe('OwnerTokenGuard', () => {
     expect(request.user).toEqual({
       email: 'reader@example.com',
       id: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
+      role: UserRole.USER,
+      username: null,
     });
     expect(guestFindUnique).not.toHaveBeenCalled();
   });

@@ -13,7 +13,6 @@ import {
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -23,6 +22,7 @@ import { CurrentOwner } from '../common/owner/current-owner.decorator';
 import type { OwnerContext } from '../common/owner/owner-context';
 import { OwnerTokenGuard } from '../common/owner/owner-token.guard';
 import { CreateShelfRequestDto } from './dto/create-shelf-request.dto';
+import { DeleteShelfResponseDto } from './dto/delete-shelf-response.dto';
 import { ShelfResponseDto } from './dto/shelf-response.dto';
 import { UpdateShelfOrderRequestDto } from './dto/update-shelf-order-request.dto';
 import { UpdateShelfRequestDto } from './dto/update-shelf-request.dto';
@@ -46,13 +46,16 @@ export class ShelvesController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete an empty custom shelf.' })
-  @ApiNoContentResponse()
-  public async deleteShelf(
+  @ApiOperation({
+    summary:
+      'Delete a custom shelf, moving sole-shelf books to Unshelved and returning affected books.',
+  })
+  @ApiOkResponse({ type: DeleteShelfResponseDto })
+  public deleteShelf(
     @CurrentOwner() owner: OwnerContext,
     @Param('id', new ParseUUIDPipe({ version: '4' })) shelfId: string,
-  ): Promise<void> {
-    await this.shelvesService.deleteShelf(owner, shelfId);
+  ): Promise<DeleteShelfResponseDto> {
+    return this.shelvesService.deleteShelf(owner, shelfId);
   }
 
   @Get()

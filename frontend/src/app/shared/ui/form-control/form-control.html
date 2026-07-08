@@ -1,0 +1,30 @@
+<label class="form-control" [class.form-control--invalid]="showError()">
+  <span class="form-control__label">{{ label() }}</span>
+
+  <span class="form-control__field">
+    @if (icon()) {
+      <i class="form-control__leading-icon ph {{ icon() }}" aria-hidden="true"></i>
+    }
+
+    @if (kind() === 'select') {
+      <select class="form-control__native" [formField]="control()" [attr.aria-describedby]="describedBy()">
+        <ng-content />
+      </select>
+      <i class="form-control__trailing-icon ph ph-caret-down" aria-hidden="true"></i>
+    } @else {
+      <input
+        class="form-control__native"
+        [type]="type()"
+        [attr.autocomplete]="autocomplete() || null"
+        [formField]="control()"
+        [attr.aria-describedby]="describedBy()"
+      />
+    }
+  </span>
+
+  @if (messageText()) {
+    <span class="form-control__message" [class.form-control__message--error]="showError()" [id]="messageId">
+      {{ messageText() }}
+    </span>
+  }
+</label>

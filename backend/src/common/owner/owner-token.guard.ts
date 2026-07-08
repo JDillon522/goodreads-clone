@@ -66,10 +66,27 @@ export class OwnerTokenGuard implements CanActivate {
         return false;
       }
 
-      request.owner = userOwnerContext(payload.sub);
+      const user = await this.prisma.user.findUnique({
+        select: {
+          deactivatedAt: true,
+          email: true,
+          id: true,
+          role: true,
+          username: true,
+        },
+        where: { id: payload.sub },
+      });
+
+      if (!user || user.deactivatedAt) {
+        return false;
+      }
+
+      request.owner = userOwnerContext(user.id);
       request.user = {
-        email: payload.email,
-        id: payload.sub,
+        email: user.email,
+        id: user.id,
+        role: user.role,
+        username: user.username,
       };
 
       return true;

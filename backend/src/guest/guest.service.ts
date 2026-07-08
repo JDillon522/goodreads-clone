@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   ActivityEventType,
   BookProvider,
+  LibraryItemStatus,
   Prisma,
   ProgressTrackingMode,
   ThemePreference,
@@ -76,7 +77,7 @@ export class GuestService {
 
       await transaction.userPreference.create({
         data: {
-          defaultShelfId: shelves['want-to-read'].id,
+          defaultShelfId: shelves.unshelved.id,
           displayMode: 'grid',
           guestSessionId: session.id,
           theme: ThemePreference.SYSTEM,
@@ -133,6 +134,7 @@ export class GuestService {
     return {
       'currently-reading': this.requireShelf(shelves, 'currently-reading'),
       read: this.requireShelf(shelves, 'read'),
+      unshelved: this.requireShelf(shelves, 'unshelved'),
       'want-to-read': this.requireShelf(shelves, 'want-to-read'),
     };
   }
@@ -177,7 +179,16 @@ export class GuestService {
         notes: isRead ? `Guest demo note for ${sampleBook.title}.` : null,
         progressUpdatedAt: currentPercent !== null ? this.dateDaysAgo(index + 1) : null,
         rating: isRead ? 4 + (index % 2) : null,
-        shelfId: shelves[shelfSlug].id,
+        shelves: {
+          create: {
+            shelfId: shelves[shelfSlug].id,
+          },
+        },
+        status: isRead
+          ? LibraryItemStatus.READ
+          : isCurrentlyReading
+            ? LibraryItemStatus.READING
+            : LibraryItemStatus.WANT_TO_READ,
       },
     });
 

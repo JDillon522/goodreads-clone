@@ -5,12 +5,13 @@ import { DatabaseModule } from '../database/database.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AdminGuard } from './guards/admin.guard';
 import { AccessTokenGuard } from './guards/access-token.guard';
 
 @Module({
   controllers: [AuthController],
-  exports: [AccessTokenGuard],
+  exports: [AccessTokenGuard, AdminGuard],
   imports: [DatabaseModule, JwtModule.register({}), UsersModule],
-  providers: [AccessTokenGuard, AuthService],
+  providers: [AccessTokenGuard, AdminGuard, AuthService],
 })
 export class AuthModule {}

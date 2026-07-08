@@ -19,12 +19,61 @@
       </div>
 
       <div class="book-copy">
-        <p class="eyebrow">{{ item()!.shelf.name }}</p>
+        <p class="eyebrow">{{ shelfListLabel() }}</p>
         <h1>{{ item()!.book.title }}</h1>
         <p class="author">{{ primaryAuthor() }}</p>
         <p class="description">{{ description() }}</p>
 
-        <form class="progress-form" (submit)="submitProgress($event)">
+        <form class="detail-panel" (submit)="submitStatus($event)">
+          <h2>Status</h2>
+          <label>
+            <span>Reading status</span>
+            <select [formField]="statusForm.status">
+              <option value="WANT_TO_READ">Want to read</option>
+              <option value="READING">Reading</option>
+              <option value="READ">Read</option>
+            </select>
+          </label>
+          <button class="primary-button" type="submit" [disabled]="statusForm().submitting()">
+            {{ statusForm().submitting() ? 'Saving...' : 'Save status' }}
+          </button>
+        </form>
+
+        <section class="detail-panel" aria-labelledby="book-shelves-heading">
+          <h2 id="book-shelves-heading">Shelves</h2>
+          <ul class="shelf-chip-list">
+            @for (shelf of itemShelves(); track shelf.id) {
+              <li>
+                <span>{{ shelf.name }}</span>
+                <button
+                  type="button"
+                  (click)="removeShelf(shelf)"
+                  [disabled]="removingShelfId() === shelf.id"
+                  [attr.aria-label]="'Remove ' + shelf.name"
+                >
+                  <i class="ph ph-x" aria-hidden="true"></i>
+                </button>
+              </li>
+            }
+          </ul>
+          @if (availableShelves().length > 0) {
+            <form class="shelf-add-form" (submit)="submitAddShelf($event)">
+              <label>
+                <span>Add to shelf</span>
+                <select [formField]="shelfMembershipForm.shelfId">
+                  @for (shelf of availableShelves(); track shelf.id) {
+                    <option [value]="shelf.id">{{ shelf.name }}</option>
+                  }
+                </select>
+              </label>
+              <button class="secondary-button" type="submit" [disabled]="addingShelf()">
+                {{ addingShelf() ? 'Adding...' : 'Add shelf' }}
+              </button>
+            </form>
+          }
+        </section>
+
+        <form class="detail-panel" (submit)="submitProgress($event)">
           <h2>Progress</h2>
           <label>
             <span>Mode</span>
@@ -47,13 +96,13 @@
           <button class="primary-button" type="submit" [disabled]="progressForm().submitting()">
             {{ progressForm().submitting() ? 'Saving...' : 'Save progress' }}
           </button>
-          @if (status()) {
-            <p class="success-message">{{ status() }}</p>
-          }
-          @if (error()) {
-            <p class="error-message" role="alert">{{ error() }}</p>
-          }
         </form>
+        @if (status()) {
+          <p class="success-message">{{ status() }}</p>
+        }
+        @if (error()) {
+          <p class="error-message" role="alert">{{ error() }}</p>
+        }
       </div>
     </article>
   }

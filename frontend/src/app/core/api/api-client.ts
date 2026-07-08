@@ -25,8 +25,8 @@ export class ApiClient {
     return firstValueFrom(this.http.patch<TResponse>(path, body));
   }
 
-  public delete(path: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(path));
+  public delete<TResponse = void>(path: string): Promise<TResponse> {
+    return firstValueFrom(this.http.delete<TResponse>(path));
   }
 
   private toParams(query?: QueryParams): HttpParams {

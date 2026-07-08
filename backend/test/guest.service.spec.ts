@@ -101,10 +101,10 @@ describe('GuestService', () => {
         tokenHash: expect.any(String),
       },
     });
-    expect(shelfCreate).toHaveBeenCalledTimes(3);
+    expect(shelfCreate).toHaveBeenCalledTimes(4);
     expect(userPreferenceCreate).toHaveBeenCalledWith({
       data: {
-        defaultShelfId: 'shelf-want-to-read',
+        defaultShelfId: 'shelf-unshelved',
         displayMode: 'grid',
         guestSessionId: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
         theme: 'SYSTEM',

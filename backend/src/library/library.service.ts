@@ -4,11 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ActivityEventType, BookProvider, Prisma } from '@prisma/client';
+import { ActivityEventType, BookProvider, LibraryItemStatus, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
 import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
+import { AddLibraryItemShelfRequestDto } from './dto/add-library-item-shelf-request.dto';
 import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
 import { BookInputDto } from './dto/book-input.dto';
 import { LibraryBookResponseDto } from './dto/library-book-response.dto';
@@ -40,24 +41,53 @@ export class LibraryService {
     const item = await this.prisma.$transaction(async (transaction) => {
       const shelf = dto.shelfId
         ? await this.getOwnedShelf(transaction, owner, dto.shelfId)
-        : await this.getDefaultShelf(transaction, owner, 'want-to-read');
+        : await this.getDefaultShelf(transaction, owner, 'unshelved');
       const book = await this.upsertBook(transaction, dto.book);
-      const duplicate = await transaction.libraryItem.findFirst({
+      const existingItem = await transaction.libraryItem.findFirst({
+        include: libraryItemInclude,
         where: {
           ...this.ownerWhere(owner),
           OR: [{ bookId: book.id }, { dedupeKey: dto.book.dedupeKey }],
         },
       });
 
-      if (duplicate) {
-        throw new ConflictException('This book is already in your library.');
+      if (existingItem) {
+        if (existingItem.shelves.some((membership) => membership.shelfId === shelf.id)) {
+          throw new ConflictException('This book is already on that shelf.');
+        }
+
+        await transaction.libraryItemShelf.create({
+          data: {
+            libraryItemId: existingItem.id,
+            shelfId: shelf.id,
+          },
+        });
+
+        await this.activityService.emitWithExecutor(transaction, {
+          libraryItemId: existingItem.id,
+          metadata: {
+            bookId: book.id,
+            dedupeKey: dto.book.dedupeKey,
+            shelfId: shelf.id,
+          },
+          owner,
+          type: ActivityEventType.BOOK_ADDED,
+        });
+
+        return this.getOwnedLibraryItemWithExecutor(transaction, owner, existingItem.id);
       }
 
       const createdItem = await transaction.libraryItem.create({
         data: {
           bookId: book.id,
           dedupeKey: dto.book.dedupeKey,
-          shelfId: shelf.id,
+          dateFinished: shelf.slug === 'read' ? new Date() : null,
+          shelves: {
+            create: {
+              shelfId: shelf.id,
+            },
+          },
+          status: this.statusForInitialShelf(shelf.slug),
           ...ownerRecord(owner),
         },
         include: libraryItemInclude,
@@ -77,7 +107,7 @@ export class LibraryService {
       return createdItem;
     });
 
-    return this.toLibraryItemResponse(item);
+    return this.toLibraryItemResponse(owner, item);
   }
 
   public async deleteLibraryItem(owner: OwnerContext, libraryItemId: string): Promise<void> {
@@ -92,7 +122,7 @@ export class LibraryService {
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemResponseDto> {
-    return this.toLibraryItemResponse(await this.getOwnedLibraryItem(owner, libraryItemId));
+    return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, libraryItemId));
   }
 
   public async listLibraryItems(
@@ -100,19 +130,41 @@ export class LibraryService {
     query: LibraryQueryDto,
   ): Promise<LibraryItemResponseDto[]> {
     if (query.shelfId) {
-      await this.getOwnedShelf(this.prisma, owner, query.shelfId);
+      const shelf = await this.getOwnedShelf(this.prisma, owner, query.shelfId);
+      const items = await this.prisma.libraryItem.findMany({
+        include: libraryItemInclude,
+        orderBy: [{ dateAdded: 'desc' }, { createdAt: 'desc' }],
+        where: {
+          ...this.ownerWhere(owner),
+          ...(shelf.slug === 'unshelved'
+            ? {
+                OR: [
+                  { shelves: { some: { shelfId: query.shelfId } } },
+                  {
+                    shelves: {
+                      none: {
+                        shelf: {
+                          deactivatedAt: null,
+                        },
+                      },
+                    },
+                  },
+                ],
+              }
+            : { shelves: { some: { shelfId: query.shelfId } } }),
+        },
+      });
+
+      return this.toLibraryItemResponses(owner, items);
     }
 
     const items = await this.prisma.libraryItem.findMany({
       include: libraryItemInclude,
       orderBy: [{ dateAdded: 'desc' }, { createdAt: 'desc' }],
-      where: {
-        ...this.ownerWhere(owner),
-        ...(query.shelfId ? { shelfId: query.shelfId } : {}),
-      },
+      where: this.ownerWhere(owner),
     });
 
-    return items.map((item) => this.toLibraryItemResponse(item));
+    return this.toLibraryItemResponses(owner, items);
   }
 
   public async moveLibraryItem(
@@ -120,45 +172,95 @@ export class LibraryService {
     libraryItemId: string,
     dto: MoveLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
+    return this.addShelfToLibraryItem(owner, libraryItemId, dto);
+  }
+
+  public async addShelfToLibraryItem(
+    owner: OwnerContext,
+    libraryItemId: string,
+    dto: AddLibraryItemShelfRequestDto,
+  ): Promise<LibraryItemResponseDto> {
     const item = await this.getOwnedLibraryItem(owner, libraryItemId);
     const targetShelf = await this.getOwnedShelf(this.prisma, owner, dto.shelfId);
-    const isNewlyFinished = targetShelf.slug === 'read' && !item.dateFinished;
-    const now = new Date();
 
-    const movedItem = await this.prisma.$transaction(async (transaction) => {
-      const updated = await transaction.libraryItem.update({
+    if (item.shelves.some((membership) => membership.shelfId === targetShelf.id)) {
+      throw new ConflictException('This book is already on that shelf.');
+    }
+
+    const updatedItem = await this.prisma.$transaction(async (transaction) => {
+      await transaction.libraryItemShelf.create({
         data: {
-          dateFinished:
-            targetShelf.slug === 'read' ? (item.dateFinished ?? now) : item.dateFinished,
+          libraryItemId: item.id,
           shelfId: targetShelf.id,
         },
-        include: libraryItemInclude,
-        where: { id: item.id },
       });
-
       await this.activityService.emitWithExecutor(transaction, {
-        libraryItemId: updated.id,
+        libraryItemId: item.id,
         metadata: {
-          fromShelfId: item.shelfId,
-          toShelfId: targetShelf.id,
+          shelfId: targetShelf.id,
         },
         owner,
         type: ActivityEventType.BOOK_MOVED,
       });
 
-      if (isNewlyFinished) {
-        await this.activityService.emitWithExecutor(transaction, {
-          libraryItemId: updated.id,
-          metadata: { shelfId: targetShelf.id },
-          owner,
-          type: ActivityEventType.BOOK_FINISHED,
+      return this.getOwnedLibraryItemWithExecutor(transaction, owner, item.id);
+    });
+
+    return this.toLibraryItemResponse(owner, updatedItem);
+  }
+
+  public async removeShelfFromLibraryItem(
+    owner: OwnerContext,
+    libraryItemId: string,
+    shelfId: string,
+  ): Promise<LibraryItemResponseDto> {
+    const item = await this.getOwnedLibraryItem(owner, libraryItemId);
+    const membership = item.shelves.find((candidate) => candidate.shelfId === shelfId);
+
+    if (!membership || membership.shelf.deactivatedAt) {
+      throw new NotFoundException('This book is not on that shelf.');
+    }
+
+    const updatedItem = await this.prisma.$transaction(async (transaction) => {
+      const remainingMemberships = item.shelves.filter(
+        (candidate) => candidate.shelfId !== shelfId && candidate.shelf.deactivatedAt === null,
+      );
+
+      if (remainingMemberships.length === 0) {
+        if (membership.shelf.slug === 'unshelved') {
+          throw new BadRequestException('A library item must belong to at least one shelf.');
+        }
+
+        const fallbackShelf = await this.getOrCreateUnshelvedShelf(transaction, owner);
+
+        await transaction.libraryItemShelf.create({
+          data: {
+            libraryItemId: item.id,
+            shelfId: fallbackShelf.id,
+          },
         });
       }
 
-      return updated;
+      await transaction.libraryItemShelf.delete({
+        where: {
+          libraryItemId_shelfId: {
+            libraryItemId: item.id,
+            shelfId,
+          },
+        },
+      });
+
+      await this.activityService.emitWithExecutor(transaction, {
+        libraryItemId: item.id,
+        metadata: { shelfId },
+        owner,
+        type: ActivityEventType.BOOK_MOVED,
+      });
+
+      return this.getOwnedLibraryItemWithExecutor(transaction, owner, item.id);
     });
 
-    return this.toLibraryItemResponse(movedItem);
+    return this.toLibraryItemResponse(owner, updatedItem);
   }
 
   public async updateLibraryItem(
@@ -180,8 +282,14 @@ export class LibraryService {
       data.notes = notes ? notes : null;
     }
 
-    if (!hasRating && !hasNotes) {
-      return this.toLibraryItemResponse(item);
+    if (dto.status) {
+      data.status = dto.status;
+      data.dateFinished =
+        dto.status === LibraryItemStatus.READ ? (item.dateFinished ?? new Date()) : null;
+    }
+
+    if (!hasRating && !hasNotes && !dto.status) {
+      return this.toLibraryItemResponse(owner, item);
     }
 
     const updatedItem = await this.prisma.$transaction(async (transaction) => {
@@ -209,10 +317,22 @@ export class LibraryService {
         });
       }
 
+      if (dto.status) {
+        await this.activityService.emitWithExecutor(transaction, {
+          libraryItemId: updated.id,
+          metadata: { status: dto.status },
+          owner,
+          type:
+            dto.status === LibraryItemStatus.READ
+              ? ActivityEventType.BOOK_FINISHED
+              : ActivityEventType.PROGRESS_UPDATED,
+        });
+      }
+
       return updated;
     });
 
-    return this.toLibraryItemResponse(updatedItem);
+    return this.toLibraryItemResponse(owner, updatedItem);
   }
 
   public async updateProgress(
@@ -230,20 +350,21 @@ export class LibraryService {
     const now = new Date();
 
     const updatedItem = await this.prisma.$transaction(async (transaction) => {
-      const targetShelfId = await this.progressTargetShelfId(
-        transaction,
-        owner,
-        item,
-        progress.isComplete,
-      );
       const wasFinished = Boolean(item.dateFinished);
+      const nextStatus = progress.isComplete
+        ? LibraryItemStatus.READ
+        : item.status === LibraryItemStatus.WANT_TO_READ
+          ? LibraryItemStatus.READING
+          : item.status;
+      const nextDateFinished =
+        nextStatus === LibraryItemStatus.READ ? (item.dateFinished ?? now) : null;
       const updated = await transaction.libraryItem.update({
         data: {
           currentPage: progress.currentPage,
           currentPercent: progress.currentPercent,
-          dateFinished: progress.isComplete ? (item.dateFinished ?? now) : null,
+          dateFinished: nextDateFinished,
           progressUpdatedAt: now,
-          ...(targetShelfId ? { shelfId: targetShelfId } : {}),
+          status: nextStatus,
         },
         include: libraryItemInclude,
         where: { id: item.id },
@@ -272,7 +393,7 @@ export class LibraryService {
       if (progress.isComplete && !wasFinished) {
         await this.activityService.emitWithExecutor(transaction, {
           libraryItemId: updated.id,
-          metadata: { shelfId: updated.shelfId },
+          metadata: { status: LibraryItemStatus.READ },
           owner,
           type: ActivityEventType.BOOK_FINISHED,
         });
@@ -281,7 +402,7 @@ export class LibraryService {
       return updated;
     });
 
-    return this.toLibraryItemResponse(updatedItem);
+    return this.toLibraryItemResponse(owner, updatedItem);
   }
 
   private async getDefaultShelf(
@@ -293,6 +414,7 @@ export class LibraryService {
       select: { id: true, slug: true },
       where: {
         slug,
+        deactivatedAt: null,
         ...this.ownerWhere(owner),
       },
     });
@@ -304,11 +426,62 @@ export class LibraryService {
     return shelf;
   }
 
+  private async getOrCreateUnshelvedShelf(
+    executor: Prisma.TransactionClient,
+    owner: OwnerContext,
+  ): Promise<{ id: string; slug: string }> {
+    const existing = await executor.shelf.findFirst({
+      select: { id: true, slug: true },
+      where: {
+        slug: 'unshelved',
+        ...this.ownerWhere(owner),
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    const lastShelf = await executor.shelf.findFirst({
+      orderBy: { position: 'desc' },
+      select: { position: true },
+      where: this.ownerWhere(owner),
+    });
+
+    const created = await executor.shelf.create({
+      data: {
+        deactivatedAt: null,
+        isDefault: true,
+        name: 'Unshelved',
+        position: (lastShelf?.position ?? -1) + 1,
+        slug: 'unshelved',
+        ...ownerRecord(owner),
+      },
+      select: { id: true, slug: true },
+    });
+
+    await this.activityService.emitWithExecutor(executor, {
+      metadata: { shelfId: created.id, slug: created.slug },
+      owner,
+      type: ActivityEventType.SHELF_CREATED,
+    });
+
+    return created;
+  }
+
   private async getOwnedLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemWithRelations> {
-    const item = await this.prisma.libraryItem.findFirst({
+    return this.getOwnedLibraryItemWithExecutor(this.prisma, owner, libraryItemId);
+  }
+
+  private async getOwnedLibraryItemWithExecutor(
+    executor: LibraryExecutor,
+    owner: OwnerContext,
+    libraryItemId: string,
+  ): Promise<LibraryItemWithRelations> {
+    const item = await executor.libraryItem.findFirst({
       include: libraryItemInclude,
       where: {
         id: libraryItemId,
@@ -332,6 +505,7 @@ export class LibraryService {
       select: { id: true, slug: true },
       where: {
         id: shelfId,
+        deactivatedAt: null,
         ...this.ownerWhere(owner),
       },
     });
@@ -341,23 +515,6 @@ export class LibraryService {
     }
 
     return shelf;
-  }
-
-  private async progressTargetShelfId(
-    executor: LibraryExecutor,
-    owner: OwnerContext,
-    item: LibraryItemWithRelations,
-    isComplete: boolean,
-  ): Promise<string | undefined> {
-    if (isComplete && item.shelf.slug !== 'read') {
-      return (await this.getDefaultShelf(executor, owner, 'read')).id;
-    }
-
-    if (!isComplete && (item.shelf.slug === 'read' || item.shelf.slug === 'want-to-read')) {
-      return (await this.getDefaultShelf(executor, owner, 'currently-reading')).id;
-    }
-
-    return undefined;
   }
 
   private toBookResponse(book: LibraryItemWithRelations['book']): LibraryBookResponseDto {
@@ -383,7 +540,38 @@ export class LibraryService {
     };
   }
 
-  private toLibraryItemResponse(item: LibraryItemWithRelations): LibraryItemResponseDto {
+  private async toLibraryItemResponse(
+    owner: OwnerContext,
+    item: LibraryItemWithRelations,
+  ): Promise<LibraryItemResponseDto> {
+    const [response] = await this.toLibraryItemResponses(owner, [item]);
+
+    return response;
+  }
+
+  private async toLibraryItemResponses(
+    owner: OwnerContext,
+    items: LibraryItemWithRelations[],
+  ): Promise<LibraryItemResponseDto[]> {
+    const needsUnshelvedFallback = items.some(
+      (item) =>
+        item.shelves.filter((membership) => membership.shelf.deactivatedAt === null).length === 0,
+    );
+    const unshelvedShelf = needsUnshelvedFallback
+      ? await this.getUnshelvedShelfSummary(this.prisma, owner)
+      : null;
+
+    return items.map((item) => this.toLibraryItemResponseWithFallback(item, unshelvedShelf));
+  }
+
+  private toLibraryItemResponseWithFallback(
+    item: LibraryItemWithRelations,
+    unshelvedShelf: ShelfSummaryResponseDto | null,
+  ): LibraryItemResponseDto {
+    const activeShelves = item.shelves
+      .filter((membership) => membership.shelf.deactivatedAt === null)
+      .map((membership) => this.toShelfSummary(membership.shelf));
+
     return {
       book: this.toBookResponse(item.book),
       createdAt: item.createdAt.toISOString(),
@@ -396,12 +584,52 @@ export class LibraryService {
       notes: item.notes,
       progressUpdatedAt: item.progressUpdatedAt?.toISOString() ?? null,
       rating: item.rating,
-      shelf: this.toShelfSummary(item.shelf),
+      shelves: activeShelves.length > 0 ? activeShelves : unshelvedShelf ? [unshelvedShelf] : [],
+      status: item.status,
       updatedAt: item.updatedAt.toISOString(),
     };
   }
 
-  private toShelfSummary(shelf: LibraryItemWithRelations['shelf']): ShelfSummaryResponseDto {
+  private async getUnshelvedShelfSummary(
+    executor: LibraryExecutor,
+    owner: OwnerContext,
+  ): Promise<ShelfSummaryResponseDto> {
+    const shelf = await executor.shelf.findFirst({
+      select: {
+        id: true,
+        name: true,
+        position: true,
+        slug: true,
+      },
+      where: {
+        deactivatedAt: null,
+        slug: 'unshelved',
+        ...this.ownerWhere(owner),
+      },
+    });
+
+    if (!shelf) {
+      throw new BadRequestException('Unshelved shelf does not exist.');
+    }
+
+    return shelf;
+  }
+
+  private statusForInitialShelf(slug: string): LibraryItemStatus {
+    if (slug === 'read') {
+      return LibraryItemStatus.READ;
+    }
+
+    if (slug === 'currently-reading') {
+      return LibraryItemStatus.READING;
+    }
+
+    return LibraryItemStatus.WANT_TO_READ;
+  }
+
+  private toShelfSummary(
+    shelf: LibraryItemWithRelations['shelves'][number]['shelf'],
+  ): ShelfSummaryResponseDto {
     return {
       id: shelf.id,
       name: shelf.name,
@@ -457,5 +685,10 @@ export class LibraryService {
 
 const libraryItemInclude = {
   book: true,
-  shelf: true,
+  shelves: {
+    include: {
+      shelf: true,
+    },
+    orderBy: [{ shelf: { position: 'asc' } }, { createdAt: 'asc' }],
+  },
 } satisfies Prisma.LibraryItemInclude;

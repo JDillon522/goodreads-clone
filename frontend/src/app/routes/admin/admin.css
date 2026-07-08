@@ -1,0 +1,144 @@
+.admin-page {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-6);
+}
+
+.page-heading {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.page-heading p,
+.panel-heading span,
+.muted,
+small {
+  color: var(--color-text-secondary);
+}
+
+.page-heading p {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(20rem, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.admin-panel {
+  display: grid;
+  gap: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  padding-block-start: var(--space-4);
+}
+
+.admin-panel--wide {
+  grid-column: 1 / -1;
+}
+
+.panel-heading,
+.action-row,
+.inline-form,
+.shelf-admin-row,
+.user-row {
+  display: flex;
+  align-items: center;
+}
+
+.panel-heading {
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stack-form,
+.user-list,
+.shelf-admin-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.stack-form {
+  max-inline-size: 38rem;
+}
+
+.inline-form {
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.inline-form app-form-control {
+  flex: 1 1 16rem;
+}
+
+.user-row,
+.shelf-admin-row {
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-3);
+  color: var(--color-text-primary);
+  text-align: start;
+}
+
+.user-row > span:first-child,
+.shelf-admin-row > span:first-child {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.user-row:hover,
+.user-row.is-selected,
+.shelf-admin-row:hover,
+.shelf-admin-row.is-selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.shelf-admin-row.is-inactive {
+  opacity: 0.72;
+}
+
+.status-pill {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.15rem var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+}
+
+.status-pill.is-muted {
+  color: var(--color-text-tertiary);
+}
+
+.shelf-admin-list {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.reorder-actions {
+  display: flex;
+  gap: var(--space-1);
+  align-self: stretch;
+}
+
+.action-row {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.shelf-editor {
+  border-block-start: 1px solid var(--color-border);
+  padding-block-start: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}

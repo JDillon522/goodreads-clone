@@ -1,16 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { ThemePreference } from '@prisma/client';
+import { ThemePreference, UserRole } from '@prisma/client';
 import type { User } from '@prisma/client';
 
 import { defaultShelves } from '../common/shelves/default-shelves';
 import { PrismaService } from '../database/prisma.service';
 
-export type AuthUserRecord = Pick<User, 'createdAt' | 'displayName' | 'email' | 'id'>;
+export type AuthUserRecord = Pick<
+  User,
+  'createdAt' | 'deactivatedAt' | 'displayName' | 'email' | 'id' | 'role' | 'username'
+>;
 
 export type CreateUserInput = {
   displayName?: string;
   email: string;
   passwordHash: string;
+  role?: UserRole;
+  username?: string;
 };
 
 @Injectable()
@@ -24,6 +29,8 @@ export class UsersService {
           displayName: input.displayName ?? null,
           email: input.email,
           passwordHash: input.passwordHash,
+          role: input.role ?? UserRole.USER,
+          username: input.username ?? null,
         },
       });
 
@@ -41,7 +48,7 @@ export class UsersService {
         ),
       );
 
-      const defaultShelf = shelves.find((shelf) => shelf.slug === 'want-to-read');
+      const defaultShelf = shelves.find((shelf) => shelf.slug === 'unshelved');
 
       await transaction.userPreference.create({
         data: {
@@ -64,13 +71,30 @@ export class UsersService {
     });
   }
 
+  public async findBySigninIdentifier(
+    identifier: string,
+  ): Promise<(AuthUserRecord & { passwordHash: string }) | null> {
+    const normalized = identifier.trim().toLowerCase();
+
+    if (normalized.includes('@')) {
+      return this.findByEmail(normalized);
+    }
+
+    return this.prisma.user.findUnique({
+      where: { username: normalized },
+    });
+  }
+
   public async findById(id: string): Promise<AuthUserRecord | null> {
     return this.prisma.user.findUnique({
       select: {
         createdAt: true,
+        deactivatedAt: true,
         displayName: true,
         email: true,
         id: true,
+        role: true,
+        username: true,
       },
       where: { id },
     });

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { LibraryItemStatus } from '@prisma/client';
 
 import { LibraryBookResponseDto } from './library-book-response.dto';
 import { ShelfSummaryResponseDto } from './shelf-summary-response.dto';
@@ -13,8 +14,11 @@ export class LibraryItemResponseDto {
   @ApiProperty({ type: LibraryBookResponseDto })
   book!: LibraryBookResponseDto;
 
-  @ApiProperty({ type: ShelfSummaryResponseDto })
-  shelf!: ShelfSummaryResponseDto;
+  @ApiProperty({ enum: LibraryItemStatus, example: LibraryItemStatus.WANT_TO_READ })
+  status!: LibraryItemStatus;
+
+  @ApiProperty({ isArray: true, type: ShelfSummaryResponseDto })
+  shelves!: ShelfSummaryResponseDto[];
 
   @ApiPropertyOptional({ example: 5, nullable: true })
   rating!: null | number;

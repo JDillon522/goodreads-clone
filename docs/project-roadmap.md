@@ -52,7 +52,7 @@ Authoritative v1 defaults:
 ### 6. Library Core APIs - DONE
 
 - Build endpoints for shelves, shelf ordering, add-to-library, duplicate detection, moving books, deleting library items, book detail, ratings, notes, progress updates, and annual goals.
-- Ensure a book belongs to exactly one shelf per user.
+- Superseded in Stage 10: books now support multiple shelf memberships per user, with status tracked separately.
 - Emit activity events for important actions.
 
 ### 7. Guest Mode Backend - DONE
@@ -74,9 +74,10 @@ Authoritative v1 defaults:
 - Use standalone components, signals, strict typing, explicit access modifiers, and the existing design tokens.
 - Build API client, auth state, guest state, route shells, and layout primitives before detailed screens.
 
-### 10. Frontend Core Product
+### 10. Frontend Core Product - IN PROGRESS
 
 - Build landing page, guest entry, auth screens, library overview, shelves, search/add flow, book detail, progress update UX, ratings/notes, and reading goal UI.
+- Add admin management for users and user-owned shelves.
 - Keep accessibility requirements active from the first component.
 
 ### 11. Stats + Year-in-Review
@@ -129,7 +130,7 @@ Authoritative v1 defaults:
 | 2026-06-29 | Open Library request timeout | Outbound Open Library calls use an 8-second default timeout so provider slowness fails as a mapped API error. |
 | 2026-06-29 | Runtime TLS stance | Do not disable TLS verification by default for external book API calls; local self-signed certificate interception should be handled with a trusted CA via `NODE_EXTRA_CA_CERTS`. |
 | 2026-06-29 | Local CA startup helper | `npm run dev:backend` and `npm run docker:up` auto-detect `certs/local-ca.pem`; direct `docker compose up` also points the dev backend at `/app/certs/local-ca.pem`. |
-| 2026-06-30 | Stage 6 shelf behavior | Default shelves cannot be deleted, but names can be changed; slugs remain stable for internal rules. |
+| 2026-06-30 | Stage 6 shelf behavior | Superseded on 2026-07-08: only `Unshelved` is protected; the original standard shelves are editable user shelves. |
 | 2026-06-30 | Stage 6 library behavior | Add-to-library uses normalized book DTOs, upserts app-owned books, rejects owner duplicates, and keeps each library item on exactly one shelf. |
 | 2026-06-30 | Stage 6 progress behavior | Page or percent progress is supported; 100% completion marks `dateFinished` and moves the item to the `read` shelf when available. |
 | 2026-06-30 | Stage 7 guest token behavior | `POST /api/guest/session` creates a 7-day opaque guest token and seeds an active-reader demo library. |
@@ -142,11 +143,21 @@ Authoritative v1 defaults:
 | 2026-06-30 | Stage 9 session storage | Store authenticated access/refresh tokens in `localStorage`; store guest tokens and guest expiration state in `sessionStorage`. |
 | 2026-06-30 | Stage 9 proxy topology | Add nginx as the browser-facing container on `localhost:8080`; dev routes non-API traffic to Angular dev server and `/api`, `/docs`, `/docs-json` to Nest. Production proxy serves Angular static assets and forwards API/docs traffic to the backend. |
 | 2026-06-30 | Stage 9 visual direction | Move tokens away from the starter beige/brown palette toward a cleaner neutral/teal foundation while keeping all colors adjustable through CSS variables. |
+| 2026-06-30 | Stage 10 shelf model change | A library item can belong to multiple shelves through `LibraryItemShelf`; duplicate rejection now blocks duplicate shelf membership, not duplicate library ownership. |
+| 2026-06-30 | Stage 10 status model | `LibraryItem.status` is explicit (`WANT_TO_READ`, `READING`, `READ`) and progress updates no longer move books between shelves. |
+| 2026-06-30 | Stage 10 shelf deletion behavior | Superseded on 2026-07-08: only `Unshelved` is protected from deletion; the original three standard shelves are user-owned shelves and can be renamed, deleted, and reordered. |
+| 2026-06-30 | Stage 10 add-book behavior | Add-book flow asks for a target shelf; shelf pages pass their shelf id as the default picker choice. |
+| 2026-06-30 | Stage 10 shelf reordering | Shelf reordering remains paused until the core shelf management UX settles. |
+| 2026-07-08 | Unshelved default shelf | Every user and guest owner gets a persisted `Unshelved` shelf first; new books default there unless a target shelf is chosen. |
+| 2026-07-08 | Shelf deactivation behavior | Deactivated shelves remain in the database for admin/reactivation but are hidden from normal shelf and add-book flows; books with no active shelves appear through `Unshelved`. |
+| 2026-07-08 | Admin access model | Seed an ADMIN user with username `admin` and password `Password123!`; normal sign-in accepts email or username, and deactivated users are blocked from auth/API use. |
+| 2026-07-08 | Admin management scope | Admin v1 manages authenticated users and their shelves only; guest-session shelf admin and global default-template editing are out of scope. |
 
 ## Open Questions
 
 - Decide deployment target details after local Docker and backend contracts are stable.
 - Decide when to add real email delivery for password reset tokens.
+- Decide how to normalize/cache Open Library series or relation data for expanded book detail pages.
 
 ## Session Notes
 
@@ -186,3 +197,13 @@ Authoritative v1 defaults:
 - Added frontend Atomic Design CSS scaffolding with variables plus tag-only atoms, light/dark theme tokens, Phosphor icons, and route-scoped styles for the initial foundation UI.
 - Added Docker frontend dev image and nginx proxy dev/production images; `docker compose up` now exposes the app through `http://localhost:8080`, proxies `/api`, `/docs`, and `/docs-json` to the backend, and keeps the frontend dev server internal.
 - Verified Stage 9 with `ngc`, frontend typecheck, frontend unit tests, local production frontend build, dev/prod Docker proxy builds, Compose startup, proxy `/api/health`, proxy deep-route fallback, and `POST /api/guest/session` through nginx.
+- Started Stage 10 shelf/status work: migrated library items from single `shelfId` ownership to multi-shelf memberships, added explicit manual reading status, and regenerated Swagger/OpenAPI frontend types.
+- Added backend endpoints for adding/removing shelf memberships, delete-shelf result summaries, and `Unshelved` fallback handling when deleting a book's only shelf.
+- Updated frontend shelf UX: create shelves, rename shelves, delete custom shelves with confirmation/result details, choose a shelf while adding a book, and manage a book's shelf memberships from the book detail page.
+- Updated frontend progress UX so manual status control is separate from page/percent progress; setting progress to 100% marks status `READ` without forcing a shelf move.
+- Verified Stage 10 shelf/status slice with backend/frontend typechecks, backend unit tests, frontend unit tests, backend e2e tests, live guest API smoke for multi-shelf deletion, and live `Unshelved` fallback smoke.
+
+### 2026-07-08
+
+- Updated the shelf model direction: `Unshelved` is a real default shelf for every owner, and the original three standard shelves are editable/deletable user shelves.
+- Added admin direction: username-based ADMIN login, user deactivation, shelf deactivation, and admin-only user/shelf management.

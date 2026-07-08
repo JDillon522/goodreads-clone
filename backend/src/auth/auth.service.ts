@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'node:crypto';
@@ -56,6 +57,10 @@ export class AuthService {
       throw new BadRequestException('Password reset token is invalid or expired.');
     }
 
+    if (resetToken.user.deactivatedAt) {
+      throw new UnauthorizedException('This account has been deactivated.');
+    }
+
     const passwordHash = await this.hashPassword(dto.newPassword);
     const now = new Date();
 
@@ -87,7 +92,7 @@ export class AuthService {
   public async getCurrentUser(user: AuthenticatedUser): Promise<AuthUserResponseDto> {
     const currentUser = await this.usersService.findById(user.id);
 
-    if (!currentUser) {
+    if (!currentUser || currentUser.deactivatedAt) {
       throw new UnauthorizedException('Authenticated user no longer exists.');
     }
 
@@ -104,7 +109,12 @@ export class AuthService {
       where: { tokenHash },
     });
 
-    if (!storedToken || storedToken.revokedAt || storedToken.expiresAt <= new Date()) {
+    if (
+      !storedToken ||
+      storedToken.revokedAt ||
+      storedToken.expiresAt <= new Date() ||
+      storedToken.user.deactivatedAt
+    ) {
       throw new UnauthorizedException('Refresh token is invalid or expired.');
     }
 
@@ -170,11 +180,15 @@ export class AuthService {
     dto: SigninRequestDto,
     requestContext: RequestContext,
   ): Promise<AuthTokenResponseDto> {
-    const email = this.normalizeEmail(dto.email);
-    const user = await this.usersService.findByEmail(email);
+    const identifier = dto.email.trim().toLowerCase();
+    const user = await this.usersService.findBySigninIdentifier(identifier);
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    if (user.deactivatedAt) {
+      throw new UnauthorizedException('This account has been deactivated.');
     }
 
     const passwordMatches = await argon2.verify(user.passwordHash, dto.password);
@@ -285,8 +299,10 @@ export class AuthService {
   private async signAccessToken(user: AuthUserRecord): Promise<string> {
     const payload: AccessTokenPayload = {
       email: user.email,
+      role: user.role,
       sub: user.id,
       type: 'access',
+      username: user.username,
     };
 
     return this.jwtService.signAsync(payload, {
@@ -312,9 +328,12 @@ export class AuthService {
   private toUserResponse(user: AuthUserRecord): AuthUserResponseDto {
     return {
       createdAt: user.createdAt.toISOString(),
+      deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
       displayName: user.displayName,
       email: user.email,
       id: user.id,
+      role: user.role ?? UserRole.USER,
+      username: user.username,
     };
   }
 }

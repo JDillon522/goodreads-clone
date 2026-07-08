@@ -17,6 +17,10 @@ export type SignoutRequest = Schema<'SignoutRequestDto'>;
 export type SignoutResponse = Schema<'SignoutResponseDto'>;
 export type SignupRequest = Schema<'SignupRequestDto'>;
 
+export type AdminUserResponse = Schema<'AdminUserResponseDto'>;
+export type CreateAdminUserRequest = Schema<'CreateAdminUserRequestDto'>;
+export type UpdateAdminUserRequest = Schema<'UpdateAdminUserRequestDto'>;
+
 export type GuestSessionResponse = Schema<'GuestSessionResponseDto'>;
 
 export type BookInput = Schema<'BookInputDto'>;
@@ -24,13 +28,17 @@ export type BookSearchResponse = Schema<'BookSearchResponseDto'>;
 export type NormalizedBook = Schema<'NormalizedBookDto'>;
 
 export type AddLibraryItemRequest = Schema<'AddLibraryItemRequestDto'>;
+export type AddLibraryItemShelfRequest = Schema<'AddLibraryItemShelfRequestDto'>;
 export type LibraryBookResponse = Schema<'LibraryBookResponseDto'>;
 export type LibraryItemResponse = Schema<'LibraryItemResponseDto'>;
+export type LibraryItemStatus = LibraryItemResponse['status'];
 export type MoveLibraryItemRequest = Schema<'MoveLibraryItemRequestDto'>;
 export type UpdateLibraryItemRequest = Schema<'UpdateLibraryItemRequestDto'>;
 export type UpdateProgressRequest = Schema<'UpdateProgressRequestDto'>;
 
 export type CreateShelfRequest = Schema<'CreateShelfRequestDto'>;
+export type DeletedShelfBookResponse = Schema<'DeletedShelfBookResponseDto'>;
+export type DeleteShelfResponse = Schema<'DeleteShelfResponseDto'>;
 export type ShelfResponse = Schema<'ShelfResponseDto'>;
 export type ShelfSummaryResponse = Schema<'ShelfSummaryResponseDto'>;
 export type UpdateShelfOrderRequest = Schema<'UpdateShelfOrderRequestDto'>;

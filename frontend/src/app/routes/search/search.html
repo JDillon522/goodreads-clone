@@ -39,7 +39,7 @@
             <p>{{ primaryAuthor(book) }}</p>
             <p class="muted">{{ publishedDate(book) }}</p>
           </div>
-          <button class="secondary-button" type="button" (click)="addBook(book)" [disabled]="addingKey() === book.providerKey">
+          <button class="secondary-button" type="button" (click)="openAddBookDialog(book)" [disabled]="addingKey() === book.providerKey">
             {{ addingKey() === book.providerKey ? 'Adding...' : 'Add' }}
           </button>
         </article>
@@ -47,3 +47,39 @@
     </div>
   }
 </section>
+
+<dialog #addBookDialog class="dialog">
+  <form class="dialog__body" (submit)="submitAddBook($event)">
+    <header class="dialog__header">
+      <div>
+        <p class="eyebrow">Add book</p>
+        <h2>{{ selectedBook()?.title ?? 'Choose shelf' }}</h2>
+      </div>
+      <button class="icon-button" type="button" (click)="closeAddBookDialog()" aria-label="Close add book dialog">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (isLoadingShelves()) {
+      <p class="muted">Loading shelves...</p>
+    } @else if (shelves().length === 0) {
+      <p class="error-message" role="alert">Create a shelf before adding books.</p>
+    } @else {
+      <label>
+        <span>Shelf</span>
+        <select [formField]="shelfPickerForm.shelfId">
+          @for (shelf of shelves(); track shelf.id) {
+            <option [value]="shelf.id">{{ shelf.name }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <footer class="dialog__actions">
+      <button class="secondary-button" type="button" (click)="closeAddBookDialog()">Cancel</button>
+      <button class="primary-button" type="submit" [disabled]="shelves().length === 0 || shelfPickerForm().submitting()">
+        {{ shelfPickerForm().submitting() ? 'Adding...' : 'Add book' }}
+      </button>
+    </footer>
+  </form>
+</dialog>

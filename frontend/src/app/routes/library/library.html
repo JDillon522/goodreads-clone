@@ -35,7 +35,7 @@
           <div class="book-card__body">
             <p class="book-card__title">{{ item.book.title }}</p>
             <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
-            <p class="book-card__shelf">{{ item.shelf.name }} · {{ progressLabel(item) }}</p>
+            <p class="book-card__shelf">{{ shelfLabel(item) }} · {{ progressLabel(item) }}</p>
           </div>
         </a>
       }

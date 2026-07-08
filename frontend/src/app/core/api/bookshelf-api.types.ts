@@ -4,6 +4,163 @@
  */
 
 export interface paths {
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users for admin management. */
+        get: operations["listUsers"];
+        put?: never;
+        /** Create a user with standard shelves. */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Hard-delete a user and owned records. */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        /** Update user identity, password, or role. */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate a user account. */
+        post: operations["deactivateUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactivate a user account. */
+        post: operations["reactivateUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active and deactivated shelves for a user. */
+        get: operations["listUserShelves"];
+        put?: never;
+        /** Create a shelf for a user. */
+        post: operations["createUserShelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/shelves/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace shelf ordering for a user. */
+        put: operations["updateUserShelfOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/shelves/{shelfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a user shelf with Unshelved fallback handling. */
+        delete: operations["deleteUserShelf"];
+        options?: never;
+        head?: never;
+        /** Update a user shelf. */
+        patch: operations["updateUserShelf"];
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/shelves/{shelfId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate a user shelf. */
+        post: operations["deactivateUserShelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{userId}/shelves/{shelfId}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reactivate a user shelf. */
+        post: operations["reactivateUserShelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -120,6 +277,59 @@ export interface paths {
         put?: never;
         /** Create an account with default shelves and sign in. */
         post: operations["signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List shelves for the current library owner. */
+        get: operations["listShelves"];
+        put?: never;
+        /** Create a custom shelf for the current library owner. */
+        post: operations["createShelf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shelves/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a custom shelf, moving sole-shelf books to Unshelved and returning affected books. */
+        delete: operations["deleteShelf"];
+        options?: never;
+        head?: never;
+        /** Rename a shelf without changing its internal slug. */
+        patch: operations["updateShelf"];
+        trace?: never;
+    };
+    "/api/shelves/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace shelf ordering. */
+        put: operations["updateShelfOrder"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -296,8 +506,42 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Move a library item to another shelf. */
+        /** Add a shelf membership to a library item. */
         patch: operations["moveLibraryItem"];
+        trace?: never;
+    };
+    "/api/library/{id}/shelves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a shelf membership to a library item. */
+        post: operations["addShelfToLibraryItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/library/{id}/shelves/{shelfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a shelf membership from a library item, using Unshelved when it would otherwise have none. */
+        delete: operations["removeShelfFromLibraryItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/library/{id}/progress": {
@@ -317,63 +561,161 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/shelves": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List shelves for the current library owner. */
-        get: operations["listShelves"];
-        put?: never;
-        /** Create a custom shelf for the current library owner. */
-        post: operations["createShelf"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/shelves/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete an empty custom shelf. */
-        delete: operations["deleteShelf"];
-        options?: never;
-        head?: never;
-        /** Rename a shelf without changing its internal slug. */
-        patch: operations["updateShelf"];
-        trace?: never;
-    };
-    "/api/shelves/order": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Replace shelf ordering. */
-        put: operations["updateShelfOrder"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminUserResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example reader@example.com */
+            email: string;
+            /** @example reader42 */
+            username?: string | null;
+            /** @example Ada Reader */
+            displayName?: string | null;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "USER";
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        CreateAdminUserRequestDto: {
+            /** @example reader@example.com */
+            email: string;
+            /** @example reader42 */
+            username?: string;
+            /** @example Ada Reader */
+            displayName?: string;
+            /** @example correct-horse-battery-staple */
+            password: string;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            role?: "ADMIN" | "USER";
+        };
+        UpdateAdminUserRequestDto: {
+            /** @example reader@example.com */
+            email?: string;
+            /** @example reader42 */
+            username?: string | null;
+            /** @example Ada Reader */
+            displayName?: string | null;
+            /** @example correct-horse-battery-staple */
+            password?: string;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            role?: "ADMIN" | "USER";
+        };
+        ShelfResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example Want to Read */
+            name: string;
+            /** @example want-to-read */
+            slug: string;
+            /** @example 0 */
+            position: number;
+            /** @example true */
+            isDefault: boolean;
+            /** @example 12 */
+            itemCount: number;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        CreateShelfRequestDto: {
+            /** @example Favorites */
+            name: string;
+        };
+        UpdateShelfOrderRequestDto: {
+            /**
+             * @example [
+             *       "5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5",
+             *       "2148a988-11c3-48f8-bc65-f2a426be242f"
+             *     ]
+             */
+            shelfIds: string[];
+        };
+        UpdateShelfRequestDto: {
+            /** @example Favorites */
+            name?: string;
+        };
+        ShelfSummaryResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example Want to Read */
+            name: string;
+            /** @example want-to-read */
+            slug: string;
+            /** @example 0 */
+            position: number;
+        };
+        DeletedShelfBookResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            libraryItemId: string;
+            /** @example The Left Hand of Darkness */
+            title: string;
+            shelves: components["schemas"]["ShelfSummaryResponseDto"][];
+        };
+        DeleteShelfResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            deletedShelfId: string;
+            /** @example SciFi */
+            deletedShelfName: string;
+            /**
+             * Format: uuid
+             * @description Created or reused fallback shelf id when books would otherwise have no shelf.
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            fallbackShelfId: Record<string, never> | null;
+            affectedBooks: components["schemas"]["DeletedShelfBookResponseDto"][];
+        };
         AuthUserResponseDto: {
             /**
              * Format: uuid
@@ -382,8 +724,20 @@ export interface components {
             id: string;
             /** @example reader@example.com */
             email: string;
+            /** @example reader42 */
+            username?: string | null;
             /** @example Ada Reader */
-            displayName?: Record<string, never> | null;
+            displayName?: string | null;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            role: "ADMIN" | "USER";
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt?: string | null;
             /**
              * Format: date-time
              * @example 2026-06-29T12:00:00.000Z
@@ -437,7 +791,10 @@ export interface components {
             refreshToken: string;
         };
         SigninRequestDto: {
-            /** @example reader@example.com */
+            /**
+             * @description Email address or username.
+             * @example reader@example.com
+             */
             email: string;
             /** @example correct-horse-battery-staple */
             password: string;
@@ -706,7 +1063,7 @@ export interface components {
             book: components["schemas"]["BookInputDto"];
             /**
              * Format: uuid
-             * @description Target shelf. Defaults to the user want-to-read shelf.
+             * @description Initial target shelf membership. Defaults to the owner Unshelved shelf.
              * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
              */
             shelfId?: string;
@@ -761,19 +1118,6 @@ export interface components {
              */
             genres: string[];
         };
-        ShelfSummaryResponseDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            id: string;
-            /** @example Want to Read */
-            name: string;
-            /** @example want-to-read */
-            slug: string;
-            /** @example 0 */
-            position: number;
-        };
         LibraryItemResponseDto: {
             /**
              * Format: uuid
@@ -783,7 +1127,12 @@ export interface components {
             /** @example isbn13:9780441478125 */
             dedupeKey: string;
             book: components["schemas"]["LibraryBookResponseDto"];
-            shelf: components["schemas"]["ShelfSummaryResponseDto"];
+            /**
+             * @example WANT_TO_READ
+             * @enum {string}
+             */
+            status: "READ" | "READING" | "WANT_TO_READ";
+            shelves: components["schemas"]["ShelfSummaryResponseDto"][];
             /** @example 5 */
             rating?: Record<string, never> | null;
             /** @example Bleak, excellent, colder than my inbox. */
@@ -829,8 +1178,21 @@ export interface components {
              * @example Loved the worldbuilding.
              */
             notes?: Record<string, never> | null;
+            /**
+             * @description Set the manual reading status for this library item.
+             * @example READING
+             * @enum {string}
+             */
+            status?: "READ" | "READING" | "WANT_TO_READ";
         };
         MoveLibraryItemRequestDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            shelfId: string;
+        };
+        AddLibraryItemShelfRequestDto: {
             /**
              * Format: uuid
              * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
@@ -848,50 +1210,6 @@ export interface components {
             /** @example 50 */
             currentPercent?: number;
         };
-        CreateShelfRequestDto: {
-            /** @example Favorites */
-            name: string;
-        };
-        ShelfResponseDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            id: string;
-            /** @example Want to Read */
-            name: string;
-            /** @example want-to-read */
-            slug: string;
-            /** @example 0 */
-            position: number;
-            /** @example true */
-            isDefault: boolean;
-            /** @example 12 */
-            itemCount: number;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            updatedAt: string;
-        };
-        UpdateShelfOrderRequestDto: {
-            /**
-             * @example [
-             *       "5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5",
-             *       "2148a988-11c3-48f8-bc65-f2a426be242f"
-             *     ]
-             */
-            shelfIds: string[];
-        };
-        UpdateShelfRequestDto: {
-            /** @example Favorites */
-            name?: string;
-        };
     };
     responses: never;
     parameters: never;
@@ -901,6 +1219,297 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"][];
+                };
+            };
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdminUserRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAdminUserRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    reactivateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserResponseDto"];
+                };
+            };
+        };
+    };
+    listUserShelves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"][];
+                };
+            };
+        };
+    };
+    createUserShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShelfRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
+    updateUserShelfOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShelfOrderRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"][];
+                };
+            };
+        };
+    };
+    deleteUserShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteShelfResponseDto"];
+                };
+            };
+        };
+    };
+    updateUserShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShelfRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
+    deactivateUserShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
+    reactivateUserShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
     getCurrentUser: {
         parameters: {
             query?: never;
@@ -1090,6 +1699,117 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listShelves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"][];
+                };
+            };
+        };
+    };
+    createShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShelfRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
+    deleteShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteShelfResponseDto"];
+                };
+            };
+        };
+    };
+    updateShelf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShelfRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"];
+                };
+            };
+        };
+    };
+    updateShelfOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShelfOrderRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShelfResponseDto"][];
+                };
             };
         };
     };
@@ -1454,6 +2174,53 @@ export interface operations {
             };
         };
     };
+    addShelfToLibraryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddLibraryItemShelfRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
+    removeShelfFromLibraryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                shelfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
     updateProgress: {
         parameters: {
             query?: never;
@@ -1475,115 +2242,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
-                };
-            };
-        };
-    };
-    listShelves: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShelfResponseDto"][];
-                };
-            };
-        };
-    };
-    createShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateShelfRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShelfResponseDto"];
-                };
-            };
-        };
-    };
-    deleteShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateShelf: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateShelfRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShelfResponseDto"];
-                };
-            };
-        };
-    };
-    updateShelfOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateShelfOrderRequestDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ShelfResponseDto"][];
                 };
             };
         };

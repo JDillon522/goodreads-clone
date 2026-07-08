@@ -62,21 +62,23 @@ describe('UsersService', () => {
         displayName: 'Ada Reader',
         email: 'reader@example.com',
         passwordHash: 'hash',
+        role: 'USER',
+        username: null,
       },
     });
-    expect(shelfCreate).toHaveBeenCalledTimes(3);
+    expect(shelfCreate).toHaveBeenCalledTimes(4);
     expect(shelfCreate).toHaveBeenCalledWith({
       data: {
         isDefault: true,
-        name: 'Want to Read',
+        name: 'Unshelved',
         position: 0,
-        slug: 'want-to-read',
+        slug: 'unshelved',
         userId: user.id,
       },
     });
     expect(userPreferenceCreate).toHaveBeenCalledWith({
       data: {
-        defaultShelfId: 'shelf-want-to-read',
+        defaultShelfId: 'shelf-unshelved',
         displayMode: 'grid',
         theme: 'SYSTEM',
         userId: user.id,

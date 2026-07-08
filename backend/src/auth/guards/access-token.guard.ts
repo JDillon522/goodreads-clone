@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
+import { PrismaService } from '../../database/prisma.service';
 import type { AccessTokenPayload } from '../types/access-token-payload';
 import type { AuthenticatedRequest, HttpHeaderValue } from '../types/authenticated-request';
 
@@ -10,6 +11,7 @@ export class AccessTokenGuard implements CanActivate {
   public constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,9 +31,26 @@ export class AccessTokenGuard implements CanActivate {
         throw new UnauthorizedException('Invalid bearer token.');
       }
 
+      const user = await this.prisma.user.findUnique({
+        select: {
+          deactivatedAt: true,
+          email: true,
+          id: true,
+          role: true,
+          username: true,
+        },
+        where: { id: payload.sub },
+      });
+
+      if (!user || user.deactivatedAt) {
+        throw new UnauthorizedException('Authenticated user no longer exists.');
+      }
+
       request.user = {
-        email: payload.email,
-        id: payload.sub,
+        email: user.email,
+        id: user.id,
+        role: user.role,
+        username: user.username,
       };
 
       return true;

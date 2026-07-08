@@ -1,0 +1,158 @@
+<section class="admin-page" aria-labelledby="admin-heading">
+  <header class="page-heading">
+    <p>Operations</p>
+    <h1 id="admin-heading">Admin</h1>
+  </header>
+
+  @if (message()) {
+    <p class="success-message">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  }
+
+  <div class="admin-layout">
+    <section class="admin-panel" aria-labelledby="users-heading">
+      <div class="panel-heading">
+        <h2 id="users-heading">Users</h2>
+        @if (isLoadingUsers()) {
+          <span>Loading...</span>
+        }
+      </div>
+
+      <div class="user-list" role="list">
+        @for (user of users(); track user.id) {
+          <button
+            class="user-row"
+            type="button"
+            role="listitem"
+            [class.is-selected]="user.id === selectedUserId()"
+            (click)="selectUser(user)"
+          >
+            <span>
+              <strong>{{ user.email }}</strong>
+              <small>{{ user.username || 'no username' }}</small>
+            </span>
+            <span class="status-pill" [class.is-muted]="user.deactivatedAt">{{ user.deactivatedAt ? 'Inactive' : user.role }}</span>
+          </button>
+        } @empty {
+          <p class="muted">No users found.</p>
+        }
+      </div>
+
+      <form class="stack-form" (submit)="submitCreateUser($event)">
+        <h3>Create user</h3>
+        <app-form-control label="Email" type="email" autocomplete="off" [control]="createUserForm.email" />
+        <app-form-control label="Username" autocomplete="off" hint="Optional, used for sign-in." [control]="createUserForm.username" />
+        <app-form-control label="Display name" autocomplete="off" [control]="createUserForm.displayName" />
+        <app-form-control label="Password" type="password" autocomplete="new-password" [control]="createUserForm.password" />
+        <app-form-control label="Role" kind="select" [control]="createUserForm.role">
+          @for (role of roleOptions; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </app-form-control>
+        <button class="primary-button" type="submit" [disabled]="createUserForm().submitting()">Create user</button>
+      </form>
+    </section>
+
+    <section class="admin-panel" aria-labelledby="selected-user-heading">
+      <div class="panel-heading">
+        <h2 id="selected-user-heading">Selected user</h2>
+        @if (selectedUser(); as user) {
+          <span>{{ user.createdAt | date: 'mediumDate' }}</span>
+        }
+      </div>
+
+      @if (selectedUser(); as user) {
+        <form class="stack-form" (submit)="submitUpdateUser($event)">
+          <app-form-control label="Email" type="email" autocomplete="off" [control]="editUserForm.email" />
+          <app-form-control label="Username" autocomplete="off" hint="Leave blank to remove the username." [control]="editUserForm.username" />
+          <app-form-control label="Display name" autocomplete="off" [control]="editUserForm.displayName" />
+          <app-form-control label="New password" type="password" autocomplete="new-password" hint="Leave blank to keep the current password." [control]="editUserForm.password" />
+          <app-form-control label="Role" kind="select" [control]="editUserForm.role">
+            @for (role of roleOptions; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </app-form-control>
+          <div class="action-row">
+            <button class="primary-button" type="submit" [disabled]="editUserForm().submitting()">Save user</button>
+            @if (user.deactivatedAt) {
+              <button class="secondary-button" type="button" (click)="reactivateSelectedUser()">Reactivate</button>
+            } @else {
+              <button class="secondary-button" type="button" (click)="deactivateSelectedUser()">Deactivate</button>
+            }
+            <button class="danger-button" type="button" (click)="deleteSelectedUser()">Delete</button>
+          </div>
+        </form>
+      } @else {
+        <p class="muted">Select a user to edit.</p>
+      }
+    </section>
+
+    <section class="admin-panel admin-panel--wide" aria-labelledby="shelves-heading">
+      <div class="panel-heading">
+        <h2 id="shelves-heading">Shelves</h2>
+        @if (isLoadingShelves()) {
+          <span>Loading...</span>
+        }
+      </div>
+
+      @if (selectedUser(); as user) {
+        <form class="inline-form" (submit)="submitCreateShelf($event)">
+          <app-form-control label="New shelf" autocomplete="off" [control]="createShelfForm.name" />
+          <button class="primary-button" type="submit" [disabled]="createShelfForm().submitting()">Add shelf</button>
+        </form>
+
+        <div class="shelf-admin-list" role="list">
+          @for (shelf of shelves(); track shelf.id; let first = $first; let last = $last) {
+            <button
+              class="shelf-admin-row"
+              type="button"
+              role="listitem"
+              [class.is-selected]="shelf.id === selectedShelfId()"
+              [class.is-inactive]="shelf.deactivatedAt"
+              (click)="selectShelf(shelf)"
+            >
+              <span>
+                <strong>{{ shelf.name }}</strong>
+                <small>{{ shelf.slug }}</small>
+              </span>
+              <span class="count">{{ shelf.itemCount }}</span>
+              <span class="status-pill" [class.is-muted]="shelf.deactivatedAt">{{ shelf.deactivatedAt ? 'Inactive' : 'Active' }}</span>
+            </button>
+            <div class="reorder-actions" aria-label="Shelf reorder controls">
+              <button class="icon-button" type="button" [disabled]="first" (click)="moveShelf(shelf, -1)" [attr.aria-label]="'Move ' + shelf.name + ' up'">
+                <i class="ph ph-arrow-up" aria-hidden="true"></i>
+              </button>
+              <button class="icon-button" type="button" [disabled]="last" (click)="moveShelf(shelf, 1)" [attr.aria-label]="'Move ' + shelf.name + ' down'">
+                <i class="ph ph-arrow-down" aria-hidden="true"></i>
+              </button>
+            </div>
+          } @empty {
+            <p class="muted">This user has no shelves.</p>
+          }
+        </div>
+
+        @if (selectedShelf(); as shelf) {
+          <form class="stack-form shelf-editor" (submit)="submitUpdateShelf($event)">
+            <h3>Edit shelf</h3>
+            <app-form-control label="Name" autocomplete="off" [control]="editShelfForm.name" />
+            <div class="action-row">
+              <button class="primary-button" type="submit" [disabled]="editShelfForm().submitting()">Save shelf</button>
+              @if (shelf.deactivatedAt) {
+                <button class="secondary-button" type="button" (click)="reactivateSelectedShelf()">Reactivate</button>
+              } @else if (canDeactivateShelf(shelf)) {
+                <button class="secondary-button" type="button" (click)="deactivateSelectedShelf()">Deactivate</button>
+              }
+              @if (canDeleteShelf(shelf)) {
+                <button class="danger-button" type="button" (click)="deleteSelectedShelf()">Delete</button>
+              }
+            </div>
+          </form>
+        }
+      } @else {
+        <p class="muted">Select a user to manage shelves.</p>
+      }
+    </section>
+  </div>
+</section>
