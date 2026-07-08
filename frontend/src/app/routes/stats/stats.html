@@ -1,0 +1,168 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">Stats</p>
+      <h1>{{ currentYear }} reading stats</h1>
+    </div>
+    <a class="secondary-button" routerLink="/app/goals">
+      <i class="ph ph-target" aria-hidden="true"></i>
+      <span>Goal</span>
+    </a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="muted">Loading stats...</p>
+  } @else if (error()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  } @else if (summary(); as stats) {
+    <section class="stat-grid" aria-label="Reading summary">
+      <article class="stat-card">
+        <span class="stat-card__icon"><i class="ph ph-check-circle" aria-hidden="true"></i></span>
+        <p class="stat-label">Completed</p>
+        <p class="stat-value">{{ formatNumber(stats.totals.booksCompleted) }}</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-card__icon"><i class="ph ph-stack" aria-hidden="true"></i></span>
+        <p class="stat-label">Estimated pages</p>
+        <p class="stat-value">{{ formatNumber(stats.pages.estimatedPagesRead) }}</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-card__icon"><i class="ph ph-star" aria-hidden="true"></i></span>
+        <p class="stat-label">Avg rating</p>
+        <p class="stat-value">{{ averageRating() }}</p>
+      </article>
+      <article class="stat-card">
+        <span class="stat-card__icon"><i class="ph ph-trend-up" aria-hidden="true"></i></span>
+        <p class="stat-label">Goal pace</p>
+        <p class="stat-value">{{ goalPaceLabel() }}</p>
+      </article>
+    </section>
+
+    <section class="review-band" aria-labelledby="review-heading">
+      <div>
+        <p class="eyebrow">Year in review</p>
+        <h2 id="review-heading">{{ stats.year }} highlights</h2>
+      </div>
+      <dl class="highlight-list">
+        <div>
+          <dt>Top genre</dt>
+          <dd>{{ topGenreLabel() }}</dd>
+        </div>
+        <div>
+          <dt>Top author</dt>
+          <dd>{{ topAuthorLabel() }}</dd>
+        </div>
+        <div>
+          <dt>Best month</dt>
+          <dd>{{ bestMonthLabel() }}</dd>
+        </div>
+        <div>
+          <dt>In progress</dt>
+          <dd>{{ formatNumber(stats.pages.estimatedPagesInProgress) }} pages</dd>
+        </div>
+      </dl>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="panel panel--wide" aria-labelledby="monthly-heading">
+        <div class="panel__header">
+          <h2 id="monthly-heading">Monthly finishes</h2>
+          <p>{{ formatNumber(stats.totals.progressUpdates) }} progress updates</p>
+        </div>
+        <div class="month-bars">
+          @for (month of stats.monthlyCompletions; track month.month) {
+            <div class="month-row">
+              <span>{{ month.label }}</span>
+              <div class="bar-track" aria-hidden="true">
+                <span class="bar-fill" [style.inline-size]="barSize(month.booksCompleted, maxMonthlyBooks())"></span>
+              </div>
+              <strong>{{ month.booksCompleted }}</strong>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="genres-heading">
+        <h2 id="genres-heading">Genres</h2>
+        <ol class="ranked-list">
+          @for (genre of stats.genres; track genre.name) {
+            <li>
+              <span>{{ genre.name }}</span>
+              <strong>{{ genre.count }}</strong>
+            </li>
+          } @empty {
+            <li><span>No completed genres yet</span></li>
+          }
+        </ol>
+      </section>
+
+      <section class="panel" aria-labelledby="authors-heading">
+        <h2 id="authors-heading">Authors</h2>
+        <ol class="ranked-list">
+          @for (author of stats.authors; track author.name) {
+            <li>
+              <span>{{ author.name }}</span>
+              <strong>{{ author.count }}</strong>
+            </li>
+          } @empty {
+            <li><span>No completed authors yet</span></li>
+          }
+        </ol>
+      </section>
+
+      <section class="panel" aria-labelledby="status-heading">
+        <h2 id="status-heading">Library status</h2>
+        <dl class="breakdown-list">
+          @for (status of stats.statuses; track status.status) {
+            <div>
+              <dt>{{ status.status.replaceAll('_', ' ') }}</dt>
+              <dd>{{ status.count }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="panel" aria-labelledby="shelves-heading">
+        <h2 id="shelves-heading">Shelves</h2>
+        <dl class="breakdown-list">
+          @for (shelf of stats.shelves; track shelf.slug) {
+            <div>
+              <dt>{{ shelf.name }}</dt>
+              <dd>{{ shelf.count }}</dd>
+            </div>
+          } @empty {
+            <div>
+              <dt>No shelf data</dt>
+              <dd>0</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="panel panel--wide" aria-labelledby="rated-heading">
+        <div class="panel__header">
+          <h2 id="rated-heading">Top rated</h2>
+          @if (stats.longestCompletedBook) {
+            <p>Longest: {{ stats.longestCompletedBook.title }}</p>
+          }
+        </div>
+        <div class="book-list">
+          @for (book of stats.topRatedBooks; track book.id) {
+            <article class="book-row">
+              <div>
+                <h3>{{ book.title }}</h3>
+                <p>{{ book.primaryAuthor ?? 'Unknown author' }}</p>
+              </div>
+              <div class="book-row__meta">
+                <strong>{{ book.rating ?? 'No rating' }}</strong>
+                <span>{{ formatNumber(book.estimatedPages) }} pages</span>
+              </div>
+            </article>
+          } @empty {
+            <p class="muted">Rated completed books will appear here.</p>
+          }
+        </div>
+      </section>
+    </div>
+  }
+</section>

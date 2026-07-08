@@ -1,0 +1,230 @@
+.page {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: var(--library-max-width);
+}
+
+.page__header,
+.review-band,
+.panel__header,
+.book-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+
+.secondary-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-block-size: 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding-inline: var(--space-4);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
+
+.muted,
+.panel__header p,
+.book-row p,
+.book-row__meta span {
+  color: var(--color-text-secondary);
+}
+
+.error-message {
+  color: var(--color-error);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.stat-card,
+.review-band,
+.panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.stat-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+.stat-card__icon {
+  display: grid;
+  inline-size: 2rem;
+  block-size: 2rem;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.stat-label {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.stat-value {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+}
+
+.review-band,
+.panel {
+  padding: var(--space-5);
+}
+
+.review-band {
+  align-items: start;
+}
+
+.review-band h2,
+.panel h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+}
+
+.highlight-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  inline-size: min(100%, 42rem);
+}
+
+.highlight-list div,
+.breakdown-list div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.highlight-list dt,
+.breakdown-list dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.highlight-list dd,
+.breakdown-list dd {
+  font-weight: var(--font-semibold);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+.panel--wide {
+  grid-column: 1 / -1;
+}
+
+.month-bars,
+.ranked-list,
+.breakdown-list,
+.book-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2rem;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.bar-track {
+  overflow: hidden;
+  block-size: 0.65rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+}
+
+.bar-fill {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+.ranked-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranked-list li,
+.breakdown-list div {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  border-block-end: 1px solid var(--color-border);
+  padding-block-end: var(--space-2);
+}
+
+.ranked-list li:last-child,
+.breakdown-list div:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.book-row {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.book-row h3 {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+}
+
+.book-row__meta {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .page__header,
+  .review-band,
+  .panel__header,
+  .book-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stat-grid,
+  .highlight-list,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .book-row__meta {
+    justify-items: start;
+  }
+}

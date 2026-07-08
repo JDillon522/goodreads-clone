@@ -62,6 +62,11 @@ export const routes: Routes = [
         title: 'Goals - Bookshelf',
       },
       {
+        path: 'stats',
+        loadComponent: () => import('./routes/stats/stats').then((m) => m.Stats),
+        title: 'Stats - Bookshelf',
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./routes/settings/settings').then((m) => m.Settings),
         title: 'Settings - Bookshelf',

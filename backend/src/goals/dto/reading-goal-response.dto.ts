@@ -17,7 +17,12 @@ export class ReadingGoalResponseDto {
   @ApiProperty({ example: 12 })
   targetBooks!: number;
 
-  @ApiPropertyOptional({ example: '2026-12-01T12:00:00.000Z', format: 'date-time', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: '2026-12-01T12:00:00.000Z',
+    format: 'date-time',
+    nullable: true,
+    type: String,
+  })
   completedAt!: null | string;
 
   @ApiProperty({ type: GoalStatsResponseDto })

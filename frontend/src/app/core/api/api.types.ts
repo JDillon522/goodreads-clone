@@ -48,6 +48,9 @@ export type GoalStatsResponse = Schema<'GoalStatsResponseDto'>;
 export type ReadingGoalResponse = Schema<'ReadingGoalResponseDto'>;
 export type UpdateReadingGoalRequest = Schema<'UpdateReadingGoalRequestDto'>;
 
+export type StatsSummaryResponse = Schema<'StatsSummaryResponseDto'>;
+export type YearInReviewResponse = Schema<'YearInReviewResponseDto'>;
+
 export type HealthResponse = Schema<'HealthResponseDto'>;
 export type ReadinessResponse = Schema<'ReadinessResponseDto'>;
 export type ReadinessUnavailableResponse = Schema<'ReadinessUnavailableResponseDto'>;

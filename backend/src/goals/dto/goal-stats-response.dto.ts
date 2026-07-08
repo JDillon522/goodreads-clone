@@ -22,6 +22,9 @@ export class GoalStatsResponseDto {
   @ApiProperty({ example: true })
   isOnTrack!: boolean;
 
+  @ApiProperty({ example: false })
+  isComplete!: boolean;
+
   @ApiProperty({ example: 0 })
   booksBehindPace!: number;
 }

@@ -27,7 +27,11 @@ export class BookInputDto {
   @MaxLength(160)
   sourceId!: string;
 
-  @ApiPropertyOptional({ example: 'https://openlibrary.org/works/OL262758W', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: 'https://openlibrary.org/works/OL262758W',
+    nullable: true,
+    type: String,
+  })
   @IsOptional()
   @IsUrl()
   @MaxLength(500)

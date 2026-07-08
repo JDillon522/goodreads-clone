@@ -31,6 +31,7 @@ export function setupSwagger(app: INestApplication, apiPrefix: string): void {
     .addTag('Library', 'User and guest library items, book detail, notes, and ratings.')
     .addTag('Progress', 'Reading progress updates and history.')
     .addTag('Goals', 'Annual reading goal setup, progress, and completion state.')
+    .addTag('Stats', 'Reading statistics, yearly summaries, and year-in-review data.')
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, {

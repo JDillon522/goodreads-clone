@@ -11,6 +11,7 @@ import { GuestModule } from './guest/guest.module';
 import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
 import { ShelvesModule } from './shelves/shelves.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ShelvesModule } from './shelves/shelves.module';
     HealthModule,
     LibraryModule,
     ShelvesModule,
+    StatsModule,
   ],
 })
 export class AppModule {}

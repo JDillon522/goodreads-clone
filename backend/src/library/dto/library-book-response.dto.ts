@@ -10,7 +10,11 @@ export class LibraryBookResponseDto {
   @ApiProperty({ example: 'works:OL262758W' })
   sourceId!: string;
 
-  @ApiPropertyOptional({ example: 'https://openlibrary.org/works/OL262758W', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: 'https://openlibrary.org/works/OL262758W',
+    nullable: true,
+    type: String,
+  })
   sourceUrl!: null | string;
 
   @ApiPropertyOptional({ example: '/works/OL262758W', nullable: true, type: String })

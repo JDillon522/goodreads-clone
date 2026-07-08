@@ -80,7 +80,7 @@ Authoritative v1 defaults:
 - Add admin management for users and user-owned shelves.
 - Keep accessibility requirements active from the first component.
 
-### 11. Stats + Year-in-Review
+### 11. Stats + Year-in-Review - DONE
 
 - Use backend activity/progress/read-date data to power reading insights.
 - Start with useful dashboard stats before any stretch "wow" differentiators.
@@ -154,6 +154,9 @@ Authoritative v1 defaults:
 | 2026-07-08 | Admin management scope | Admin v1 manages authenticated users and their shelves only; guest-session shelf admin and global default-template editing are out of scope. |
 | 2026-07-08 | Stage 10 shelf reorder UX | Normal users can reorder any active shelf from the app shell through `/api/shelves/order`; `Unshelved` is protected from deletion only. |
 | 2026-07-08 | Stage 10 book detail review UX | Rating and notes editing lives on the book detail page only; library filters, sorting, and card indicators remain out of Stage 10 scope. |
+| 2026-07-08 | Stage 11 stats scope | Stats v1 supports authenticated users and guests, uses current-year UI, keeps the API year-ready, and excludes sharing cards, AI summaries, imports, and advanced analytics. |
+| 2026-07-08 | Stage 11 completion rule | Yearly completed-book counts use `dateFinished` only; page totals are estimated from known page counts, completed-page fallback, and current progress where appropriate. |
+| 2026-07-08 | Stage 11 highlights | Year-in-review includes useful portfolio-friendly highlights: monthly finishes, estimated pages, goal pace, favorite genres/authors, status/shelf breakdowns, top-rated books, and longest completed book. |
 
 ## Open Questions
 
@@ -216,3 +219,9 @@ Authoritative v1 defaults:
 - Added focused frontend coverage for shared form controls, app-shell shelf management/reorder behavior, book-detail status/progress/shelf/rating/notes updates, and admin route guard smoke behavior.
 - Verified Stage 10 with backend typecheck, backend Jest, regenerated OpenAPI types, frontend app typecheck, frontend tests, frontend production build, Docker proxy health, and Docker API smoke for admin login, shelf reorder, add-to-library, rating/notes save, and guest default shelves.
 - Browser automation could not be completed in this session because the in-app browser connector exposed no available browser sessions; Docker API smoke covered the requested user/admin/guest workflows.
+- Finished Stage 11 stats/year-in-review: added owner-scoped `/api/stats/summary` and `/api/stats/year-in-review/:year` endpoints for authenticated users and guests.
+- Added stats calculation helpers for completed-page estimates, in-progress page estimates, monthly completion totals, ranked genres, and ranked authors.
+- Added `/app/stats` as a current-year dashboard with summary metrics, year-in-review highlights, monthly finish bars, genre/author rankings, status/shelf breakdowns, and top-rated/longest-book sections.
+- Kept the frontend UI current-year only while keeping the frontend service and backend endpoints year-aware for future multi-year navigation.
+- Regenerated frontend OpenAPI types after adding Stats DTOs and added focused coverage for stats rules, stats e2e workflow paths, and the Angular stats route.
+- Verified Stage 11 with backend lint, backend format check plus Prisma validate, backend typecheck, backend unit tests, backend build, backend Docker e2e, regenerated OpenAPI types, frontend app/spec typechecks, frontend unit tests, frontend production build, proxy `/app/stats` smoke, and guest stats API smoke through nginx.

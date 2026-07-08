@@ -25,6 +25,7 @@ type LibraryItemResponse = {
   currentPage: null | number;
   currentPercent: null | number;
   id: string;
+  rating: null | number;
   status: 'READ' | 'READING' | 'WANT_TO_READ';
   shelves: {
     id: string;
@@ -52,6 +53,33 @@ type GoalResponse = {
     completedBooks: number;
     isComplete: boolean;
   };
+};
+
+type StatsSummaryResponse = {
+  authors: { count: number; name: string }[];
+  genres: { count: number; name: string }[];
+  pages: {
+    estimatedPagesRead: number;
+  };
+  topRatedBooks: {
+    rating: null | number;
+    title: string;
+  }[];
+  totals: {
+    booksCompleted: number;
+    totalLibraryBooks: number;
+  };
+  year: number;
+};
+
+type YearInReviewResponse = {
+  highlights: {
+    hasCompletedBooks: boolean;
+    topAuthor: null | { name: string };
+    topGenre: null | { name: string };
+  };
+  summary: StatsSummaryResponse;
+  year: number;
 };
 
 const apiBaseUrl = process.env.E2E_API_BASE_URL ?? 'http://localhost:3000/api';
@@ -176,6 +204,14 @@ describe('Bookshelf API workflows', () => {
     expect(progressed.status).toBe('READ');
     expect(progressed.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
 
+    const reviewed = await request<LibraryItemResponse>(`/library/${added.id}`, {
+      body: { rating: 5, notes: 'A classic.' },
+      method: 'PATCH',
+      token: accessToken,
+    });
+
+    expect(reviewed.rating).toBe(5);
+
     const multiShelf = await request<ShelfResponse>('/shelves', {
       body: { name: `SciFi ${runId}` },
       method: 'POST',
@@ -236,6 +272,30 @@ describe('Bookshelf API workflows', () => {
     expect(goal.stats.completedBooks).toBeGreaterThanOrEqual(1);
     expect(goal.stats.isComplete).toBe(true);
     expect(goal.completedAt).toEqual(expect.any(String));
+
+    const stats = await request<StatsSummaryResponse>(
+      `/stats/summary?year=${new Date().getUTCFullYear()}`,
+      {
+        token: accessToken,
+      },
+    );
+
+    expect(stats.totals.booksCompleted).toBeGreaterThanOrEqual(1);
+    expect(stats.pages.estimatedPagesRead).toBeGreaterThanOrEqual(304);
+    expect(stats.genres.map((genre) => genre.name)).toContain('Science fiction');
+    expect(stats.authors.map((author) => author.name)).toContain('Ursula K. Le Guin');
+    expect(stats.topRatedBooks[0]).toEqual(expect.objectContaining({ rating: 5 }));
+
+    const review = await request<YearInReviewResponse>(
+      `/stats/year-in-review/${new Date().getUTCFullYear()}`,
+      {
+        token: accessToken,
+      },
+    );
+
+    expect(review.highlights.hasCompletedBooks).toBe(true);
+    expect(review.highlights.topAuthor?.name).toBe('Ursula K. Le Guin');
+    expect(review.highlights.topGenre?.name).toBe('Science fiction');
   });
 
   it('creates a guest session that can use the same shelf, library, progress, and goal APIs', async () => {
@@ -274,6 +334,17 @@ describe('Bookshelf API workflows', () => {
     const goal = await request<GoalResponse>('/goals/current', { token: guest.guestToken });
 
     expect(goal.stats.completedBooks).toBeGreaterThanOrEqual(0);
+
+    const stats = await request<StatsSummaryResponse>(
+      `/stats/summary?year=${new Date().getUTCFullYear()}`,
+      {
+        token: guest.guestToken,
+      },
+    );
+
+    expect(stats.year).toBe(new Date().getUTCFullYear());
+    expect(stats.totals.totalLibraryBooks).toBeGreaterThanOrEqual(12);
+    expect(stats.pages.estimatedPagesRead).toBeGreaterThanOrEqual(0);
   });
 
   it('prevents one guest session from reading another guest session library item', async () => {

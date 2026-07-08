@@ -23,7 +23,11 @@ export class LibraryItemResponseDto {
   @ApiPropertyOptional({ example: 5, nullable: true, type: Number })
   rating!: null | number;
 
-  @ApiPropertyOptional({ example: 'Bleak, excellent, colder than my inbox.', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: 'Bleak, excellent, colder than my inbox.',
+    nullable: true,
+    type: String,
+  })
   notes!: null | string;
 
   @ApiPropertyOptional({ example: 152, nullable: true, type: Number })
@@ -32,13 +36,23 @@ export class LibraryItemResponseDto {
   @ApiPropertyOptional({ example: 50, nullable: true, type: Number })
   currentPercent!: null | number;
 
-  @ApiPropertyOptional({ example: '2026-06-29T12:00:00.000Z', format: 'date-time', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: '2026-06-29T12:00:00.000Z',
+    format: 'date-time',
+    nullable: true,
+    type: String,
+  })
   progressUpdatedAt!: null | string;
 
   @ApiProperty({ example: '2026-06-29T12:00:00.000Z', format: 'date-time' })
   dateAdded!: string;
 
-  @ApiPropertyOptional({ example: '2026-06-29T12:00:00.000Z', format: 'date-time', nullable: true, type: String })
+  @ApiPropertyOptional({
+    example: '2026-06-29T12:00:00.000Z',
+    format: 'date-time',
+    nullable: true,
+    type: String,
+  })
   dateFinished!: null | string;
 
   @ApiProperty({ example: '2026-06-29T12:00:00.000Z', format: 'date-time' })

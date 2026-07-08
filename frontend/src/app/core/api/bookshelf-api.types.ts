@@ -561,6 +561,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get reading statistics for a year. */
+        get: operations["getSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/year-in-review/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get year-in-review highlights and statistics. */
+        get: operations["getYearInReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -895,6 +929,8 @@ export interface components {
             expectedCompletedByToday: number;
             /** @example true */
             isOnTrack: boolean;
+            /** @example false */
+            isComplete: boolean;
             /** @example 0 */
             booksBehindPace: number;
         };
@@ -1209,6 +1245,149 @@ export interface components {
             currentPage?: number;
             /** @example 50 */
             currentPercent?: number;
+        };
+        StatsTotalsResponseDto: {
+            /** @example 42 */
+            totalLibraryBooks: number;
+            /** @example 12 */
+            booksCompleted: number;
+            /** @example 3 */
+            booksInProgress: number;
+            /** @example 17 */
+            booksWantToRead: number;
+            /** @example 22 */
+            booksReadAllTime: number;
+            /** @example 4.2 */
+            averageRating: number | null;
+            /** @example 10 */
+            ratedBooks: number;
+            /** @example 27 */
+            progressUpdates: number;
+            /** @example 64 */
+            activityEvents: number;
+        };
+        StatsPageEstimateResponseDto: {
+            /** @example 3400 */
+            estimatedPagesRead: number;
+            /** @example 3050 */
+            knownCompletedPages: number;
+            /** @example 2 */
+            estimatedMissingPageBooks: number;
+            /** @example 254 */
+            averagePagesPerKnownCompletedBook: number;
+            /** @example 620 */
+            estimatedPagesInProgress: number;
+        };
+        StatsGoalSummaryResponseDto: {
+            /** @example 12 */
+            targetBooks: number;
+            /**
+             * Format: date-time
+             * @example 2026-12-01T12:00:00.000Z
+             */
+            completedAt?: string | null;
+            stats: components["schemas"]["GoalStatsResponseDto"];
+        };
+        StatsMonthlyCompletionResponseDto: {
+            /** @example 1 */
+            month: number;
+            /** @example Jan */
+            label: string;
+            /** @example 2 */
+            booksCompleted: number;
+            /** @example 620 */
+            estimatedPagesRead: number;
+        };
+        StatsRankedValueResponseDto: {
+            /** @example Fantasy */
+            name: string;
+            /** @example 5 */
+            count: number;
+        };
+        StatsStatusBreakdownResponseDto: {
+            /**
+             * @example READ
+             * @enum {string}
+             */
+            status: "READ" | "READING" | "WANT_TO_READ";
+            /** @example 12 */
+            count: number;
+        };
+        StatsShelfBreakdownResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string | null;
+            /** @example Read */
+            name: string;
+            /** @example read */
+            slug: string;
+            /** @example 12 */
+            count: number;
+        };
+        StatsBookHighlightResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example The Left Hand of Darkness */
+            title: string;
+            /** @example Ursula K. Le Guin */
+            primaryAuthor: string | null;
+            /** @example 5 */
+            rating: number | null;
+            /** @example 304 */
+            pageCount: number | null;
+            /** @example 304 */
+            estimatedPages: number;
+            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            coverUrl: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            dateFinished: string | null;
+        };
+        StatsSummaryResponseDto: {
+            /** @example 2026 */
+            year: number;
+            /**
+             * Format: date-time
+             * @example 2026-07-08T12:00:00.000Z
+             */
+            generatedAt: string;
+            totals: components["schemas"]["StatsTotalsResponseDto"];
+            pages: components["schemas"]["StatsPageEstimateResponseDto"];
+            goal: components["schemas"]["StatsGoalSummaryResponseDto"];
+            monthlyCompletions: components["schemas"]["StatsMonthlyCompletionResponseDto"][];
+            genres: components["schemas"]["StatsRankedValueResponseDto"][];
+            authors: components["schemas"]["StatsRankedValueResponseDto"][];
+            statuses: components["schemas"]["StatsStatusBreakdownResponseDto"][];
+            shelves: components["schemas"]["StatsShelfBreakdownResponseDto"][];
+            topRatedBooks: components["schemas"]["StatsBookHighlightResponseDto"][];
+            longestCompletedBook: components["schemas"]["StatsBookHighlightResponseDto"] | null;
+        };
+        YearInReviewHighlightsResponseDto: {
+            /** @example true */
+            hasCompletedBooks: boolean;
+            topGenre: components["schemas"]["StatsRankedValueResponseDto"] | null;
+            topAuthor: components["schemas"]["StatsRankedValueResponseDto"] | null;
+            topRatedBook: components["schemas"]["StatsBookHighlightResponseDto"] | null;
+            longestBook: components["schemas"]["StatsBookHighlightResponseDto"] | null;
+            bestMonth: components["schemas"]["StatsMonthlyCompletionResponseDto"] | null;
+        };
+        YearInReviewResponseDto: {
+            /** @example 2026 */
+            year: number;
+            /**
+             * Format: date-time
+             * @example 2026-07-08T12:00:00.000Z
+             */
+            generatedAt: string;
+            summary: components["schemas"]["StatsSummaryResponseDto"];
+            highlights: components["schemas"]["YearInReviewHighlightsResponseDto"];
         };
     };
     responses: never;
@@ -2242,6 +2421,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
+    getSummary: {
+        parameters: {
+            query?: {
+                year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsSummaryResponseDto"];
+                };
+            };
+        };
+    };
+    getYearInReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YearInReviewResponseDto"];
                 };
             };
         };
