@@ -5,10 +5,7 @@
   </header>
 
   <form class="search-form" (submit)="submitSearch($event)">
-    <label>
-      <span>Search by title, author, ISBN, or subject</span>
-      <input type="search" autocomplete="off" [formField]="searchForm.query" />
-    </label>
+    <app-form-control label="Search by title, author, ISBN, or subject" type="search" autocomplete="off" [control]="searchForm.query" />
     <button class="primary-button" type="submit" [disabled]="searchForm().submitting()">
       <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
       <span>{{ searchForm().submitting() ? 'Searching...' : 'Search' }}</span>
@@ -65,14 +62,11 @@
     } @else if (shelves().length === 0) {
       <p class="error-message" role="alert">Create a shelf before adding books.</p>
     } @else {
-      <label>
-        <span>Shelf</span>
-        <select [formField]="shelfPickerForm.shelfId">
-          @for (shelf of shelves(); track shelf.id) {
-            <option [value]="shelf.id">{{ shelf.name }}</option>
-          }
-        </select>
-      </label>
+      <app-form-control label="Shelf" kind="select" [control]="shelfPickerForm.shelfId">
+        @for (shelf of shelves(); track shelf.id) {
+          <option [value]="shelf.id">{{ shelf.name }}</option>
+        }
+      </app-form-control>
     }
 
     <footer class="dialog__actions">

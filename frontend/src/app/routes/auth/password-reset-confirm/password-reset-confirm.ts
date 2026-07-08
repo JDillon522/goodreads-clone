@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { form, minLength, required, submit } from '@angular/forms/signals';
 
 import { Auth } from '../../../core/auth/auth';
+import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
 @Component({
   selector: 'app-password-reset-confirm',
-  imports: [FormField, RouterLink],
+  imports: [RouterLink, UiFormControl],
   templateUrl: './password-reset-confirm.html',
   styleUrl: './password-reset-confirm.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

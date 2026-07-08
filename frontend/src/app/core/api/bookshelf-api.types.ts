@@ -713,7 +713,7 @@ export interface components {
              * @description Created or reused fallback shelf id when books would otherwise have no shelf.
              * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
              */
-            fallbackShelfId: Record<string, never> | null;
+            fallbackShelfId: string | null;
             affectedBooks: components["schemas"]["DeletedShelfBookResponseDto"][];
         };
         AuthUserResponseDto: {
@@ -826,15 +826,15 @@ export interface components {
             /** @example works:OL262758W */
             sourceId: string;
             /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: Record<string, never> | null;
+            sourceUrl?: string | null;
             /** @example /works/OL262758W */
-            openLibraryWorkKey?: Record<string, never> | null;
+            openLibraryWorkKey?: string | null;
             /** @example /books/OL24631830M */
-            openLibraryEditionKey?: Record<string, never> | null;
+            openLibraryEditionKey?: string | null;
             /** @example The Left Hand of Darkness */
             title: string;
             /** @example A Novel */
-            subtitle?: Record<string, never> | null;
+            subtitle?: string | null;
             /**
              * @example [
              *       "Ursula K. Le Guin"
@@ -842,21 +842,21 @@ export interface components {
              */
             authors: string[];
             /** @example Ursula K. Le Guin */
-            primaryAuthor?: Record<string, never> | null;
+            primaryAuthor?: string | null;
             /** @example A science fiction novel. */
-            description?: Record<string, never> | null;
+            description?: string | null;
             /** @example Ace Books */
-            publisher?: Record<string, never> | null;
+            publisher?: string | null;
             /** @example 1969 */
-            publishedDate?: Record<string, never> | null;
+            publishedDate?: string | null;
             /** @example 304 */
-            pageCount?: Record<string, never> | null;
+            pageCount?: number | null;
             /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: Record<string, never> | null;
+            coverUrl?: string | null;
             /** @example 0441478123 */
-            isbn10?: Record<string, never> | null;
+            isbn10?: string | null;
             /** @example 9780441478125 */
-            isbn13?: Record<string, never> | null;
+            isbn13?: string | null;
             /**
              * @example [
              *       "Science fiction",
@@ -903,7 +903,7 @@ export interface components {
              * Format: uuid
              * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
              */
-            id?: Record<string, never> | null;
+            id?: string | null;
             /** @example 2026 */
             year: number;
             /** @example 12 */
@@ -912,7 +912,7 @@ export interface components {
              * Format: date-time
              * @example 2026-12-01T12:00:00.000Z
              */
-            completedAt?: Record<string, never> | null;
+            completedAt?: string | null;
             stats: components["schemas"]["GoalStatsResponseDto"];
         };
         UpdateReadingGoalRequestDto: {
@@ -1018,15 +1018,15 @@ export interface components {
             /** @example works:OL262758W */
             sourceId: string;
             /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: Record<string, never> | null;
+            sourceUrl?: string | null;
             /** @example /works/OL262758W */
-            openLibraryWorkKey?: Record<string, never> | null;
+            openLibraryWorkKey?: string | null;
             /** @example /books/OL24631830M */
-            openLibraryEditionKey?: Record<string, never> | null;
+            openLibraryEditionKey?: string | null;
             /** @example The Left Hand of Darkness */
             title: string;
             /** @example A Novel */
-            subtitle?: Record<string, never> | null;
+            subtitle?: string | null;
             /**
              * @example [
              *       "Ursula K. Le Guin"
@@ -1034,21 +1034,21 @@ export interface components {
              */
             authors: string[];
             /** @example Ursula K. Le Guin */
-            primaryAuthor?: Record<string, never> | null;
+            primaryAuthor?: string | null;
             /** @example A science fiction novel. */
-            description?: Record<string, never> | null;
+            description?: string | null;
             /** @example Ace Books */
-            publisher?: Record<string, never> | null;
+            publisher?: string | null;
             /** @example 1969 */
-            publishedDate?: Record<string, never> | null;
+            publishedDate?: string | null;
             /** @example 304 */
-            pageCount?: Record<string, never> | null;
+            pageCount?: number | null;
             /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: Record<string, never> | null;
+            coverUrl?: string | null;
             /** @example 0441478123 */
-            isbn10?: Record<string, never> | null;
+            isbn10?: string | null;
             /** @example 9780441478125 */
-            isbn13?: Record<string, never> | null;
+            isbn13?: string | null;
             /**
              * @example [
              *       "Science fiction",
@@ -1079,15 +1079,15 @@ export interface components {
             /** @example works:OL262758W */
             sourceId: string;
             /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: Record<string, never> | null;
+            sourceUrl?: string | null;
             /** @example /works/OL262758W */
-            openLibraryWorkKey?: Record<string, never> | null;
+            openLibraryWorkKey?: string | null;
             /** @example /books/OL24631830M */
-            openLibraryEditionKey?: Record<string, never> | null;
+            openLibraryEditionKey?: string | null;
             /** @example The Left Hand of Darkness */
             title: string;
             /** @example A Novel */
-            subtitle?: Record<string, never> | null;
+            subtitle?: string | null;
             /**
              * @example [
              *       "Ursula K. Le Guin"
@@ -1095,21 +1095,21 @@ export interface components {
              */
             authors: string[];
             /** @example Ursula K. Le Guin */
-            primaryAuthor?: Record<string, never> | null;
+            primaryAuthor?: string | null;
             /** @example A science fiction novel. */
-            description?: Record<string, never> | null;
+            description?: string | null;
             /** @example Ace Books */
-            publisher?: Record<string, never> | null;
+            publisher?: string | null;
             /** @example 1969 */
-            publishedDate?: Record<string, never> | null;
+            publishedDate?: string | null;
             /** @example 304 */
-            pageCount?: Record<string, never> | null;
+            pageCount?: number | null;
             /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: Record<string, never> | null;
+            coverUrl?: string | null;
             /** @example 0441478123 */
-            isbn10?: Record<string, never> | null;
+            isbn10?: string | null;
             /** @example 9780441478125 */
-            isbn13?: Record<string, never> | null;
+            isbn13?: string | null;
             /**
              * @example [
              *       "Science fiction",
@@ -1134,18 +1134,18 @@ export interface components {
             status: "READ" | "READING" | "WANT_TO_READ";
             shelves: components["schemas"]["ShelfSummaryResponseDto"][];
             /** @example 5 */
-            rating?: Record<string, never> | null;
+            rating?: number | null;
             /** @example Bleak, excellent, colder than my inbox. */
-            notes?: Record<string, never> | null;
+            notes?: string | null;
             /** @example 152 */
-            currentPage?: Record<string, never> | null;
+            currentPage?: number | null;
             /** @example 50 */
-            currentPercent?: Record<string, never> | null;
+            currentPercent?: number | null;
             /**
              * Format: date-time
              * @example 2026-06-29T12:00:00.000Z
              */
-            progressUpdatedAt?: Record<string, never> | null;
+            progressUpdatedAt?: string | null;
             /**
              * Format: date-time
              * @example 2026-06-29T12:00:00.000Z
@@ -1155,7 +1155,7 @@ export interface components {
              * Format: date-time
              * @example 2026-06-29T12:00:00.000Z
              */
-            dateFinished?: Record<string, never> | null;
+            dateFinished?: string | null;
             /**
              * Format: date-time
              * @example 2026-06-29T12:00:00.000Z
@@ -1172,12 +1172,12 @@ export interface components {
              * @description Set a 1-5 rating or null to clear it.
              * @example 5
              */
-            rating?: Record<string, never> | null;
+            rating?: number | null;
             /**
              * @description Set plain-text notes or null to clear them.
              * @example Loved the worldbuilding.
              */
-            notes?: Record<string, never> | null;
+            notes?: string | null;
             /**
              * @description Set the manual reading status for this library item.
              * @example READING

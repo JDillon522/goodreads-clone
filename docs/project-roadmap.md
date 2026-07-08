@@ -74,7 +74,7 @@ Authoritative v1 defaults:
 - Use standalone components, signals, strict typing, explicit access modifiers, and the existing design tokens.
 - Build API client, auth state, guest state, route shells, and layout primitives before detailed screens.
 
-### 10. Frontend Core Product - IN PROGRESS
+### 10. Frontend Core Product - DONE
 
 - Build landing page, guest entry, auth screens, library overview, shelves, search/add flow, book detail, progress update UX, ratings/notes, and reading goal UI.
 - Add admin management for users and user-owned shelves.
@@ -147,11 +147,13 @@ Authoritative v1 defaults:
 | 2026-06-30 | Stage 10 status model | `LibraryItem.status` is explicit (`WANT_TO_READ`, `READING`, `READ`) and progress updates no longer move books between shelves. |
 | 2026-06-30 | Stage 10 shelf deletion behavior | Superseded on 2026-07-08: only `Unshelved` is protected from deletion; the original three standard shelves are user-owned shelves and can be renamed, deleted, and reordered. |
 | 2026-06-30 | Stage 10 add-book behavior | Add-book flow asks for a target shelf; shelf pages pass their shelf id as the default picker choice. |
-| 2026-06-30 | Stage 10 shelf reordering | Shelf reordering remains paused until the core shelf management UX settles. |
+| 2026-06-30 | Stage 10 shelf reordering | Superseded on 2026-07-08: shelf reordering is active for normal users and admins. |
 | 2026-07-08 | Unshelved default shelf | Every user and guest owner gets a persisted `Unshelved` shelf first; new books default there unless a target shelf is chosen. |
 | 2026-07-08 | Shelf deactivation behavior | Deactivated shelves remain in the database for admin/reactivation but are hidden from normal shelf and add-book flows; books with no active shelves appear through `Unshelved`. |
 | 2026-07-08 | Admin access model | Seed an ADMIN user with username `admin` and password `Password123!`; normal sign-in accepts email or username, and deactivated users are blocked from auth/API use. |
 | 2026-07-08 | Admin management scope | Admin v1 manages authenticated users and their shelves only; guest-session shelf admin and global default-template editing are out of scope. |
+| 2026-07-08 | Stage 10 shelf reorder UX | Normal users can reorder any active shelf from the app shell through `/api/shelves/order`; `Unshelved` is protected from deletion only. |
+| 2026-07-08 | Stage 10 book detail review UX | Rating and notes editing lives on the book detail page only; library filters, sorting, and card indicators remain out of Stage 10 scope. |
 
 ## Open Questions
 
@@ -207,3 +209,10 @@ Authoritative v1 defaults:
 
 - Updated the shelf model direction: `Unshelved` is a real default shelf for every owner, and the original three standard shelves are editable/deletable user shelves.
 - Added admin direction: username-based ADMIN login, user deactivation, shelf deactivation, and admin-only user/shelf management.
+- Finished Stage 10 frontend core product: normal users can create, rename, delete, and reorder shelves from the app shell while `Unshelved` remains deletion-protected.
+- Added book-detail rating and notes editing with clearable 1-5 ratings and plain-text notes, submitted as `number | null` and `string | null`.
+- Extended the shared `app-form-control` for text, email, password, number, select, and textarea use, then replaced remaining Stage 10 raw controls across app shell, auth, search, book detail, and goals where practical.
+- Fixed Swagger nullable DTO metadata and regenerated `frontend/src/app/core/api/bookshelf-api.types.ts`; `rating`, `notes`, `pageCount`, and other nullable book fields now generate as concrete nullable primitives instead of object placeholders.
+- Added focused frontend coverage for shared form controls, app-shell shelf management/reorder behavior, book-detail status/progress/shelf/rating/notes updates, and admin route guard smoke behavior.
+- Verified Stage 10 with backend typecheck, backend Jest, regenerated OpenAPI types, frontend app typecheck, frontend tests, frontend production build, Docker proxy health, and Docker API smoke for admin login, shelf reorder, add-to-library, rating/notes save, and guest default shelves.
+- Browser automation could not be completed in this session because the in-app browser connector exposed no available browser sessions; Docker API smoke covered the requested user/admin/guest workflows.

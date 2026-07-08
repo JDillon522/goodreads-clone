@@ -23,28 +23,6 @@
   align-items: end;
 }
 
-label {
-  display: grid;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-  font-size: var(--text-sm);
-}
-
-input,
-select {
-  min-block-size: 2.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  padding-inline: var(--space-3);
-}
-
-input:focus-visible,
-select:focus-visible {
-  border-color: var(--color-accent);
-  outline: 3px solid var(--color-focus-ring);
-}
-
 .icon-button {
   display: grid;
   inline-size: 2.5rem;

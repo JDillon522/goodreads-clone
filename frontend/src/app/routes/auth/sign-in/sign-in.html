@@ -9,15 +9,8 @@
       <p>Return to your shelves and reading progress.</p>
     </header>
 
-    <label>
-      <span>Email or username</span>
-      <input type="text" autocomplete="username" [formField]="signInForm.email" />
-    </label>
-
-    <label>
-      <span>Password</span>
-      <input type="password" autocomplete="current-password" [formField]="signInForm.password" />
-    </label>
+    <app-form-control label="Email or username" autocomplete="username" [control]="signInForm.email" />
+    <app-form-control label="Password" type="password" autocomplete="current-password" [control]="signInForm.password" />
 
     @if (error()) {
       <p class="error-message" role="alert">{{ error() }}</p>

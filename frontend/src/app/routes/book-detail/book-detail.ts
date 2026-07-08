@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { form, FormField, max, min, required, submit } from '@angular/forms/signals';
+import { form, max, maxLength, min, required, submit } from '@angular/forms/signals';
 
 import type {
   LibraryItemResponse,
   LibraryItemStatus,
   ShelfResponse,
   ShelfSummaryResponse,
+  UpdateLibraryItemRequest,
   UpdateProgressRequest,
 } from '../../core/api/api.types';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
+import { UiFormControl } from '../../shared/ui/form-control/form-control';
+
+type RatingFormValue = 'none' | '1' | '2' | '3' | '4' | '5';
 
 @Component({
   selector: 'app-book-detail',
-  imports: [FormField, RouterLink],
+  imports: [RouterLink, UiFormControl],
   templateUrl: './book-detail.html',
   styleUrl: './book-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +30,7 @@ export class BookDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly shelvesService = inject(Shelves);
   private readonly progressModel = signal({ trackingMode: 'PAGE' as 'PAGE' | 'PERCENT', currentPage: 0, currentPercent: 0 });
+  private readonly reviewModel = signal({ rating: 'none' as RatingFormValue, notes: '' });
   private readonly statusModel = signal({ status: 'WANT_TO_READ' as LibraryItemStatus });
   private readonly shelfMembershipModel = signal({ shelfId: '' });
 
@@ -36,6 +41,7 @@ export class BookDetail {
   protected readonly status = signal<string | null>(null);
   protected readonly addingShelf = signal(false);
   protected readonly removingShelfId = signal<string | null>(null);
+  protected readonly ratingOptions: readonly RatingFormValue[] = ['none', '1', '2', '3', '4', '5'];
   protected readonly itemShelves = computed<ShelfSummaryResponse[]>(() => {
     const item = this.item();
 
@@ -58,6 +64,9 @@ export class BookDetail {
   });
   protected readonly statusForm = form(this.statusModel, (path) => {
     required(path.status);
+  });
+  protected readonly reviewForm = form(this.reviewModel, (path) => {
+    maxLength(path.notes, 5000, { message: 'Keep notes under 5000 characters.' });
   });
   protected readonly shelfMembershipForm = form(this.shelfMembershipModel, (path) => {
     required(path.shelfId);
@@ -94,6 +103,10 @@ export class BookDetail {
 
   protected shelfListLabel(): string {
     return this.itemShelves().map((shelf) => shelf.name).join(', ') || 'Unshelved';
+  }
+
+  protected ratingLabel(rating: RatingFormValue): string {
+    return rating === 'none' ? 'No rating' : `${rating} star${rating === '1' ? '' : 's'}`;
   }
 
   protected async submitStatus(event: SubmitEvent): Promise<void> {
@@ -207,6 +220,43 @@ export class BookDetail {
     }
   }
 
+  protected async submitReview(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+    const item = this.item();
+
+    if (!item) {
+      return;
+    }
+
+    this.error.set(null);
+    this.status.set(null);
+
+    try {
+      const successful = await submit(this.reviewForm, async (formTree) => {
+        const value = formTree().value();
+        const notes = value.notes.trim();
+        const request: UpdateLibraryItemRequest = {
+          notes: notes || null,
+          rating: value.rating === 'none' ? null : Number(value.rating),
+        };
+        const updated = await this.library.update(item.id, request);
+
+        this.item.set(updated);
+        this.reviewModel.set({
+          notes: updated.notes ?? '',
+          rating: typeof updated.rating === 'number' ? (`${updated.rating}` as RatingFormValue) : 'none',
+        });
+        this.status.set('Review notes updated.');
+      });
+
+      if (!successful) {
+        this.error.set('Review notes could not be updated.');
+      }
+    } catch {
+      this.error.set('Review notes could not be updated.');
+    }
+  }
+
   private async loadBook(id: string): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
@@ -219,6 +269,10 @@ export class BookDetail {
         trackingMode: typeof item.currentPercent === 'number' ? 'PERCENT' : 'PAGE',
         currentPage: typeof item.currentPage === 'number' ? item.currentPage : 0,
         currentPercent: typeof item.currentPercent === 'number' ? item.currentPercent : 0,
+      });
+      this.reviewModel.set({
+        notes: item.notes ?? '',
+        rating: typeof item.rating === 'number' ? (`${item.rating}` as RatingFormValue) : 'none',
       });
       this.ensureSelectedMembershipShelf();
     } catch {

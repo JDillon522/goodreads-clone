@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { email, form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { email, form, minLength, required, submit } from '@angular/forms/signals';
 
 import { Auth } from '../../../core/auth/auth';
 import type { SignupRequest } from '../../../core/api/api.types';
+import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
 @Component({
   selector: 'app-sign-up',
-  imports: [FormField, RouterLink],
+  imports: [RouterLink, UiFormControl],
   templateUrl: './sign-up.html',
   styleUrl: './sign-up.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

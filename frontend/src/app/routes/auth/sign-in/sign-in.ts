@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { form, FormField, required, submit } from '@angular/forms/signals';
+import { form, required, submit } from '@angular/forms/signals';
 
 import { Auth } from '../../../core/auth/auth';
+import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
 @Component({
   selector: 'app-sign-in',
-  imports: [FormField, RouterLink],
+  imports: [RouterLink, UiFormControl],
   templateUrl: './sign-in.html',
   styleUrl: './sign-in.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

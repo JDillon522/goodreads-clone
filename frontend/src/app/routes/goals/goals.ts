@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { form, FormField, max, min, required, submit } from '@angular/forms/signals';
+import { form, max, min, required, submit } from '@angular/forms/signals';
 
 import type { ReadingGoalResponse } from '../../core/api/api.types';
 import { Goals as GoalsService } from '../../core/goals/goals';
+import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
 @Component({
   selector: 'app-goals',
-  imports: [FormField],
+  imports: [UiFormControl],
   templateUrl: './goals.html',
   styleUrl: './goals.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

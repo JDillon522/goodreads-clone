@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { form, minLength, required, submit } from '@angular/forms/signals';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import type { DeletedShelfBookResponse, DeleteShelfResponse, LibraryItemResponse, ShelfResponse } from '../../core/api/api.types';
@@ -8,11 +8,12 @@ import { Auth } from '../../core/auth/auth';
 import { Library as LibraryService } from '../../core/library/library';
 import { SessionStore } from '../../core/session/session-store';
 import { Shelves } from '../../core/shelves/shelves';
+import { UiFormControl } from '../../shared/ui/form-control/form-control';
 import { Theme } from '../../core/theme/theme';
 
 @Component({
   selector: 'app-app-shell',
-  imports: [DatePipe, FormField, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [DatePipe, RouterLink, RouterLinkActive, RouterOutlet, UiFormControl],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,6 +125,34 @@ export class AppShell {
 
   protected canDeleteShelf(shelf: ShelfResponse): boolean {
     return shelf.slug !== 'unshelved';
+  }
+
+  protected canMoveShelf(shelf: ShelfResponse, offset: -1 | 1): boolean {
+    const index = this.shelves().findIndex((candidate) => candidate.id === shelf.id);
+    const nextIndex = index + offset;
+
+    return index >= 0 && nextIndex >= 0 && nextIndex < this.shelves().length;
+  }
+
+  protected async moveShelf(shelf: ShelfResponse, offset: -1 | 1): Promise<void> {
+    if (!this.canMoveShelf(shelf, offset)) {
+      return;
+    }
+
+    const reordered = [...this.shelves()];
+    const currentIndex = reordered.findIndex((candidate) => candidate.id === shelf.id);
+    const [moved] = reordered.splice(currentIndex, 1);
+
+    reordered.splice(currentIndex + offset, 0, moved);
+    this.shelfMessage.set(null);
+    this.shelfError.set(null);
+
+    try {
+      this.shelves.set(await this.shelvesService.updateOrder({ shelfIds: reordered.map((item) => item.id) }));
+      this.shelfMessage.set(`${shelf.name} shelf reordered.`);
+    } catch {
+      this.shelfError.set('Shelf order could not be updated.');
+    }
   }
 
   protected async openDeleteShelfDialog(shelf: ShelfResponse): Promise<void> {

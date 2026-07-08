@@ -9,20 +9,9 @@
       <p>Save shelves permanently and keep guest-mode chaos contained.</p>
     </header>
 
-    <label>
-      <span>Display name</span>
-      <input type="text" autocomplete="name" [formField]="signUpForm.displayName" />
-    </label>
-
-    <label>
-      <span>Email</span>
-      <input type="email" autocomplete="email" [formField]="signUpForm.email" />
-    </label>
-
-    <label>
-      <span>Password</span>
-      <input type="password" autocomplete="new-password" [formField]="signUpForm.password" />
-    </label>
+    <app-form-control label="Display name" autocomplete="name" [control]="signUpForm.displayName" />
+    <app-form-control label="Email" type="email" autocomplete="email" [control]="signUpForm.email" />
+    <app-form-control label="Password" type="password" autocomplete="new-password" [control]="signUpForm.password" />
 
     @if (error()) {
       <p class="error-message" role="alert">{{ error() }}</p>

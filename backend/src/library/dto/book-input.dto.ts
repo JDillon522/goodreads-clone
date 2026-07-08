@@ -27,19 +27,19 @@ export class BookInputDto {
   @MaxLength(160)
   sourceId!: string;
 
-  @ApiPropertyOptional({ example: 'https://openlibrary.org/works/OL262758W', nullable: true })
+  @ApiPropertyOptional({ example: 'https://openlibrary.org/works/OL262758W', nullable: true, type: String })
   @IsOptional()
   @IsUrl()
   @MaxLength(500)
   sourceUrl?: null | string;
 
-  @ApiPropertyOptional({ example: '/works/OL262758W', nullable: true })
+  @ApiPropertyOptional({ example: '/works/OL262758W', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(80)
   openLibraryWorkKey?: null | string;
 
-  @ApiPropertyOptional({ example: '/books/OL24631830M', nullable: true })
+  @ApiPropertyOptional({ example: '/books/OL24631830M', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(80)
@@ -50,7 +50,7 @@ export class BookInputDto {
   @MaxLength(300)
   title!: string;
 
-  @ApiPropertyOptional({ example: 'A Novel', nullable: true })
+  @ApiPropertyOptional({ example: 'A Novel', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(300)
@@ -63,31 +63,31 @@ export class BookInputDto {
   @MaxLength(160, { each: true })
   authors!: string[];
 
-  @ApiPropertyOptional({ example: 'Ursula K. Le Guin', nullable: true })
+  @ApiPropertyOptional({ example: 'Ursula K. Le Guin', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(160)
   primaryAuthor?: null | string;
 
-  @ApiPropertyOptional({ example: 'A science fiction novel.', nullable: true })
+  @ApiPropertyOptional({ example: 'A science fiction novel.', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(10000)
   description?: null | string;
 
-  @ApiPropertyOptional({ example: 'Ace Books', nullable: true })
+  @ApiPropertyOptional({ example: 'Ace Books', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(300)
   publisher?: null | string;
 
-  @ApiPropertyOptional({ example: '1969', nullable: true })
+  @ApiPropertyOptional({ example: '1969', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(80)
   publishedDate?: null | string;
 
-  @ApiPropertyOptional({ example: 304, nullable: true })
+  @ApiPropertyOptional({ example: 304, nullable: true, type: Number })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -97,19 +97,20 @@ export class BookInputDto {
   @ApiPropertyOptional({
     example: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
     nullable: true,
+    type: String,
   })
   @IsOptional()
   @IsUrl()
   @MaxLength(500)
   coverUrl?: null | string;
 
-  @ApiPropertyOptional({ example: '0441478123', nullable: true })
+  @ApiPropertyOptional({ example: '0441478123', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(20)
   isbn10?: null | string;
 
-  @ApiPropertyOptional({ example: '9780441478125', nullable: true })
+  @ApiPropertyOptional({ example: '9780441478125', nullable: true, type: String })
   @IsOptional()
   @IsString()
   @MaxLength(20)

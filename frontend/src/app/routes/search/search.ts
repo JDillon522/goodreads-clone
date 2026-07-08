@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
-import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { form, minLength, required, submit } from '@angular/forms/signals';
 import { ActivatedRoute } from '@angular/router';
 
 import type { NormalizedBook, ShelfResponse } from '../../core/api/api.types';
 import { Books } from '../../core/books/books';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
+import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
 @Component({
   selector: 'app-search',
-  imports: [FormField],
+  imports: [UiFormControl],
   templateUrl: './search.html',
   styleUrl: './search.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

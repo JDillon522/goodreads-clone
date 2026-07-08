@@ -29,10 +29,7 @@
 
       <form class="goal-form" (submit)="submitGoal($event)">
         <h2>Update goal</h2>
-        <label>
-          <span>Target books</span>
-          <input type="number" [formField]="goalForm.targetBooks" />
-        </label>
+        <app-form-control label="Target books" type="number" [control]="goalForm.targetBooks" />
         <button class="primary-button" type="submit" [disabled]="goalForm().submitting()">
           {{ goalForm().submitting() ? 'Saving...' : 'Save goal' }}
         </button>

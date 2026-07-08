@@ -1,4 +1,4 @@
-<label class="form-control" [class.form-control--invalid]="showError()">
+<label class="form-control" [class.form-control--compact]="size() === 'compact'" [class.form-control--invalid]="showError()">
   <span class="form-control__label">{{ label() }}</span>
 
   <span class="form-control__field">
@@ -7,16 +7,18 @@
     }
 
     @if (kind() === 'select') {
-      <select class="form-control__native" [formField]="control()" [attr.aria-describedby]="describedBy()">
+      <select class="form-control__native" [formField]="textControl()" [attr.aria-describedby]="describedBy()">
         <ng-content />
       </select>
       <i class="form-control__trailing-icon ph ph-caret-down" aria-hidden="true"></i>
+    } @else if (kind() === 'textarea') {
+      <textarea class="form-control__native" [rows]="rows()" [formField]="textControl()" [attr.aria-describedby]="describedBy()"></textarea>
     } @else {
       <input
         class="form-control__native"
         [type]="type()"
         [attr.autocomplete]="autocomplete() || null"
-        [formField]="control()"
+        [formField]="inputControl()"
         [attr.aria-describedby]="describedBy()"
       />
     }

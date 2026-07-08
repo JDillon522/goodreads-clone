@@ -14,6 +14,7 @@ export class DeleteShelfResponseDto {
     example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
     format: 'uuid',
     nullable: true,
+    type: String,
   })
   fallbackShelfId!: null | string;
 

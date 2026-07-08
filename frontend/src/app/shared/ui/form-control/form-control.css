@@ -10,6 +10,10 @@
   font-weight: var(--font-medium);
 }
 
+.form-control--compact {
+  gap: var(--space-1);
+}
+
 .form-control__label {
   line-height: var(--leading-snug);
 }
@@ -40,6 +44,16 @@
 select.form-control__native {
   appearance: none;
   padding-inline-end: calc(var(--space-6) + var(--space-3));
+}
+
+textarea.form-control__native {
+  min-block-size: 7rem;
+  padding-block: var(--space-3);
+  resize: vertical;
+}
+
+.form-control--compact .form-control__native {
+  min-block-size: 2.5rem;
 }
 
 .form-control__native:focus-visible {

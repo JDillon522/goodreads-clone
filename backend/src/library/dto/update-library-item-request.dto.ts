@@ -19,6 +19,7 @@ export class UpdateLibraryItemRequestDto {
     maximum: 5,
     minimum: 1,
     nullable: true,
+    type: Number,
   })
   @ValidateIf((_object, value) => value !== null && value !== undefined)
   @Type(() => Number)
@@ -32,6 +33,7 @@ export class UpdateLibraryItemRequestDto {
     example: 'Loved the worldbuilding.',
     maxLength: 5000,
     nullable: true,
+    type: String,
   })
   @ValidateIf((_object, value) => value !== null && value !== undefined)
   @IsOptional()

@@ -2,7 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { FormField, type FieldTree } from '@angular/forms/signals';
 
 type UiFormControlKind = 'input' | 'select';
-type UiFormInputType = 'email' | 'password' | 'search' | 'tel' | 'text' | 'url';
+type UiFormControlSize = 'compact' | 'default';
+type UiFormInputType = 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url';
+type UiFormField = FieldTree<number> | FieldTree<string>;
 
 let nextFormControlId = 0;
 
@@ -17,11 +19,13 @@ export class UiFormControl {
   protected readonly messageId = `ui-form-control-${++nextFormControlId}-message`;
 
   public readonly autocomplete = input('');
-  public readonly control = input.required<FieldTree<string>>();
+  public readonly control = input.required<UiFormField>();
   public readonly hint = input('');
   public readonly icon = input('');
-  public readonly kind = input<UiFormControlKind>('input');
+  public readonly kind = input<UiFormControlKind | 'textarea'>('input');
   public readonly label = input.required<string>();
+  public readonly rows = input(4);
+  public readonly size = input<UiFormControlSize>('default');
   public readonly type = input<UiFormInputType>('text');
 
   protected readonly fieldState = computed(() => this.control()());
@@ -39,4 +43,12 @@ export class UiFormControl {
   });
   protected readonly messageText = computed(() => this.errorText() || this.hint());
   protected readonly describedBy = computed(() => (this.messageText() ? this.messageId : null));
+
+  protected inputControl(): FieldTree<number | string> {
+    return this.control() as FieldTree<number | string>;
+  }
+
+  protected textControl(): FieldTree<string> {
+    return this.control() as FieldTree<string>;
+  }
 }

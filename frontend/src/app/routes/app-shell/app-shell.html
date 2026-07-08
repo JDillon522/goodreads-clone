@@ -33,10 +33,7 @@
     <section class="shelves" aria-labelledby="shelves-heading">
       <h2 id="shelves-heading">Shelves</h2>
       <form class="shelf-create-form" (submit)="submitCreateShelf($event)">
-        <label>
-          <span>New shelf</span>
-          <input type="text" autocomplete="off" [formField]="createShelfForm.name" />
-        </label>
+        <app-form-control label="New shelf" autocomplete="off" size="compact" [control]="createShelfForm.name" />
         <button class="icon-button" type="submit" [disabled]="createShelfForm().submitting()" aria-label="Create shelf">
           <i class="ph ph-plus" aria-hidden="true"></i>
         </button>
@@ -51,20 +48,28 @@
         <p class="muted">Loading shelves...</p>
       } @else {
         <nav class="shelf-list" aria-label="Shelves">
-          @for (shelf of shelves(); track shelf.id) {
+          @for (shelf of shelves(); track shelf.id; let first = $first; let last = $last) {
             <div class="shelf-row">
               <a [routerLink]="['/app/shelves', shelf.id]" routerLinkActive="is-active">
                 <span>{{ shelf.name }}</span>
                 <span class="count">{{ shelf.itemCount }}</span>
               </a>
-              <button class="shelf-action" type="button" (click)="openRenameShelfDialog(shelf)" [attr.aria-label]="'Rename ' + shelf.name">
-                <i class="ph ph-pencil-simple" aria-hidden="true"></i>
-              </button>
-              @if (canDeleteShelf(shelf)) {
-                <button class="shelf-action" type="button" (click)="openDeleteShelfDialog(shelf)" [attr.aria-label]="'Delete ' + shelf.name">
-                  <i class="ph ph-trash" aria-hidden="true"></i>
+              <div class="shelf-actions" [attr.aria-label]="'Shelf actions for ' + shelf.name">
+                <button class="shelf-action" type="button" [disabled]="first" (click)="moveShelf(shelf, -1)" [attr.aria-label]="'Move ' + shelf.name + ' up'">
+                  <i class="ph ph-arrow-up" aria-hidden="true"></i>
                 </button>
-              }
+                <button class="shelf-action" type="button" [disabled]="last" (click)="moveShelf(shelf, 1)" [attr.aria-label]="'Move ' + shelf.name + ' down'">
+                  <i class="ph ph-arrow-down" aria-hidden="true"></i>
+                </button>
+                <button class="shelf-action" type="button" (click)="openRenameShelfDialog(shelf)" [attr.aria-label]="'Rename ' + shelf.name">
+                  <i class="ph ph-pencil-simple" aria-hidden="true"></i>
+                </button>
+                @if (canDeleteShelf(shelf)) {
+                  <button class="shelf-action" type="button" (click)="openDeleteShelfDialog(shelf)" [attr.aria-label]="'Delete ' + shelf.name">
+                    <i class="ph ph-trash" aria-hidden="true"></i>
+                  </button>
+                }
+              </div>
             </div>
           }
         </nav>
@@ -99,10 +104,7 @@
         <i class="ph ph-x" aria-hidden="true"></i>
       </button>
     </header>
-    <label>
-      <span>Shelf name</span>
-      <input type="text" autocomplete="off" [formField]="renameShelfForm.name" />
-    </label>
+    <app-form-control label="Shelf name" autocomplete="off" [control]="renameShelfForm.name" />
     <footer class="dialog__actions">
       <button class="secondary-button" type="button" (click)="closeRenameShelfDialog()">Cancel</button>
       <button class="primary-button" type="submit" [disabled]="renameShelfForm().submitting()">

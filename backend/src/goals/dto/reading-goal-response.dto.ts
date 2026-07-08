@@ -7,6 +7,7 @@ export class ReadingGoalResponseDto {
     example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',
     format: 'uuid',
     nullable: true,
+    type: String,
   })
   id!: null | string;
 
@@ -16,7 +17,7 @@ export class ReadingGoalResponseDto {
   @ApiProperty({ example: 12 })
   targetBooks!: number;
 
-  @ApiPropertyOptional({ example: '2026-12-01T12:00:00.000Z', format: 'date-time', nullable: true })
+  @ApiPropertyOptional({ example: '2026-12-01T12:00:00.000Z', format: 'date-time', nullable: true, type: String })
   completedAt!: null | string;
 
   @ApiProperty({ type: GoalStatsResponseDto })
