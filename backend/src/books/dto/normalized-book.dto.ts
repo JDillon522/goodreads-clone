@@ -44,6 +44,12 @@ export class NormalizedBookDto {
   @ApiPropertyOptional({ example: '1969', nullable: true, type: String })
   publishedDate!: null | string;
 
+  @ApiPropertyOptional({ example: 'public', nullable: true, type: String })
+  ebookAccess!: null | string;
+
+  @ApiProperty({ example: true })
+  isReadableOnline!: boolean;
+
   @ApiPropertyOptional({ example: 304, nullable: true, type: Number })
   pageCount!: null | number;
 

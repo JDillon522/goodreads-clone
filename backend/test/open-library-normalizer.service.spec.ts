@@ -38,6 +38,12 @@ describe('OpenLibraryNormalizerService', () => {
         numFound: 3,
       },
       {
+        filters: {
+          format: null,
+          subject: null,
+          yearFrom: null,
+          yearTo: null,
+        },
         limit: 10,
         page: 1,
         query: 'left hand',
@@ -46,6 +52,20 @@ describe('OpenLibraryNormalizerService', () => {
 
     expect(result).toEqual({
       count: 2,
+      facets: {
+        formats: [{ count: 0, label: 'Readable online / eBook', value: 'ebook' }],
+        publishedDecades: [{ count: 1, label: '1960s', value: '1960s', yearFrom: 1960, yearTo: 1969 }],
+        subjects: [
+          { count: 1, label: 'Fiction', value: 'Fiction' },
+          { count: 1, label: 'Science fiction', value: 'Science fiction' },
+        ],
+      },
+      filters: {
+        format: null,
+        subject: null,
+        yearFrom: null,
+        yearTo: null,
+      },
       items: [
         expect.objectContaining({
           coverUrl: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
@@ -74,6 +94,59 @@ describe('OpenLibraryNormalizerService', () => {
       query: 'left hand',
       total: 3,
     });
+  });
+
+  it('builds facets and infers readable online format from provider fields and title fallback', () => {
+    const result = service.normalizeSearch(
+      {
+        docs: [
+          {
+            author_name: ['Nnedi Okorafor'],
+            ebook_access: 'public',
+            first_publish_year: 2010,
+            has_fulltext: true,
+            key: '/works/OL1W',
+            subject: ['Fantasy'],
+            title: 'Readable Book',
+          },
+          {
+            author_name: ['Martha Wells'],
+            first_publish_year: 2017,
+            key: '/works/OL2W',
+            subject: ['Fantasy'],
+            title: 'Digital Novella eBook',
+          },
+        ],
+        numFound: 2,
+      },
+      {
+        filters: {
+          format: 'ebook',
+          subject: 'Fantasy',
+          yearFrom: 2010,
+          yearTo: 2019,
+        },
+        limit: 10,
+        page: 1,
+        query: 'fantasy',
+      },
+    );
+
+    expect(result.filters).toEqual({
+      format: 'ebook',
+      subject: 'Fantasy',
+      yearFrom: 2010,
+      yearTo: 2019,
+    });
+    expect(result.facets).toEqual({
+      formats: [{ count: 2, label: 'Readable online / eBook', value: 'ebook' }],
+      publishedDecades: [{ count: 2, label: '2010s', value: '2010s', yearFrom: 2010, yearTo: 2019 }],
+      subjects: [{ count: 2, label: 'Fantasy', value: 'Fantasy' }],
+    });
+    expect(result.items).toEqual([
+      expect.objectContaining({ ebookAccess: 'public', isReadableOnline: true }),
+      expect.objectContaining({ ebookAccess: null, isReadableOnline: true }),
+    ]);
   });
 
   it('normalizes sparse edition detail without inventing fallback cover or author data', () => {

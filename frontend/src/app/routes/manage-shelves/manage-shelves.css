@@ -1,0 +1,129 @@
+.page {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: var(--library-max-width);
+}
+
+.page__header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.eyebrow {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+
+.create-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
+  max-inline-size: 42rem;
+}
+
+.shelf-manager {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.shelf-manager__header,
+.shelf-row,
+.shelf-row__main,
+.shelf-row__actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.shelf-manager__header,
+.shelf-row {
+  justify-content: space-between;
+}
+
+.shelf-manager__header h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+}
+
+.shelf-manager__header p,
+.shelf-row p,
+.muted {
+  color: var(--color-text-secondary);
+}
+
+.shelf-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.shelf-row {
+  min-block-size: 4.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.shelf-row__main {
+  min-inline-size: 0;
+}
+
+.shelf-row__main h3 {
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shelf-row__main p {
+  font-size: var(--text-sm);
+}
+
+.drag-handle {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xl);
+}
+
+.shelf-row__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.icon-button:disabled {
+  opacity: 0.45;
+}
+
+.success-message {
+  color: var(--color-success);
+}
+
+.error-message {
+  color: var(--color-error);
+}
+
+@media (max-width: 760px) {
+  .create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .shelf-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shelf-row__actions {
+    justify-content: flex-start;
+  }
+}

@@ -82,6 +82,11 @@ type YearInReviewResponse = {
   year: number;
 };
 
+type SessionStatusResponse = {
+  authenticated: true;
+  ownerType: 'GUEST' | 'USER';
+};
+
 const apiBaseUrl = process.env.E2E_API_BASE_URL ?? 'http://localhost:3000/api';
 const cleanupDatabaseUrl =
   process.env.E2E_CLEANUP_DATABASE_URL ??
@@ -95,6 +100,10 @@ jest.setTimeout(30_000);
 describe('Bookshelf API workflows', () => {
   afterAll(async () => {
     await cleanupE2eData();
+  });
+
+  it('rejects session status requests without a user or guest token', async () => {
+    await requestExpect('/session/status', 401);
   });
 
   it('supports signup, shelf listing, add book, duplicate rejection, progress, and goals', async () => {
@@ -116,6 +125,15 @@ describe('Bookshelf API workflows', () => {
     createdSourceIds.push(sourceId);
 
     const shelves = await request<ShelfResponse[]>('/shelves', { token: accessToken });
+    const sessionStatus = await request<SessionStatusResponse>('/session/status', {
+      token: accessToken,
+    });
+
+    expect(sessionStatus).toEqual({
+      authenticated: true,
+      ownerType: 'USER',
+    });
+
     expect(shelves.map((shelf) => shelf.slug)).toEqual([
       'unshelved',
       'want-to-read',
@@ -305,7 +323,14 @@ describe('Bookshelf API workflows', () => {
 
     const shelves = await request<ShelfResponse[]>('/shelves', { token: guest.guestToken });
     const library = await request<LibraryItemResponse[]>('/library', { token: guest.guestToken });
+    const sessionStatus = await request<SessionStatusResponse>('/session/status', {
+      token: guest.guestToken,
+    });
 
+    expect(sessionStatus).toEqual({
+      authenticated: true,
+      ownerType: 'GUEST',
+    });
     expect(shelves.map((shelf) => shelf.slug)).toEqual([
       'unshelved',
       'want-to-read',

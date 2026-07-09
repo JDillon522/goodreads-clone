@@ -56,6 +56,20 @@
   color: var(--color-text-secondary);
 }
 
+.author-link {
+  justify-self: start;
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.author-link:hover,
+.author-link:focus-visible {
+  color: var(--color-accent-hover);
+}
+
 .description {
   max-inline-size: 42rem;
   line-height: var(--leading-prose);

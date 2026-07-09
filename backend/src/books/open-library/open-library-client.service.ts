@@ -58,6 +58,12 @@ export class OpenLibraryClientService {
         'edition_count',
         'subject',
         'publisher',
+        'has_fulltext',
+        'public_scan_b',
+        'ebook_access',
+        'editions',
+        'editions.ebook_access',
+        'editions.title',
       ].join(','),
     );
 

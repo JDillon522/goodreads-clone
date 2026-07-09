@@ -86,6 +86,19 @@ Product Challenges are designed for AI collaboration. The `AGENTS.md` and `CLAUD
 
 Lean on AI for implementation, but don't just accept what it gives you. The design decisions are yours, and so is the code quality — review what gets generated, understand it, and make sure it's something you'd be happy putting your name on. The three design-it-yourself features (year-in-review & reading insights, book discovery & recommendations, reading progress tracking UX) are where your product thinking matters most.
 
+### Local Command Runner
+
+This repo includes a Node-based command runner for common local workflows:
+
+```sh
+bin/run help
+bin/run up
+bin/run doctor
+bin/run mcp-db
+```
+
+Use `bin/run help <command>` for command-specific usage. See `tools/bookshelf-db-mcp/README.md` for the read-only database role, MCP client config example, and available MCP tools.
+
 ## Your Solution Repo
 
 The `.gitignore` is pre-configured to exclude challenge reference files (`spec/`, `guidance/`, `AGENTS.md`, etc.) from your solution repo. These files are your development reference — they stay on your machine for AI sessions and planning, but they don't belong in the finished product.

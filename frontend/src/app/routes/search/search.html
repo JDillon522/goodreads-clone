@@ -6,9 +6,9 @@
 
   <form class="search-form" (submit)="submitSearch($event)">
     <app-form-control label="Search by title, author, ISBN, or subject" type="search" autocomplete="off" [control]="searchForm.query" />
-    <button class="primary-button" type="submit" [disabled]="searchForm().submitting()">
+    <button class="primary-button" type="submit" [disabled]="searchForm().submitting() || isSearching()">
       <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-      <span>{{ searchForm().submitting() ? 'Searching...' : 'Search' }}</span>
+      <span>{{ searchForm().submitting() || isSearching() ? 'Searching...' : 'Search' }}</span>
     </button>
   </form>
 
@@ -20,7 +20,88 @@
   }
 
   @if (results().length > 0) {
-    <p class="muted">{{ total() }} results found. Showing the first {{ results().length }}.</p>
+    @if (hasFilterOptions() || hasActiveFilters()) {
+      <section class="filters-panel" aria-labelledby="search-filters-heading">
+        <header class="filters-panel__header">
+          <h2 id="search-filters-heading">Filters</h2>
+          @if (hasActiveFilters()) {
+            <button class="text-button" type="button" (click)="clearFilters()" [disabled]="isSearching()">
+              Clear filters
+            </button>
+          }
+        </header>
+
+        <form class="year-filter" (submit)="submitFilters($event)">
+          <app-form-control label="From year" type="number" size="compact" [control]="filtersForm.yearFrom" />
+          <app-form-control label="To year" type="number" size="compact" [control]="filtersForm.yearTo" />
+          <button class="secondary-button" type="submit" [disabled]="isSearching()">Apply years</button>
+        </form>
+
+        @if (facets().publishedDecades.length > 0) {
+          <section class="facet-group" aria-label="Published decade">
+            <h3>Published decade</h3>
+            <div class="facet-list">
+              @for (decade of facets().publishedDecades; track decade.value) {
+                <button
+                  class="facet-chip"
+                  type="button"
+                  (click)="applyDecadeFilter(decade)"
+                  [class.is-active]="isDecadeActive(decade)"
+                  [disabled]="isSearching()"
+                >
+                  <span>{{ decade.label }}</span>
+                  <span>{{ decade.count }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (facets().subjects.length > 0) {
+          <section class="facet-group" aria-label="Subject">
+            <h3>Subject</h3>
+            <div class="facet-list">
+              @for (subject of facets().subjects; track subject.value) {
+                <button
+                  class="facet-chip"
+                  type="button"
+                  (click)="applySubjectFilter(subject)"
+                  [class.is-active]="isSubjectActive(subject)"
+                  [disabled]="isSearching()"
+                >
+                  <span>{{ subject.label }}</span>
+                  <span>{{ subject.count }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (facets().formats.length > 0) {
+          <section class="facet-group" aria-label="Format">
+            <h3>Format</h3>
+            <div class="facet-list">
+              @for (format of facets().formats; track format.value) {
+                <button
+                  class="facet-chip"
+                  type="button"
+                  (click)="applyFormatFilter(format)"
+                  [class.is-active]="isFormatActive(format)"
+                  [disabled]="isSearching() || (format.count === 0 && !isFormatActive(format))"
+                >
+                  <span>{{ format.label }}</span>
+                  <span>{{ format.count }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </section>
+    }
+
+    <p class="muted">
+      {{ total() }} results found. Showing {{ resultRangeStart() }}-{{ resultRangeEnd() }}.
+    </p>
     <div class="results-list">
       @for (book of results(); track book.providerKey) {
         <article class="result-card">
@@ -42,6 +123,17 @@
         </article>
       }
     </div>
+    <nav class="pagination" aria-label="Search results pagination">
+      <button class="secondary-button" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="!canGoPrevious()" aria-label="Previous page">
+        <i class="ph ph-arrow-left" aria-hidden="true"></i>
+        <span>Previous</span>
+      </button>
+      <p class="pagination__status" aria-live="polite">Page {{ currentPage() }} of {{ totalPages() }}</p>
+      <button class="secondary-button" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="!canGoNext()" aria-label="Next page">
+        <span>Next</span>
+        <i class="ph ph-arrow-right" aria-hidden="true"></i>
+      </button>
+    </nav>
   }
 </section>
 

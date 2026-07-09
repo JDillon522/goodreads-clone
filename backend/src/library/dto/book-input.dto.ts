@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -90,6 +91,17 @@ export class BookInputDto {
   @IsString()
   @MaxLength(80)
   publishedDate?: null | string;
+
+  @ApiPropertyOptional({ example: 'public', nullable: true, type: String })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  ebookAccess?: null | string;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  isReadableOnline?: boolean;
 
   @ApiPropertyOptional({ example: 304, nullable: true, type: Number })
   @IsOptional()

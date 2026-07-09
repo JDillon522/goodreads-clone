@@ -96,6 +96,12 @@ export class BookDetail {
     return item && typeof item.book.primaryAuthor === 'string' ? item.book.primaryAuthor : item?.book.authors[0] ?? 'Unknown author';
   }
 
+  protected authorSearchQuery(): string | null {
+    const author = this.primaryAuthor();
+
+    return author === 'Unknown author' ? null : author;
+  }
+
   protected description(): string {
     const item = this.item();
     return item && typeof item.book.description === 'string' ? item.book.description : 'No description is available for this edition.';

@@ -11,6 +11,7 @@ import { GuestModule } from './guest/guest.module';
 import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
 import { ShelvesModule } from './shelves/shelves.module';
+import { SessionModule } from './session/session.module';
 import { StatsModule } from './stats/stats.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { StatsModule } from './stats/stats.module';
     HealthModule,
     LibraryModule,
     ShelvesModule,
+    SessionModule,
     StatsModule,
   ],
 })

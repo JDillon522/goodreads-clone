@@ -561,6 +561,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/session/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Validate the current user or guest app session. */
+        get: operations["status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/summary": {
         parameters: {
             query?: never;
@@ -883,6 +900,10 @@ export interface components {
             publisher?: string | null;
             /** @example 1969 */
             publishedDate?: string | null;
+            /** @example public */
+            ebookAccess?: string | null;
+            /** @example true */
+            isReadableOnline: boolean;
             /** @example 304 */
             pageCount?: number | null;
             /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
@@ -901,6 +922,44 @@ export interface components {
             /** @example isbn13:9780441478125 */
             dedupeKey: string;
         };
+        BookSearchFiltersDto: {
+            /** @example 1960 */
+            yearFrom?: number | null;
+            /** @example 1969 */
+            yearTo?: number | null;
+            /** @example Science fiction */
+            subject?: string | null;
+            /**
+             * @example ebook
+             * @enum {string|null}
+             */
+            format?: "ebook" | null;
+        };
+        BookSearchDecadeFacetDto: {
+            /** @example 1960s */
+            label: string;
+            /** @example 1960s */
+            value: string;
+            /** @example 1960 */
+            yearFrom: number;
+            /** @example 1969 */
+            yearTo: number;
+            /** @example 4 */
+            count: number;
+        };
+        BookSearchValueFacetDto: {
+            /** @example Science fiction */
+            label: string;
+            /** @example Science fiction */
+            value: string;
+            /** @example 7 */
+            count: number;
+        };
+        BookSearchFacetsDto: {
+            publishedDecades: components["schemas"]["BookSearchDecadeFacetDto"][];
+            subjects: components["schemas"]["BookSearchValueFacetDto"][];
+            formats: components["schemas"]["BookSearchValueFacetDto"][];
+        };
         BookSearchResponseDto: {
             /** @example the left hand of darkness */
             query: string;
@@ -912,6 +971,8 @@ export interface components {
             total: number;
             /** @example 10 */
             count: number;
+            filters: components["schemas"]["BookSearchFiltersDto"];
+            facets: components["schemas"]["BookSearchFacetsDto"];
             items: components["schemas"]["NormalizedBookDto"][];
         };
         GoalStatsResponseDto: {
@@ -1077,6 +1138,10 @@ export interface components {
             publisher?: string | null;
             /** @example 1969 */
             publishedDate?: string | null;
+            /** @example public */
+            ebookAccess?: string | null;
+            /** @example true */
+            isReadableOnline?: boolean;
             /** @example 304 */
             pageCount?: number | null;
             /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
@@ -1245,6 +1310,15 @@ export interface components {
             currentPage?: number;
             /** @example 50 */
             currentPercent?: number;
+        };
+        SessionStatusResponseDto: {
+            /** @example true */
+            authenticated: boolean;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            ownerType: "GUEST" | "USER";
         };
         StatsTotalsResponseDto: {
             /** @example 42 */
@@ -2050,6 +2124,10 @@ export interface operations {
                 query: string;
                 page?: number;
                 limit?: number;
+                yearFrom?: number;
+                yearTo?: number;
+                subject?: string;
+                format?: "ebook";
             };
             header?: never;
             path?: never;
@@ -2421,6 +2499,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
+    status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionStatusResponseDto"];
                 };
             };
         };

@@ -157,6 +157,7 @@ Authoritative v1 defaults:
 | 2026-07-08 | Stage 11 stats scope | Stats v1 supports authenticated users and guests, uses current-year UI, keeps the API year-ready, and excludes sharing cards, AI summaries, imports, and advanced analytics. |
 | 2026-07-08 | Stage 11 completion rule | Yearly completed-book counts use `dateFinished` only; page totals are estimated from known page counts, completed-page fallback, and current progress where appropriate. |
 | 2026-07-08 | Stage 11 highlights | Year-in-review includes useful portfolio-friendly highlights: monthly finishes, estimated pages, goal pace, favorite genres/authors, status/shelf breakdowns, top-rated books, and longest completed book. |
+| 2026-07-08 | Session validation guard | App routes validate stored user or guest tokens through `/api/session/status` before loading the shell; stale sessions are cleared and redirected to sign-in. |
 
 ## Open Questions
 
@@ -225,3 +226,5 @@ Authoritative v1 defaults:
 - Kept the frontend UI current-year only while keeping the frontend service and backend endpoints year-aware for future multi-year navigation.
 - Regenerated frontend OpenAPI types after adding Stats DTOs and added focused coverage for stats rules, stats e2e workflow paths, and the Angular stats route.
 - Verified Stage 11 with backend lint, backend format check plus Prisma validate, backend typecheck, backend unit tests, backend build, backend Docker e2e, regenerated OpenAPI types, frontend app/spec typechecks, frontend unit tests, frontend production build, proxy `/app/stats` smoke, and guest stats API smoke through nginx.
+- Moved normal-user shelf management out of the app sidebar into `/app/shelves/manage`; the sidebar now lists shelves and exposes a gear link beside the `Shelves` heading, while create, reorder, rename, and delete live on the manage page.
+- Added `/api/session/status` for user/guest session validation on app load, regenerated OpenAPI frontend types, and updated the Angular app guard to clear stale sessions and redirect to `/auth/sign-in`.

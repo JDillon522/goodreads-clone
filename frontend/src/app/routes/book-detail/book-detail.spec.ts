@@ -102,8 +102,11 @@ describe('BookDetail', () => {
     await fixture.whenStable();
 
     const element = fixture.nativeElement as HTMLElement;
+    const authorLink = element.querySelector<HTMLAnchorElement>('.author-link');
 
     expect(element.textContent).toContain('The Test Book');
+    expect(authorLink?.textContent?.trim()).toBe('Ada Author');
+    expect(authorLink?.getAttribute('href')).toBe('/app/search?query=Ada%20Author');
     expect(element.querySelector<HTMLSelectElement>('select')?.value).toBe('READING');
     expect(element.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('Original note');
   });

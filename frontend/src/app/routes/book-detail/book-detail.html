@@ -21,7 +21,13 @@
       <div class="book-copy">
         <p class="eyebrow">{{ shelfListLabel() }}</p>
         <h1>{{ item()!.book.title }}</h1>
-        <p class="author">{{ primaryAuthor() }}</p>
+        @if (authorSearchQuery(); as author) {
+          <a class="author author-link" routerLink="/app/search" [queryParams]="{ query: author }">
+            {{ author }}
+          </a>
+        } @else {
+          <p class="author">{{ primaryAuthor() }}</p>
+        }
         <p class="description">{{ description() }}</p>
 
         <form class="detail-panel" (submit)="submitStatus($event)">

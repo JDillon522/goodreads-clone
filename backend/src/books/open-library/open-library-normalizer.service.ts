@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { BookSearchFacetsDto } from '../dto/book-search-facets.dto';
+import { BookSearchFiltersDto } from '../dto/book-search-filters.dto';
 import { BookSearchResponseDto } from '../dto/book-search-response.dto';
 import { NormalizedBookDto } from '../dto/normalized-book.dto';
 import type { JsonObject } from '../types/json-object';
@@ -8,8 +10,10 @@ import type { OpenLibraryDetailKind } from '../types/open-library-detail-kind';
 const openLibraryWebBaseUrl = 'https://openlibrary.org';
 const openLibraryCoverBaseUrl = 'https://covers.openlibrary.org';
 const maxGenres = 12;
+const maxSubjectFacets = 10;
 
 type SearchOptions = {
+  filters: BookSearchFiltersDto;
   limit: number;
   page: number;
   query: string;
@@ -38,6 +42,8 @@ export class OpenLibraryNormalizerService {
     const isbn10 = firstIsbn(stringArrayValue(raw.isbn_10), 10);
     const isbn13 = firstIsbn(stringArrayValue(raw.isbn_13), 13);
     const providerKey = providerKeyFromKeys(workKey, editionKey, title, primaryAuthor);
+    const ebookAccess = ebookAccessValue(raw);
+    const isReadableOnline = readableOnlineValue(raw, title, subtitle, ebookAccess);
 
     return {
       authors,
@@ -52,6 +58,8 @@ export class OpenLibraryNormalizerService {
       ]).slice(0, maxGenres),
       isbn10,
       isbn13,
+      ebookAccess,
+      isReadableOnline,
       openLibraryEditionKey: editionKey,
       openLibraryWorkKey: workKey,
       pageCount: positiveIntegerValue(raw.number_of_pages),
@@ -73,6 +81,8 @@ export class OpenLibraryNormalizerService {
 
     return {
       count: items.length,
+      facets: facetsFromItems(items),
+      filters: options.filters,
       items,
       limit: options.limit,
       page: options.page,
@@ -113,6 +123,9 @@ export class OpenLibraryNormalizerService {
     const isbn10 = firstIsbn(stringArrayValue(doc.isbn), 10);
     const isbn13 = firstIsbn(stringArrayValue(doc.isbn), 13);
     const providerKey = providerKeyFromKeys(workKey, editionKey, title, primaryAuthor);
+    const subtitle = stringValue(doc.subtitle);
+    const ebookAccess = ebookAccessValue(doc);
+    const isReadableOnline = readableOnlineValue(doc, title, subtitle, ebookAccess);
 
     return {
       authors,
@@ -122,6 +135,8 @@ export class OpenLibraryNormalizerService {
       genres: uniqueStrings(stringArrayValue(doc.subject)).slice(0, maxGenres),
       isbn10,
       isbn13,
+      ebookAccess,
+      isReadableOnline,
       openLibraryEditionKey: editionKey,
       openLibraryWorkKey: workKey,
       pageCount: positiveIntegerValue(doc.number_of_pages_median),
@@ -132,10 +147,66 @@ export class OpenLibraryNormalizerService {
       publisher: firstString(stringArrayValue(doc.publisher)),
       sourceId: providerKey,
       sourceUrl: sourceUrlFromKeys(workKey, editionKey),
-      subtitle: stringValue(doc.subtitle),
+      subtitle,
       title,
     };
   }
+}
+
+function facetsFromItems(items: NormalizedBookDto[]): BookSearchFacetsDto {
+  const decadeCounts = new Map<number, number>();
+  const subjectCounts = new Map<string, number>();
+  let readableCount = 0;
+
+  for (const item of items) {
+    const year = yearFromPublishedDate(item.publishedDate);
+
+    if (year !== null) {
+      const decade = Math.floor(year / 10) * 10;
+      decadeCounts.set(decade, (decadeCounts.get(decade) ?? 0) + 1);
+    }
+
+    for (const subject of item.genres) {
+      subjectCounts.set(subject, (subjectCounts.get(subject) ?? 0) + 1);
+    }
+
+    if (item.isReadableOnline) {
+      readableCount += 1;
+    }
+  }
+
+  return {
+    formats: [
+      {
+        count: readableCount,
+        label: 'Readable online / eBook',
+        value: 'ebook',
+      },
+    ],
+    publishedDecades: [...decadeCounts.entries()]
+      .sort(([left], [right]) => right - left)
+      .map(([decade, count]) => ({
+        count,
+        label: `${decade}s`,
+        value: `${decade}s`,
+        yearFrom: decade,
+        yearTo: decade + 9,
+      })),
+    subjects: [...subjectCounts.entries()]
+      .sort(([leftSubject, leftCount], [rightSubject, rightCount]) => {
+        if (leftCount !== rightCount) {
+          return rightCount - leftCount;
+        }
+
+        return leftSubject.localeCompare(rightSubject);
+      })
+      .slice(0, maxSubjectFacets)
+      .map(([subject, count]) => ({
+        count,
+        label: subject,
+        value: subject,
+      })),
+  };
 }
 
 function coverUrlFromCoverId(coverId: null | number): null | string {
@@ -144,6 +215,10 @@ function coverUrlFromCoverId(coverId: null | number): null | string {
 
 function coverUrlFromCoverIds(coverIds: number[]): null | string {
   return coverUrlFromCoverId(coverIds.find((coverId) => coverId > 0) ?? null);
+}
+
+function booleanValue(value: unknown): boolean {
+  return value === true;
 }
 
 function dedupeKeyForBook(
@@ -197,6 +272,19 @@ function descriptionValue(value: unknown): null | string {
   return description ? normalizeWhitespace(description) : null;
 }
 
+function ebookAccessValue(value: JsonObject): null | string {
+  const directAccess = stringValue(value.ebook_access);
+
+  if (directAccess) {
+    return directAccess;
+  }
+
+  const editions = objectValue(value.editions);
+  const editionDocs = editions ? objectArrayValue(editions.docs) : [];
+
+  return firstString(editionDocs.map((edition) => stringValue(edition.ebook_access)).filter(isString));
+}
+
 function firstIsbn(values: string[], length: 10 | 13): null | string {
   return (
     values
@@ -246,6 +334,34 @@ function normalizeText(value: string): string {
 
 function normalizeWhitespace(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
+}
+
+function readableOnlineValue(
+  raw: JsonObject,
+  title: string,
+  subtitle: null | string,
+  ebookAccess: null | string,
+): boolean {
+  return (
+    booleanValue(raw.has_fulltext) ||
+    booleanValue(raw.public_scan_b) ||
+    readableEbookAccess(ebookAccess) ||
+    titleSuggestsEbook(title, subtitle)
+  );
+}
+
+function readableEbookAccess(value: null | string): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return ['borrowable', 'printdisabled', 'public'].includes(value.toLowerCase());
+}
+
+function titleSuggestsEbook(title: string, subtitle: null | string): boolean {
+  return /\b(e[-\s]?book|electronic book|digital edition|kindle edition)\b/i.test(
+    `${title} ${subtitle ?? ''}`,
+  );
 }
 
 function numberArrayValue(value: unknown): number[] {
@@ -315,6 +431,22 @@ function stringValue(value: unknown): null | string {
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+function yearFromPublishedDate(value: null | string): null | number {
+  if (!value) {
+    return null;
+  }
+
+  const match = /\b\d{1,4}\b/.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[0]);
+
+  return Number.isInteger(year) ? year : null;
 }
 
 function isNumber(value: null | number): value is number {

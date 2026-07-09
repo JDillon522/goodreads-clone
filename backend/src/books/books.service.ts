@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'node:crypto';
 
+import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
 import { BookSearchQueryDto } from './dto/book-search-query.dto';
 import { BookSearchResponseDto } from './dto/book-search-response.dto';
 import { NormalizedBookDto } from './dto/normalized-book.dto';
@@ -57,7 +58,9 @@ export class BooksService {
     const normalizedQuery = query.query.trim().replace(/\s+/g, ' ');
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const providerKey = this.searchCacheKey(normalizedQuery, page, limit);
+    const filters = normalizeSearchFilters(query);
+    const providerQuery = openLibraryQueryFromFilters(normalizedQuery, filters);
+    const providerKey = this.searchCacheKey(normalizedQuery, page, limit, filters);
     const cached = await this.cache.getSearch(providerKey);
 
     if (cached) {
@@ -67,9 +70,10 @@ export class BooksService {
     const raw = await this.openLibraryClient.searchBooks({
       limit,
       page,
-      query: normalizedQuery,
+      query: providerQuery,
     });
     const normalized = this.openLibraryNormalizer.normalizeSearch(raw, {
+      filters,
       limit,
       page,
       query: normalizedQuery,
@@ -94,9 +98,14 @@ export class BooksService {
     return `detail:${type}:${id}`;
   }
 
-  private searchCacheKey(query: string, page: number, limit: number): string {
+  private searchCacheKey(
+    query: string,
+    page: number,
+    limit: number,
+    filters: BookSearchFiltersDto,
+  ): string {
     const hash = createHash('sha256')
-      .update(JSON.stringify({ limit, page, query: query.toLowerCase() }))
+      .update(JSON.stringify({ filters, limit, page, query: query.toLowerCase() }))
       .digest('hex');
 
     return `search:${hash}`;
@@ -115,4 +124,47 @@ export class BooksService {
       );
     }
   }
+}
+
+function normalizeSearchFilters(query: BookSearchQueryDto): BookSearchFiltersDto {
+  const filters: BookSearchFiltersDto = {
+    format: query.format ?? null,
+    subject: query.subject?.trim().replace(/\s+/g, ' ') || null,
+    yearFrom: query.yearFrom ?? null,
+    yearTo: query.yearTo ?? null,
+  };
+
+  if (
+    typeof filters.yearFrom === 'number' &&
+    typeof filters.yearTo === 'number' &&
+    filters.yearFrom > filters.yearTo
+  ) {
+    throw new BadRequestException('yearFrom must be less than or equal to yearTo.');
+  }
+
+  return filters;
+}
+
+function openLibraryQueryFromFilters(query: string, filters: BookSearchFiltersDto): string {
+  const clauses = [query];
+
+  if (typeof filters.yearFrom === 'number' || typeof filters.yearTo === 'number') {
+    clauses.push(
+      `first_publish_year:[${filters.yearFrom ?? '*'} TO ${filters.yearTo ?? '*'}]`,
+    );
+  }
+
+  if (filters.subject) {
+    clauses.push(`subject:${quoteOpenLibraryPhrase(filters.subject)}`);
+  }
+
+  if (filters.format === 'ebook') {
+    clauses.push('has_fulltext:true');
+  }
+
+  return clauses.join(' ');
+}
+
+function quoteOpenLibraryPhrase(value: string): string {
+  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }

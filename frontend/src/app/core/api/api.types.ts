@@ -23,8 +23,14 @@ export type UpdateAdminUserRequest = Schema<'UpdateAdminUserRequestDto'>;
 
 export type GuestSessionResponse = Schema<'GuestSessionResponseDto'>;
 
+export type SessionStatusResponse = Schema<'SessionStatusResponseDto'>;
+
 export type BookInput = Schema<'BookInputDto'>;
+export type BookSearchFacets = Schema<'BookSearchFacetsDto'>;
+export type BookSearchFilters = Schema<'BookSearchFiltersDto'>;
 export type BookSearchResponse = Schema<'BookSearchResponseDto'>;
+export type BookSearchValueFacet = Schema<'BookSearchValueFacetDto'>;
+export type BookSearchDecadeFacet = Schema<'BookSearchDecadeFacetDto'>;
 export type NormalizedBook = Schema<'NormalizedBookDto'>;
 
 export type AddLibraryItemRequest = Schema<'AddLibraryItemRequestDto'>;

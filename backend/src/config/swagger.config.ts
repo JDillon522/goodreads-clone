@@ -32,6 +32,7 @@ export function setupSwagger(app: INestApplication, apiPrefix: string): void {
     .addTag('Progress', 'Reading progress updates and history.')
     .addTag('Goals', 'Annual reading goal setup, progress, and completion state.')
     .addTag('Stats', 'Reading statistics, yearly summaries, and year-in-review data.')
+    .addTag('Session', 'Current user or guest app session validation.')
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig, {

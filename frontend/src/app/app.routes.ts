@@ -42,6 +42,11 @@ export const routes: Routes = [
         title: 'Library - Bookshelf',
       },
       {
+        path: 'shelves/manage',
+        loadComponent: () => import('./routes/manage-shelves/manage-shelves').then((m) => m.ManageShelves),
+        title: 'Manage shelves - Bookshelf',
+      },
+      {
         path: 'shelves/:id',
         loadComponent: () => import('./routes/shelf/shelf').then((m) => m.Shelf),
         title: 'Shelf - Bookshelf',

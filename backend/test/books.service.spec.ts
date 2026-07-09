@@ -9,8 +9,21 @@ import { OpenLibraryClientService } from '../src/books/open-library/open-library
 import { OpenLibraryNormalizerService } from '../src/books/open-library/open-library-normalizer.service';
 
 describe('BooksService', () => {
+  const emptyFilters = {
+    format: null,
+    subject: null,
+    yearFrom: null,
+    yearTo: null,
+  };
+  const emptyFacets = {
+    formats: [{ count: 0, label: 'Readable online / eBook', value: 'ebook' }],
+    publishedDecades: [],
+    subjects: [],
+  };
   const normalizedSearch: BookSearchResponseDto = {
     count: 1,
+    facets: emptyFacets,
+    filters: emptyFilters,
     items: [],
     limit: 10,
     page: 1,
@@ -23,8 +36,10 @@ describe('BooksService', () => {
     dedupeKey: 'open-library:works:OL123W',
     description: null,
     genres: [],
+    ebookAccess: null,
     isbn10: null,
     isbn13: null,
+    isReadableOnline: false,
     openLibraryEditionKey: null,
     openLibraryWorkKey: '/works/OL123W',
     pageCount: null,
@@ -106,6 +121,7 @@ describe('BooksService', () => {
       query: 'KINDRED',
     });
     expect(normalizeSearch).toHaveBeenCalledWith(raw, {
+      filters: emptyFilters,
       limit: 10,
       page: 1,
       query: 'KINDRED',
@@ -117,6 +133,75 @@ describe('BooksService', () => {
       expect.any(Date),
       'KINDRED',
     );
+  });
+
+  it('composes supported filters into the provider query and keeps filters out of the display query', async () => {
+    const raw = { docs: [], numFound: 1 };
+    const filteredSearch: BookSearchResponseDto = {
+      ...normalizedSearch,
+      filters: {
+        format: 'ebook',
+        subject: 'Science fiction',
+        yearFrom: 1960,
+        yearTo: 1969,
+      },
+    };
+    cacheGetSearch.mockResolvedValueOnce(null);
+    clientSearchBooks.mockResolvedValueOnce(raw);
+    normalizeSearch.mockReturnValueOnce(filteredSearch);
+
+    await expect(
+      service.searchBooks({
+        format: 'ebook',
+        limit: 10,
+        page: 2,
+        query: '  le guin  ',
+        subject: ' Science   fiction ',
+        yearFrom: 1960,
+        yearTo: 1969,
+      }),
+    ).resolves.toEqual(filteredSearch);
+
+    expect(clientSearchBooks).toHaveBeenCalledWith({
+      limit: 10,
+      page: 2,
+      query: 'le guin first_publish_year:[1960 TO 1969] subject:"Science fiction" has_fulltext:true',
+    });
+    expect(normalizeSearch).toHaveBeenCalledWith(raw, {
+      filters: {
+        format: 'ebook',
+        subject: 'Science fiction',
+        yearFrom: 1960,
+        yearTo: 1969,
+      },
+      limit: 10,
+      page: 2,
+      query: 'le guin',
+    });
+  });
+
+  it('includes filters in search cache keys', async () => {
+    cacheGetSearch.mockResolvedValue(normalizedSearch);
+
+    await service.searchBooks({ limit: 10, page: 1, query: 'kindred', subject: 'Fiction' });
+    await service.searchBooks({
+      format: 'ebook',
+      limit: 10,
+      page: 1,
+      query: 'kindred',
+      subject: 'Fiction',
+    });
+
+    expect(cacheGetSearch.mock.calls[0][0]).not.toBe(cacheGetSearch.mock.calls[1][0]);
+  });
+
+  it('rejects inverted year filters', async () => {
+    await expect(
+      service.searchBooks({ limit: 10, page: 1, query: 'kindred', yearFrom: 2020, yearTo: 1900 }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(cacheGetSearch).not.toHaveBeenCalled();
+    expect(clientSearchBooks).not.toHaveBeenCalled();
   });
 
   it('returns cached detail results without calling Open Library', async () => {

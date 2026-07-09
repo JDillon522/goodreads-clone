@@ -1,0 +1,23 @@
+{
+  "name": "@bookshelf/db-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only MCP server for the local Bookshelf Postgres database.",
+  "type": "module",
+  "main": "src/server.mjs",
+  "bin": {
+    "bookshelf-db-mcp": "src/server.mjs"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test src/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "pg": "^8.22.0",
+    "zod": "^4.1.13"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
