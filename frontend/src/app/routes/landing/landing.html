@@ -42,29 +42,56 @@
       @if (error()) {
         <p class="error-message" role="alert">{{ error() }}</p>
       }
-    </div>
-
-    <div class="preview-panel" aria-label="Bookshelf preview">
-      <div class="preview-panel__header">
-        <span>Now reading</span>
-        <i class="ph ph-chart-line-up" aria-hidden="true"></i>
-      </div>
-      <div class="preview-book">
-        <div class="preview-book__cover">
-          <i class="ph-bold ph-book-open-text" aria-hidden="true"></i>
+      <dl class="landing__proof" aria-label="Guest library preview stats">
+        <div>
+          <dt>45</dt>
+          <dd>seeded books</dd>
         </div>
         <div>
-          <p class="preview-book__title">The Left Hand of Darkness</p>
-          <p class="preview-book__meta">152 pages tracked</p>
+          <dt>4</dt>
+          <dd>starter shelves</dd>
         </div>
+        <div>
+          <dt>1</dt>
+          <dd>year in review</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="preview-stack" aria-label="Bookshelf preview">
+      <div class="cover-rhythm" aria-hidden="true">
+        <span class="cover-rhythm__book cover-rhythm__book--one"></span>
+        <span class="cover-rhythm__book cover-rhythm__book--two"></span>
+        <span class="cover-rhythm__book cover-rhythm__book--three"></span>
       </div>
-      <div class="preview-progress" aria-hidden="true">
-        <span></span>
-      </div>
-      <div class="preview-stats">
-        <span>6 read</span>
-        <span>12 goal</span>
-        <span>On pace</span>
+      <div class="preview-panel">
+        <div class="preview-panel__header">
+          <span>Now reading</span>
+          <i class="ph ph-chart-line-up" aria-hidden="true"></i>
+        </div>
+        <div class="preview-book">
+          <div class="preview-book__cover">
+            <i class="ph-bold ph-book-open-text" aria-hidden="true"></i>
+          </div>
+          <div>
+            <p class="preview-book__title">The Left Hand of Darkness</p>
+            <p class="preview-book__meta">152 pages tracked</p>
+          </div>
+        </div>
+        <div class="preview-progress" aria-hidden="true">
+          <span></span>
+        </div>
+        <div class="preview-stats">
+          <span>
+            <strong>6</strong>
+            read
+          </span>
+          <span>
+            <strong>12</strong>
+            goal
+          </span>
+          <span>On pace</span>
+        </div>
       </div>
     </div>
   </section>

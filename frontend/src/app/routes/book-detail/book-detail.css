@@ -13,6 +13,11 @@
   text-decoration: none;
 }
 
+.back-link:hover,
+.back-link:focus-visible {
+  color: var(--color-accent-hover);
+}
+
 .book-detail {
   display: grid;
   grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
@@ -26,8 +31,9 @@
   aspect-ratio: 2 / 3;
   place-items: center;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-book);
   color: var(--color-accent);
   font-size: var(--text-3xl);
 }
@@ -47,6 +53,7 @@
   color: var(--color-accent);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -81,8 +88,9 @@
   max-inline-size: 28rem;
   margin-block-start: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
   padding: var(--space-5);
 }
 
@@ -110,7 +118,8 @@
   max-inline-size: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  background: var(--color-bg-primary);
+  background: var(--color-accent-muted);
+  box-shadow: var(--shadow-sm);
 }
 
 .shelf-chip-list span {
@@ -135,6 +144,7 @@
 
 .shelf-chip-list button:hover,
 .shelf-chip-list button:focus-visible {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
   color: var(--color-error);
 }
 

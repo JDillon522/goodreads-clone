@@ -13,6 +13,7 @@
   color: var(--color-accent);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -32,9 +33,23 @@
 .stats-panel div,
 .goal-form {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-5);
+}
+
+.stats-panel div {
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+.stats-panel div:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 38%, var(--color-border) 62%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .stat-label,

@@ -31,8 +31,11 @@ small {
 .admin-panel {
   display: grid;
   gap: var(--space-4);
-  border-block-start: 1px solid var(--color-border);
-  padding-block-start: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
 }
 
 .admin-panel--wide {
@@ -81,9 +84,15 @@ small {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-3);
   color: var(--color-text-primary);
   text-align: start;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .user-row > span:first-child,
@@ -98,6 +107,13 @@ small {
 .shelf-admin-row:hover,
 .shelf-admin-row.is-selected {
   border-color: var(--color-accent);
+  background: var(--color-accent-muted);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.user-row.is-selected,
+.shelf-admin-row.is-selected {
   background: var(--color-accent-subtle);
 }
 
@@ -108,9 +124,11 @@ small {
 .status-pill {
   border: 1px solid var(--color-border);
   border-radius: 999px;
+  background: var(--color-surface-raised);
   padding: 0.15rem var(--space-2);
   color: var(--color-text-primary);
   font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
 }
 
 .status-pill.is-muted {
@@ -133,7 +151,7 @@ small {
 }
 
 .shelf-editor {
-  border-block-start: 1px solid var(--color-border);
+  border-block-start: 1px solid var(--color-border-subtle);
   padding-block-start: var(--space-4);
 }
 

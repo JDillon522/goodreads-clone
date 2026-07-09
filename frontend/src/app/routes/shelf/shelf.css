@@ -15,6 +15,7 @@
   color: var(--color-accent);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -54,10 +55,22 @@
   gap: var(--space-4);
   min-block-size: 8rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-4);
   text-decoration: none;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+.book-card:hover,
+.book-card:focus-visible {
+  border-color: color-mix(in srgb, var(--color-accent) 48%, var(--color-border) 52%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .book-card__cover {
@@ -67,6 +80,7 @@
   place-items: center;
   border-radius: var(--radius-sm);
   background: var(--color-bg-tertiary);
+  box-shadow: var(--shadow-book);
   color: var(--color-accent);
   font-size: var(--text-2xl);
 }
@@ -93,7 +107,8 @@
   display: grid;
   gap: var(--space-3);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
   padding: var(--space-8);
 }

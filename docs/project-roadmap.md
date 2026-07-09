@@ -159,6 +159,7 @@ Authoritative v1 defaults:
 | 2026-07-08 | Stage 11 highlights                                        | Year-in-review includes useful portfolio-friendly highlights: monthly finishes, estimated pages, goal pace, favorite genres/authors, status/shelf breakdowns, top-rated books, and longest completed book.                                             |
 | 2026-07-08 | Session validation guard                                   | App routes validate stored user or guest tokens through `/api/session/status` before loading the shell; stale sessions are cleared and redirected to sign-in.                                                                                          |
 | 2026-07-09 | Source documentation standard                              | Runtime TS/JS files should carry a useful top-of-file overview after imports and JSDoc for meaningful functions/methods; generated files, specs, and routine HTML/CSS stay comment-light.                                                              |
+| 2026-07-09 | Flow Ninja-inspired visual direction                       | Borrow Flow Ninja's sharper product polish: stronger contrast, deliberate hover/focus motion, raised panels, tactile navigation, and metric-forward stats without copying agency-site structure.                                                       |
 
 ## Open Questions
 
@@ -236,3 +237,4 @@ Authoritative v1 defaults:
 - Added source documentation across backend and frontend runtime files: top-of-file overviews, focused JSDoc for meaningful methods, and inline comments for important decision points such as auth/session validation, Unshelved fallback behavior, Open Library normalization, search URL/filter sync, and rating/notes handling.
 - Documented local tooling code for `bin/run`, the local CA wrapper, and the read-only Postgres MCP server while keeping generated files, specs, and routine HTML/CSS untouched.
 - Verified the documentation pass with script syntax checks, `npm run typecheck`, `npm run test`, `npm run build:backend`, `npm run build:frontend`, `npm run format:check`, and `git diff --check`; Angular build/typecheck required the usual unsandboxed rerun after sandbox exit 134.
+- Applied a Flow Ninja-inspired product polish pass across the frontend: higher-contrast tokens, stronger shared button/form/dialog styling, tactile sidebar hover/active states, a more action-led landing hero, raised book/filter/shelf panels, and metric-forward stats cards.
