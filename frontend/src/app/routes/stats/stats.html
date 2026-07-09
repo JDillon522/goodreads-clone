@@ -74,7 +74,10 @@
             <div class="month-row">
               <span>{{ month.label }}</span>
               <div class="bar-track" aria-hidden="true">
-                <span class="bar-fill" [style.inline-size]="barSize(month.booksCompleted, maxMonthlyBooks())"></span>
+                <span
+                  class="bar-fill"
+                  [style.inline-size]="barSize(month.booksCompleted, maxMonthlyBooks())"
+                ></span>
               </div>
               <strong>{{ month.booksCompleted }}</strong>
             </div>

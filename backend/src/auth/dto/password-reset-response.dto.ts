@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Password Reset Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class PasswordResetResponseDto {
   @ApiProperty({
     example: 'If an account exists for that email, a password reset token has been created.',

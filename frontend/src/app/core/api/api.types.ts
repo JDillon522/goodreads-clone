@@ -1,5 +1,11 @@
 import type { components, operations, paths } from './bookshelf-api.types';
 
+/**
+ * Stable frontend aliases for generated OpenAPI schema types.
+ *
+ * Components import these names instead of reaching into the generated file so
+ * codegen churn stays isolated to this adapter layer.
+ */
 type Schema<Name extends keyof components['schemas']> = components['schemas'][Name];
 
 export type ApiComponents = components;

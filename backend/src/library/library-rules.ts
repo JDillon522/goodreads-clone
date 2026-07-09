@@ -1,6 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { ProgressTrackingMode } from '@prisma/client';
 
+/**
+ * Contains pure library-domain rules for progress validation, percentage rounding, and normalized
+ * text keys.
+ */
 export type ProgressRuleInput = {
   currentPage?: number;
   currentPercent?: number;
@@ -13,7 +17,10 @@ export type ProgressRuleResult = {
   currentPercent: null | number;
   isComplete: boolean;
 };
-
+/**
+ * Validates and normalizes either page-based or percent-based progress into the stored progress
+ * snapshot.
+ */
 export function calculateProgress(input: ProgressRuleInput): ProgressRuleResult {
   if (input.trackingMode === ProgressTrackingMode.PAGE) {
     if (!input.currentPage) {
@@ -45,7 +52,9 @@ export function calculateProgress(input: ProgressRuleInput): ProgressRuleResult 
     isComplete: input.currentPercent >= 100,
   };
 }
-
+/**
+ * Normalizes title and author strings for duplicate-detection fallback keys.
+ */
 export function normalizeText(value: string): string {
   return value
     .toLowerCase()
@@ -55,7 +64,9 @@ export function normalizeText(value: string): string {
     .trim()
     .replace(/\s+/g, ' ');
 }
-
+/**
+ * Rounds percentages to two decimals and clamps them to the accepted 0-100 range.
+ */
 export function roundPercent(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value * 100) / 100));
 }

@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { form, max, maxLength, min, required, submit } from '@angular/forms/signals';
@@ -15,6 +23,13 @@ import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
+/**
+ * Book detail route controller for a single library item.
+ *
+ * The screen coordinates three independent edits for the same item: reading
+ * status, progress tracking, and personal review notes. It also keeps
+ * multi-shelf membership in sync with the global shelf list.
+ */
 type RatingFormValue = 'none' | '1' | '2' | '3' | '4' | '5';
 
 @Component({
@@ -29,7 +44,11 @@ export class BookDetail {
   private readonly library = inject(LibraryService);
   private readonly route = inject(ActivatedRoute);
   private readonly shelvesService = inject(Shelves);
-  private readonly progressModel = signal({ trackingMode: 'PAGE' as 'PAGE' | 'PERCENT', currentPage: 0, currentPercent: 0 });
+  private readonly progressModel = signal({
+    trackingMode: 'PAGE' as 'PAGE' | 'PERCENT',
+    currentPage: 0,
+    currentPercent: 0,
+  });
   private readonly reviewModel = signal({ rating: 'none' as RatingFormValue, notes: '' });
   private readonly statusModel = signal({ status: 'WANT_TO_READ' as LibraryItemStatus });
   private readonly shelfMembershipModel = signal({ shelfId: '' });
@@ -71,7 +90,9 @@ export class BookDetail {
   protected readonly shelfMembershipForm = form(this.shelfMembershipModel, (path) => {
     required(path.shelfId);
   });
-
+  /**
+   * Reloads shelves whenever shelf mutations happen elsewhere and reloads the item when the route id changes.
+   */
   public constructor() {
     effect(() => {
       this.shelvesService.version();
@@ -85,36 +106,58 @@ export class BookDetail {
       }
     });
   }
-
+  /**
+   * Returns a cover image only when the stored book snapshot has one.
+   */
   protected coverUrl(): string | null {
     const item = this.item();
     return item && typeof item.book.coverUrl === 'string' ? item.book.coverUrl : null;
   }
-
+  /**
+   * Chooses the normalized primary author, falling back to the first author in the book snapshot.
+   */
   protected primaryAuthor(): string {
     const item = this.item();
-    return item && typeof item.book.primaryAuthor === 'string' ? item.book.primaryAuthor : item?.book.authors[0] ?? 'Unknown author';
+    return item && typeof item.book.primaryAuthor === 'string'
+      ? item.book.primaryAuthor
+      : (item?.book.authors[0] ?? 'Unknown author');
   }
-
+  /**
+   * Returns a search query only for real author names so the template can hide the link fallback.
+   */
   protected authorSearchQuery(): string | null {
     const author = this.primaryAuthor();
 
     return author === 'Unknown author' ? null : author;
   }
-
+  /**
+   * Shows the stored description or the no-description fallback for sparse Open Library records.
+   */
   protected description(): string {
     const item = this.item();
-    return item && typeof item.book.description === 'string' ? item.book.description : 'No description is available for this edition.';
+    return item && typeof item.book.description === 'string'
+      ? item.book.description
+      : 'No description is available for this edition.';
   }
-
+  /**
+   * Formats shelf list label for display while keeping templates free of presentation logic.
+   */
   protected shelfListLabel(): string {
-    return this.itemShelves().map((shelf) => shelf.name).join(', ') || 'Unshelved';
+    return (
+      this.itemShelves()
+        .map((shelf) => shelf.name)
+        .join(', ') || 'Unshelved'
+    );
   }
-
+  /**
+   * Formats rating label for display while keeping templates free of presentation logic.
+   */
   protected ratingLabel(rating: RatingFormValue): string {
     return rating === 'none' ? 'No rating' : `${rating} star${rating === '1' ? '' : 's'}`;
   }
-
+  /**
+   * Saves the explicit reading status without changing progress-derived fields.
+   */
   protected async submitStatus(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const item = this.item();
@@ -141,7 +184,9 @@ export class BookDetail {
       this.error.set('Status could not be updated.');
     }
   }
-
+  /**
+   * Adds the item to an additional shelf and refreshes the remaining available shelf options.
+   */
   protected async submitAddShelf(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const item = this.item();
@@ -156,7 +201,9 @@ export class BookDetail {
 
     try {
       const successful = await submit(this.shelfMembershipForm, async (formTree) => {
-        const updated = await this.library.addShelf(item.id, { shelfId: formTree().value().shelfId });
+        const updated = await this.library.addShelf(item.id, {
+          shelfId: formTree().value().shelfId,
+        });
         this.item.set(updated);
         this.ensureSelectedMembershipShelf();
         this.status.set('Shelf added.');
@@ -171,7 +218,9 @@ export class BookDetail {
       this.addingShelf.set(false);
     }
   }
-
+  /**
+   * Removes one shelf membership while preserving any other shelves on the item.
+   */
   protected async removeShelf(shelf: ShelfSummaryResponse): Promise<void> {
     const item = this.item();
 
@@ -194,7 +243,9 @@ export class BookDetail {
       this.removingShelfId.set(null);
     }
   }
-
+  /**
+   * Saves page or percent progress using the DTO shape required by the selected tracking mode.
+   */
   protected async submitProgress(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const item = this.item();
@@ -208,6 +259,8 @@ export class BookDetail {
     try {
       const successful = await submit(this.progressForm, async (formTree) => {
         const value = formTree().value();
+        // The backend accepts exactly one progress mode at a time, so the inactive
+        // numeric field is intentionally omitted instead of sent as zero.
         const request: UpdateProgressRequest =
           value.trackingMode === 'PAGE'
             ? { trackingMode: 'PAGE', currentPage: value.currentPage }
@@ -225,7 +278,9 @@ export class BookDetail {
       this.error.set('Progress could not be updated.');
     }
   }
-
+  /**
+   * Saves personal rating and notes, converting clear UI values to API nulls.
+   */
   protected async submitReview(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const item = this.item();
@@ -250,7 +305,8 @@ export class BookDetail {
         this.item.set(updated);
         this.reviewModel.set({
           notes: updated.notes ?? '',
-          rating: typeof updated.rating === 'number' ? (`${updated.rating}` as RatingFormValue) : 'none',
+          rating:
+            typeof updated.rating === 'number' ? (`${updated.rating}` as RatingFormValue) : 'none',
         });
         this.status.set('Review notes updated.');
       });
@@ -262,7 +318,9 @@ export class BookDetail {
       this.error.set('Review notes could not be updated.');
     }
   }
-
+  /**
+   * Loads the item and seeds each edit form from the persisted state.
+   */
   private async loadBook(id: string): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
@@ -271,6 +329,8 @@ export class BookDetail {
       const item = await this.library.get(id);
       this.item.set(item);
       this.statusModel.set({ status: item.status });
+      // Percent progress wins when present because page and percent are mutually
+      // exclusive modes in the edit form even if historical data has both fields.
       this.progressModel.set({
         trackingMode: typeof item.currentPercent === 'number' ? 'PERCENT' : 'PAGE',
         currentPage: typeof item.currentPage === 'number' ? item.currentPage : 0,
@@ -287,7 +347,9 @@ export class BookDetail {
       this.isLoading.set(false);
     }
   }
-
+  /**
+   * Loads shelves used to compute current memberships and addable shelf options.
+   */
   private async loadShelves(): Promise<void> {
     try {
       this.allShelves.set(await this.shelvesService.list());
@@ -296,7 +358,9 @@ export class BookDetail {
       this.error.set('Shelves could not be loaded.');
     }
   }
-
+  /**
+   * Keeps the add-shelf picker pointed at an available shelf after item or shelf updates.
+   */
   private ensureSelectedMembershipShelf(): void {
     const availableShelves = this.availableShelves();
     const currentShelfId = this.shelfMembershipModel().shelfId;

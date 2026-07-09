@@ -21,11 +21,16 @@
       <p class="eyebrow">Personal reading, minus the clutter</p>
       <h1>Bookshelf</h1>
       <p class="lede">
-        Track what you are reading, keep shelves clean, and turn progress into something visible without
-        Goodreads-shaped sadness.
+        Track what you are reading, keep shelves clean, and turn progress into something visible
+        without Goodreads-shaped sadness.
       </p>
       <div class="landing__cta">
-        <button class="primary-button" type="button" (click)="startGuest()" [disabled]="isStartingGuest()">
+        <button
+          class="primary-button"
+          type="button"
+          (click)="startGuest()"
+          [disabled]="isStartingGuest()"
+        >
           <i class="ph-bold ph-lightning" aria-hidden="true"></i>
           <span>{{ isStartingGuest() ? 'Starting...' : 'Try guest mode' }}</span>
         </button>

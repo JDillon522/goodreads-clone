@@ -10,6 +10,12 @@ import type {
 } from '../api/api.types';
 import { SessionStore } from '../session/session-store';
 
+/**
+ * Shelf API wrapper for the current owner.
+ *
+ * Mutations bump a revision signal consumed by the app shell and shelf
+ * management page. Guest mutations also mark the tab-scoped guest session dirty.
+ */
 @Injectable({ providedIn: 'root' })
 export class Shelves {
   private readonly api = inject(ApiClient);
@@ -17,39 +23,60 @@ export class Shelves {
   private readonly revision = signal(0);
 
   public readonly version = this.revision.asReadonly();
-
+  /**
+   * Lists active shelves for the current owner.
+   */
   public list(): Promise<ShelfResponse[]> {
     return this.api.get<ShelfResponse[]>('/api/shelves');
   }
-
+  /**
+   * Creates a user shelf and refreshes shelf-dependent UI.
+   */
   public async create(request: CreateShelfRequest): Promise<ShelfResponse> {
-    const response = await this.api.post<ShelfResponse, CreateShelfRequest>('/api/shelves', request);
+    const response = await this.api.post<ShelfResponse, CreateShelfRequest>(
+      '/api/shelves',
+      request,
+    );
     this.markChanged();
     this.session.markGuestChanged();
     return response;
   }
-
+  /**
+   * Renames or edits a shelf and refreshes shelf-dependent UI.
+   */
   public async update(id: string, request: UpdateShelfRequest): Promise<ShelfResponse> {
-    const response = await this.api.patch<ShelfResponse, UpdateShelfRequest>(`/api/shelves/${id}`, request);
+    const response = await this.api.patch<ShelfResponse, UpdateShelfRequest>(
+      `/api/shelves/${id}`,
+      request,
+    );
     this.markChanged();
     this.session.markGuestChanged();
     return response;
   }
-
+  /**
+   * Persists the complete active shelf order returned by the manage-shelves page.
+   */
   public async updateOrder(request: UpdateShelfOrderRequest): Promise<ShelfResponse[]> {
-    const response = await this.api.put<ShelfResponse[], UpdateShelfOrderRequest>('/api/shelves/order', request);
+    const response = await this.api.put<ShelfResponse[], UpdateShelfOrderRequest>(
+      '/api/shelves/order',
+      request,
+    );
     this.markChanged();
     this.session.markGuestChanged();
     return response;
   }
-
+  /**
+   * Deletes a shelf and returns backend details about affected books.
+   */
   public async delete(id: string): Promise<DeleteShelfResponse> {
     const response = await this.api.delete<DeleteShelfResponse>(`/api/shelves/${id}`);
     this.markChanged();
     this.session.markGuestChanged();
     return response;
   }
-
+  /**
+   * Notifies signal subscribers that shelf-derived UI should refresh.
+   */
   private markChanged(): void {
     this.revision.update((value) => value + 1);
   }

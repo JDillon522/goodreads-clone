@@ -5,6 +5,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupSwagger } from './config/swagger.config';
 
+/**
+ * Bootstraps the Nest backend with the configured API prefix, CORS settings, validation pipe, and
+ * Swagger/OpenAPI documentation.
+ */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);

@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Goal Stats Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class GoalStatsResponseDto {
   @ApiProperty({ example: 6 })
   completedBooks!: number;

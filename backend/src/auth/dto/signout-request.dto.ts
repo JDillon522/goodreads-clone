@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MinLength } from 'class-validator';
 
+/**
+ * Overview: Defines the Signout Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class SignoutRequestDto {
   @ApiProperty({
     description: 'Opaque refresh token to revoke.',

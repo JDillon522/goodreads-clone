@@ -17,6 +17,11 @@ import { UpdateShelfRequestDto } from './dto/update-shelf-request.dto';
 import { canDeleteShelf, slugifyShelfName } from './shelf-rules';
 import { ShelfSummaryResponseDto } from '../library/dto/shelf-summary-response.dto';
 
+/**
+ * Owns shelf CRUD, reordering, deactivation, and deletion fallback behavior for authenticated and
+ * guest owners. Unshelved is the only protected shelf and also the visible fallback for orphaned
+ * library items.
+ */
 type ShelfWithCount = Prisma.ShelfGetPayload<{
   include: {
     _count: {
@@ -33,11 +38,16 @@ type ShelfVisibilityOptions = {
 
 @Injectable()
 export class ShelvesService {
+  /**
+   * Receives persistence and activity dependencies from Nest.
+   */
   public constructor(
     private readonly activityService: ActivityService,
     private readonly prisma: PrismaService,
   ) {}
-
+  /**
+   * Creates a custom shelf for the owner with a unique slug and the next available position.
+   */
   public async createShelf(
     owner: OwnerContext,
     dto: CreateShelfRequestDto,
@@ -69,7 +79,10 @@ export class ShelvesService {
 
     return this.toShelfResponse(shelf);
   }
-
+  /**
+   * Hard-deletes a shelf. Items that would lose their final active shelf membership are assigned to
+   * Unshelved before the shelf is removed.
+   */
   public async deleteShelf(
     owner: OwnerContext,
     shelfId: string,
@@ -127,6 +140,8 @@ export class ShelvesService {
       });
 
       if (fallbackShelf) {
+        // Create fallback memberships before deleting the shelf so no item is left without a
+        // visible shelf after the transaction commits.
         await Promise.all(
           memberships
             .filter(
@@ -165,7 +180,9 @@ export class ShelvesService {
       };
     });
   }
-
+  /**
+   * Soft-hides a shelf from normal app flows while preserving its memberships for admin recovery.
+   */
   public async deactivateShelf(owner: OwnerContext, shelfId: string): Promise<ShelfResponseDto> {
     const shelf = await this.getOwnedShelf(owner, shelfId, { includeDeactivated: true });
 
@@ -185,7 +202,10 @@ export class ShelvesService {
 
     return this.toShelfResponse(updated);
   }
-
+  /**
+   * Lists shelves in display order. Normal callers see only active shelves; admin flows can include
+   * deactivated shelves.
+   */
   public async listShelves(
     owner: OwnerContext,
     options: ShelfVisibilityOptions = {},
@@ -209,7 +229,9 @@ export class ShelvesService {
       ),
     );
   }
-
+  /**
+   * Renames a shelf without changing its slug, memberships, or protected/default flags.
+   */
   public async updateShelf(
     owner: OwnerContext,
     shelfId: string,
@@ -241,7 +263,10 @@ export class ShelvesService {
 
     return this.toShelfResponse(updatedShelf);
   }
-
+  /**
+   * Replaces the full shelf order for the owner. The request must include every visible shelf
+   * exactly once so missing ids cannot silently disappear from navigation.
+   */
   public async updateShelfOrder(
     owner: OwnerContext,
     dto: UpdateShelfOrderRequestDto,
@@ -275,7 +300,9 @@ export class ShelvesService {
 
     return this.listShelves(owner, options);
   }
-
+  /**
+   * Restores a previously deactivated shelf to normal app visibility.
+   */
   public async reactivateShelf(owner: OwnerContext, shelfId: string): Promise<ShelfResponseDto> {
     const shelf = await this.getOwnedShelf(owner, shelfId, { includeDeactivated: true });
 
@@ -291,7 +318,9 @@ export class ShelvesService {
 
     return this.toShelfResponse(updated);
   }
-
+  /**
+   * Generates a per-owner slug and appends a numeric suffix when a shelf name collides.
+   */
   private async generateUniqueSlug(owner: OwnerContext, name: string): Promise<string> {
     const baseSlug = slugifyShelfName(name);
     const existingShelves = await this.prisma.shelf.findMany({
@@ -314,7 +343,10 @@ export class ShelvesService {
 
     throw new ConflictException('Could not create a unique shelf slug.');
   }
-
+  /**
+   * Fetches one shelf within the owner boundary, optionally allowing deactivated shelves for admin
+   * operations.
+   */
   private async getOwnedShelf(
     owner: OwnerContext,
     shelfId: string,
@@ -334,11 +366,15 @@ export class ShelvesService {
 
     return shelf;
   }
-
+  /**
+   * Computes the next append position for a new shelf.
+   */
   private async nextShelfPosition(owner: OwnerContext): Promise<number> {
     return this.nextShelfPositionWithExecutor(this.prisma, owner);
   }
-
+  /**
+   * Transaction-aware helper for computing the next shelf append position.
+   */
   private async nextShelfPositionWithExecutor(
     executor: Prisma.TransactionClient | PrismaService,
     owner: OwnerContext,
@@ -351,7 +387,9 @@ export class ShelvesService {
 
     return (lastShelf?.position ?? -1) + 1;
   }
-
+  /**
+   * Returns the owner's Unshelved shelf, creating it only as a defensive repair path for older data.
+   */
   private async getOrCreateUnshelvedShelf(
     executor: Prisma.TransactionClient,
     owner: OwnerContext,
@@ -388,25 +426,33 @@ export class ShelvesService {
 
     return created;
   }
-
+  /**
+   * Converts an owner context to the shared shelf ownership predicate.
+   */
   private ownerWhere(owner: OwnerContext): Prisma.ShelfWhereInput {
     return ownerRecord(owner);
   }
-
+  /**
+   * Builds the normal app predicate that hides deactivated shelves.
+   */
   private activeOwnerWhere(owner: OwnerContext): Prisma.ShelfWhereInput {
     return {
       deactivatedAt: null,
       ...ownerRecord(owner),
     };
   }
-
+  /**
+   * Selects the admin-inclusive or normal shelf visibility predicate.
+   */
   private ownerWhereForVisibility(
     owner: OwnerContext,
     options: ShelfVisibilityOptions,
   ): Prisma.ShelfWhereInput {
     return options.includeDeactivated ? this.ownerWhere(owner) : this.activeOwnerWhere(owner);
   }
-
+  /**
+   * Counts items whose memberships are all inactive so they can be included in Unshelved counts.
+   */
   private countItemsWithNoActiveShelves(owner: OwnerContext): Promise<number> {
     return this.prisma.libraryItem.count({
       where: {
@@ -421,7 +467,9 @@ export class ShelvesService {
       },
     });
   }
-
+  /**
+   * Maps a shelf record and item count to the API response shape.
+   */
   private toShelfResponse(
     shelf: ShelfWithCount,
     itemCount = shelf._count.libraryItems,
@@ -438,7 +486,9 @@ export class ShelvesService {
       updatedAt: shelf.updatedAt.toISOString(),
     };
   }
-
+  /**
+   * Reduces a shelf record to the summary shape returned with affected books.
+   */
   private toShelfSummary(shelf: ShelfSummaryResponseDto): ShelfSummaryResponseDto {
     return {
       id: shelf.id,

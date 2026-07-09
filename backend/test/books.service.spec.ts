@@ -165,7 +165,8 @@ describe('BooksService', () => {
     expect(clientSearchBooks).toHaveBeenCalledWith({
       limit: 10,
       page: 2,
-      query: 'le guin first_publish_year:[1960 TO 1969] subject:"Science fiction" has_fulltext:true',
+      query:
+        'le guin first_publish_year:[1960 TO 1969] subject:"Science fiction" has_fulltext:true',
     });
     expect(normalizeSearch).toHaveBeenCalledWith(raw, {
       filters: {

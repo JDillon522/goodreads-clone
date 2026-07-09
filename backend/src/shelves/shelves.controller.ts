@@ -28,13 +28,21 @@ import { UpdateShelfOrderRequestDto } from './dto/update-shelf-order-request.dto
 import { UpdateShelfRequestDto } from './dto/update-shelf-request.dto';
 import { ShelvesService } from './shelves.service';
 
+/**
+ * Exposes owner-scoped shelf creation, deletion, listing, reordering, and rename routes.
+ */
 @ApiBearerAuth('bearer')
 @ApiTags('Shelves')
 @Controller('shelves')
 @UseGuards(OwnerTokenGuard)
 export class ShelvesController {
+  /**
+   * Receives the shelf application service from Nest.
+   */
   public constructor(private readonly shelvesService: ShelvesService) {}
-
+  /**
+   * Creates a custom shelf for the current owner.
+   */
   @Post()
   @ApiOperation({ summary: 'Create a custom shelf for the current library owner.' })
   @ApiCreatedResponse({ type: ShelfResponseDto })
@@ -45,6 +53,9 @@ export class ShelvesController {
     return this.shelvesService.createShelf(owner, dto);
   }
 
+  /**
+   * Deletes a shelf and returns the affected-book remapping summary.
+   */
   @Delete(':id')
   @ApiOperation({
     summary:
@@ -57,14 +68,18 @@ export class ShelvesController {
   ): Promise<DeleteShelfResponseDto> {
     return this.shelvesService.deleteShelf(owner, shelfId);
   }
-
+  /**
+   * Lists active shelves for the current owner.
+   */
   @Get()
   @ApiOperation({ summary: 'List shelves for the current library owner.' })
   @ApiOkResponse({ type: ShelfResponseDto, isArray: true })
   public listShelves(@CurrentOwner() owner: OwnerContext): Promise<ShelfResponseDto[]> {
     return this.shelvesService.listShelves(owner);
   }
-
+  /**
+   * Replaces the current owner's full shelf order.
+   */
   @Put('order')
   @ApiOperation({ summary: 'Replace shelf ordering.' })
   @ApiOkResponse({ type: ShelfResponseDto, isArray: true })
@@ -74,7 +89,9 @@ export class ShelvesController {
   ): Promise<ShelfResponseDto[]> {
     return this.shelvesService.updateShelfOrder(owner, dto);
   }
-
+  /**
+   * Renames a shelf while keeping its slug stable.
+   */
   @Patch(':id')
   @ApiOperation({ summary: 'Rename a shelf without changing its internal slug.' })
   @ApiOkResponse({ type: ShelfResponseDto })

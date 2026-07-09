@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Readiness Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 class ReadinessChecksDto {
   @ApiProperty({ description: 'Database connectivity check result.', example: 'available' })
   public readonly database!: 'available';

@@ -26,11 +26,20 @@ import type { AuthenticatedRequest, HttpHeaderValue } from './types/authenticate
 import type { AuthenticatedUser } from './types/authenticated-user';
 import type { RequestContext } from './types/request-context';
 
+/**
+ * Exposes account-auth HTTP endpoints and keeps request-context extraction at the edge before
+ * delegating credential logic to AuthService.
+ */
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
+  /**
+   * Receives the auth application service from Nest.
+   */
   public constructor(private readonly authService: AuthService) {}
-
+  /**
+   * Returns the active authenticated user attached by AccessTokenGuard.
+   */
   @Get('me')
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth('bearer')
@@ -40,7 +49,9 @@ export class AuthController {
   public getCurrentUser(@CurrentUser() user: AuthenticatedUser): Promise<AuthUserResponseDto> {
     return this.authService.getCurrentUser(user);
   }
-
+  /**
+   * Completes password reset and returns a fresh authenticated session.
+   */
   @Post('password-reset/confirm')
   @HttpCode(200)
   @ApiOperation({ summary: 'Confirm a password reset and issue a new session.' })
@@ -53,6 +64,9 @@ export class AuthController {
     return this.authService.confirmPasswordReset(dto, this.getRequestContext(request));
   }
 
+  /**
+   * Creates a password reset token without revealing whether the submitted email exists.
+   */
   @Post('password-reset/request')
   @HttpCode(200)
   @ApiOperation({
@@ -65,7 +79,9 @@ export class AuthController {
   ): Promise<PasswordResetResponseDto> {
     return this.authService.requestPasswordReset(dto);
   }
-
+  /**
+   * Rotates a refresh token and issues a new access token.
+   */
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({ summary: 'Rotate a refresh token and issue a new access token.' })
@@ -77,7 +93,9 @@ export class AuthController {
   ): Promise<AuthTokenResponseDto> {
     return this.authService.refresh(dto, this.getRequestContext(request));
   }
-
+  /**
+   * Signs in with username-or-email credentials and request metadata for refresh-token auditing.
+   */
   @Post('signin')
   @HttpCode(200)
   @ApiOperation({ summary: 'Sign in with email and password.' })
@@ -89,7 +107,9 @@ export class AuthController {
   ): Promise<AuthTokenResponseDto> {
     return this.authService.signin(dto, this.getRequestContext(request));
   }
-
+  /**
+   * Revokes one refresh token.
+   */
   @Post('signout')
   @HttpCode(200)
   @ApiOperation({ summary: 'Revoke a refresh token.' })
@@ -97,7 +117,9 @@ export class AuthController {
   public signout(@Body() dto: SignoutRequestDto): Promise<SignoutResponseDto> {
     return this.authService.signout(dto);
   }
-
+  /**
+   * Creates a user, default shelves, preferences, and an initial authenticated session.
+   */
   @Post('signup')
   @ApiOperation({ summary: 'Create an account with default shelves and sign in.' })
   @ApiCreatedResponse({ type: AuthTokenResponseDto })
@@ -108,11 +130,15 @@ export class AuthController {
   ): Promise<AuthTokenResponseDto> {
     return this.authService.signup(dto, this.getRequestContext(request));
   }
-
+  /**
+   * Normalizes possibly repeated HTTP header values to the first value Nest exposes.
+   */
   private firstHeaderValue(value: HttpHeaderValue): string | undefined {
     return Array.isArray(value) ? value[0] : value;
   }
-
+  /**
+   * Captures IP and user agent metadata stored with refresh tokens.
+   */
   private getRequestContext(request: AuthenticatedRequest): RequestContext {
     const forwardedFor = this.firstHeaderValue(request.headers['x-forwarded-for']);
     const userAgent = this.firstHeaderValue(request.headers['user-agent']);

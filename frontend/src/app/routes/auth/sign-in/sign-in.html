@@ -9,8 +9,17 @@
       <p>Return to your shelves and reading progress.</p>
     </header>
 
-    <app-form-control label="Email or username" autocomplete="username" [control]="signInForm.email" />
-    <app-form-control label="Password" type="password" autocomplete="current-password" [control]="signInForm.password" />
+    <app-form-control
+      label="Email or username"
+      autocomplete="username"
+      [control]="signInForm.email"
+    />
+    <app-form-control
+      label="Password"
+      type="password"
+      autocomplete="current-password"
+      [control]="signInForm.password"
+    />
 
     @if (error()) {
       <p class="error-message" role="alert">{{ error() }}</p>
@@ -20,9 +29,7 @@
       {{ signInForm().submitting() ? 'Signing in...' : 'Sign in' }}
     </button>
 
-    <p class="auth-link">
-      No account yet? <a routerLink="/auth/sign-up">Create one</a>
-    </p>
+    <p class="auth-link">No account yet? <a routerLink="/auth/sign-up">Create one</a></p>
     <p class="auth-link">
       <a routerLink="/auth/password-reset">Forgot password?</a>
     </p>

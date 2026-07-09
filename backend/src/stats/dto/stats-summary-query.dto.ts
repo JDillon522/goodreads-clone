@@ -2,6 +2,9 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
+/**
+ * Overview: Defines the Stats Summary Query DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class StatsSummaryQueryDto {
   @ApiPropertyOptional({ example: 2026, maximum: 3000, minimum: 1900 })
   @IsOptional()

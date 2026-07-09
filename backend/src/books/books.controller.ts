@@ -16,11 +16,20 @@ import { BookSearchResponseDto } from './dto/book-search-response.dto';
 import { NormalizedBookDto } from './dto/normalized-book.dto';
 import { OpenLibraryDetailParamsDto } from './dto/open-library-detail-params.dto';
 
+/**
+ * Exposes Open Library search and detail endpoints with normalized Bookshelf response shapes.
+ */
 @ApiTags('Books')
 @Controller('books')
 export class BooksController {
+  /**
+   * Receives the book application service from Nest.
+   */
   public constructor(private readonly booksService: BooksService) {}
 
+  /**
+   * Fetches and normalizes a single Open Library work or edition.
+   */
   @Get('open-library/:type/:id')
   @ApiOperation({ summary: 'Fetch and normalize an Open Library work or edition.' })
   @ApiParam({ enum: ['books', 'works'], name: 'type' })
@@ -38,6 +47,9 @@ export class BooksController {
     return this.booksService.getOpenLibraryDetail(params.type, params.id);
   }
 
+  /**
+   * Searches Open Library with optional filters and pagination.
+   */
   @Get('search')
   @ApiOperation({ summary: 'Search Open Library and return frontend-friendly book results.' })
   @ApiOkResponse({ type: BookSearchResponseDto })

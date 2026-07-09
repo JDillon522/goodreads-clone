@@ -5,6 +5,9 @@ import { form, required, submit } from '@angular/forms/signals';
 import { Auth } from '../../../core/auth/auth';
 import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
+/**
+ * Sign-in route for username-or-email authentication.
+ */
 @Component({
   selector: 'app-sign-in',
   imports: [RouterLink, UiFormControl],
@@ -22,7 +25,9 @@ export class SignIn {
     required(path.email, { message: 'Email or username is required.' });
     required(path.password, { message: 'Password is required.' });
   });
-
+  /**
+   * Validates credentials, activates the returned session, and enters the app shell.
+   */
   protected async submitSignIn(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set(null);

@@ -10,8 +10,18 @@
     </header>
 
     <app-form-control label="Display name" autocomplete="name" [control]="signUpForm.displayName" />
-    <app-form-control label="Email" type="email" autocomplete="email" [control]="signUpForm.email" />
-    <app-form-control label="Password" type="password" autocomplete="new-password" [control]="signUpForm.password" />
+    <app-form-control
+      label="Email"
+      type="email"
+      autocomplete="email"
+      [control]="signUpForm.email"
+    />
+    <app-form-control
+      label="Password"
+      type="password"
+      autocomplete="new-password"
+      [control]="signUpForm.password"
+    />
 
     @if (error()) {
       <p class="error-message" role="alert">{{ error() }}</p>
@@ -21,8 +31,6 @@
       {{ signUpForm().submitting() ? 'Creating...' : 'Create account' }}
     </button>
 
-    <p class="auth-link">
-      Already have an account? <a routerLink="/auth/sign-in">Sign in</a>
-    </p>
+    <p class="auth-link">Already have an account? <a routerLink="/auth/sign-in">Sign in</a></p>
   </form>
 </main>

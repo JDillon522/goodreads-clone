@@ -1,173 +1,208 @@
-# Bookshelf — Product Challenge
+# Bookshelf
 
-Build a personal reading tracker where you search for books, organize them into shelves, track reading progress, set goals, and explore year-in-review statistics. Your reading life, beautifully organized.
+Bookshelf is a full-stack personal reading tracker built from the Frontend Mentor Product Challenge prompt. The app lets people search Open Library, save books, organize them across multiple shelves, track progress, write ratings and notes, manage annual goals, and review reading stats.
 
-![Bookshelf preview](./preview.jpg)
+This is no longer the stock challenge starter. The repo is now a working Nest + Angular + Postgres application with Docker-backed local development and a small set of local tooling scripts.
 
-*This is a design concept image, not the intended design. There's no Figma file — you make the design decisions.*
+## What Works
 
-## The Challenge
+- Account signup, sign-in, refresh, sign-out, password reset token flow, and username-or-email admin login.
+- Guest sessions with seeded demo data from `data/sample-books.json`.
+- Open Library search, provider normalization, response caching, pagination, and filters for year, subject, and readable/eBook availability.
+- User library management with duplicate detection, progress tracking, ratings, notes, and explicit reading status.
+- Multi-shelf membership: a book can be on more than one shelf, and every owner has a protected `Unshelved` shelf.
+- User shelf management through the app, including create, rename, delete, reorder, and `Unshelved` fallback behavior.
+- Admin user and shelf management at `/app/admin`.
+- Session-status guard at app load so stale user or guest tokens redirect to sign-in.
+- Current-year stats and year-in-review summary for authenticated users and guests.
+- Read-only Postgres MCP server for inspecting the Docker database.
 
-Bookshelf is a **Product Challenge** on [Frontend Mentor](https://www.frontendmentor.io). There's no Figma file — you make the design decisions. You ship a real, deployed product with a database, authentication, and external integrations. The result is a portfolio piece that demonstrates how you think, not just what you can build.
+## Architecture
 
-### Four Pillars
-
-| Pillar | What It Means for Bookshelf |
-|--------|----------------------------|
-| **Product Thinking** | You design the year-in-review experience, the book discovery flow, and the reading progress UX. No spec tells you exactly how — you decide. |
-| **Design Taste & Craft** | The brand kit gives you colors, type, and spacing. The layouts, interactions, and visual polish are yours. |
-| **AI Collaboration** | The project includes AI context files (`AGENTS.md`, `CLAUDE.md`) that give tools like Claude full project context. Lean into AI across planning, building, and polishing. |
-| **Shipping Real Products** | Deploy to a live URL. Real database. Real auth. Real book API integration with real-world data inconsistencies — missing covers, varied ISBNs, duplicate editions. |
-
-## What You're Building
-
-A personal reading tracker where users:
-
-- **Search for books** via the Open Library or Google Books API and add them to their library
-- **Organize into shelves** — "Want to Read", "Currently Reading", "Read", plus custom shelves
-- **Track reading progress** with page counts and visual progress indicators
-- **Set annual reading goals** and see whether they're on pace
-- **Explore year-in-review statistics** — books per month, genre breakdown, total pages, reading pace
-- **Browse a curated library** as a guest with 45 real books across 5 genres
-
-### The Guest Experience
-
-When you share this project — in your portfolio, a job application, or a social post — the person clicking your link isn't going to create an account. Guest mode is what lets them see your work instead of a login wall.
-
-Your landing page includes a "Try as Guest" button. Guests get a fully populated library with 45 curated books across Fiction, Non-Fiction, Sci-Fi & Fantasy, Self-Improvement, and Tech & Programming — real covers, real metadata, books distributed across shelves with reading progress, ratings, and notes. The year-in-review statistics are pre-populated with compelling data. Visitors are _exploring a personal reading library_ from their first click.
-
-## Project Structure
-
-```
-bookshelf/
-├── spec/
-│   ├── product-definition.md      # What, who, why
-│   ├── core-requirements.md       # 19 features: 12 core + 7 stretch
-│   ├── design-challenges.md       # 3 features YOU design
-│   ├── technical-requirements.md  # Database, auth, Book API, deployment, performance
-│   └── differentiators.md         # 6 enhancements — pick 1-2
-├── guidance/
-│   ├── brand-kit.md               # Colors, typography, spacing, icons, mood
-│   ├── patterns.md                # UI/UX do's and don'ts
-│   └── accessibility.md           # WCAG checklist
-├── starter/
-│   ├── tokens.css                 # CSS custom properties
-│   └── tailwind.css               # Optional Tailwind v4 config
-├── data/
-│   ├── sample-books.json          # 45 curated books as JSON
-│   ├── sample-books.csv           # Same books in Goodreads CSV format
-│   └── README.md                  # Data edge case documentation
-├── AGENTS.md                      # AI collaboration context
-├── CLAUDE.md                      # Points to AGENTS.md
-└── README-template.md             # Template for your solution README
+```txt
+.
+├── backend/                 Nest API, Prisma schema, migrations, tests
+├── frontend/                Angular app, route screens, shared UI, API clients
+├── proxy/                   Nginx browser-facing proxy for Docker
+├── data/                    Guest/demo seed data
+├── docs/                    Roadmap, decision log, and implementation notes
+├── tools/bookshelf-db-mcp/  Read-only MCP server for local Postgres inspection
+├── scripts/                 Small Node utilities used by npm/bin commands
+└── bin/run                  Human-friendly local command runner
 ```
 
-## Getting Started
+The browser normally talks to the nginx proxy on `localhost:8080`. The proxy sends `/api`, `/docs`, and `/docs-json` to the Nest backend and all app routes to Angular.
 
-1. **Read the spec** — Start with `spec/product-definition.md`, then `core-requirements.md`. Understand what you're building before you write code.
+Backend ownership flows use a shared owner context so authenticated users and guest sessions hit the same library, shelf, goals, and stats APIs. Authenticated users are identified by access tokens; guests use an opaque guest bearer token stored on the client.
 
-2. **Review the brand kit** — `guidance/brand-kit.md` gives you the visual foundation. The brand kit and preview image give you a solid design foundation. Use them as your starting point — or, if you have a clear design vision of your own, feel free to create your own brand kit and go in a different direction. The starter CSS tokens and optional Tailwind config are ready to use.
+## Tech Stack
 
-3. **Explore the patterns** — `guidance/patterns.md` provides UI/UX do's and don'ts that will help you make strong design decisions without a Figma file.
+- Backend: Nest 11, Prisma 7, Postgres 16
+- Frontend: Angular 22 standalone routes, signals, signal forms
+- External data: Open Library
+- Local runtime: Docker Compose, nginx proxy
+- API contracts: Swagger/OpenAPI at `/docs` and `/docs-json`, with generated frontend types
+- Tooling: npm workspaces plus `bin/run`
 
-4. **Choose your stack** — This challenge is framework-agnostic. Next.js, Nuxt, SvelteKit, Remix, Astro — whatever you're most productive with. The recommended path is full-stack (database + auth), but there's a **frontend-only alternative** if you want to focus on UI/UX and frontend engineering — see `spec/technical-requirements.md` for details.
+## Local URLs
 
-5. **Set up your AI workflow** — This project is designed for AI collaboration. `AGENTS.md` and `CLAUDE.md` give AI tools full context about the project — specs, guidance, and collaboration approach. We recommend working with AI across every phase: planning, building, and polishing.
+| Surface            | URL                             |
+| ------------------ | ------------------------------- |
+| App through proxy  | http://localhost:8080           |
+| Backend API        | http://localhost:3000/api       |
+| Swagger UI         | http://localhost:3000/docs      |
+| Swagger JSON       | http://localhost:3000/docs-json |
+| Postgres host port | `127.0.0.1:5433`                |
 
-6. **Pick your differentiators** — Read `spec/differentiators.md` and choose 1-2 that match your interests. These are what make the project _yours_.
+## Quick Start
 
-7. **Start building** — Begin with foundation (auth, database, book API integration), then layer in features. The core-requirements spec is your roadmap. Core features give you a solid product; Stretch features take it to the next level.
+Install dependencies:
 
-8. **Document as you go** — Use `README-template.md` for your solution README. Record design decisions, technical trade-offs, and lessons learned as they happen, not after.
+```sh
+npm install
+```
 
-## Working with AI
+Start the full local stack:
 
-Product Challenges are designed for AI collaboration. The `AGENTS.md` and `CLAUDE.md` files give AI tools like Claude, Cursor, and Copilot full project context — including the spec, brand kit, and collaboration guidelines. Load them at the start of each session.
+```sh
+bin/run up
+```
 
-Lean on AI for implementation, but don't just accept what it gives you. The design decisions are yours, and so is the code quality — review what gets generated, understand it, and make sure it's something you'd be happy putting your name on. The three design-it-yourself features (year-in-review & reading insights, book discovery & recommendations, reading progress tracking UX) are where your product thinking matters most.
+Start detached:
 
-### Local Command Runner
+```sh
+bin/run up -d
+```
 
-This repo includes a Node-based command runner for common local workflows:
+Check the environment:
+
+```sh
+bin/run doctor
+```
+
+See all local commands:
 
 ```sh
 bin/run help
-bin/run up
-bin/run doctor
+```
+
+## Command Runner
+
+`bin/run` is the preferred entry point for local workflows. It wraps the lower-level npm and Docker commands so you do not have to remember the whole spellbook.
+
+Common commands:
+
+```sh
+bin/run up                 # Start full Docker dev stack
+bin/run down               # Stop Docker dev stack
+bin/run logs backend       # Follow logs for one service
+bin/run ps                 # Show container status
+bin/run db                 # Start only Postgres
+bin/run db-shell           # Open psql in the db container
+bin/run api-types          # Regenerate frontend OpenAPI types
+bin/run mcp-db-role        # Create/update local read-only DB role
+bin/run mcp-db             # Start read-only DB MCP server over stdio
+bin/run test               # Run all workspace tests
+bin/run typecheck          # Run all workspace typechecks
+bin/run validate           # Typecheck, test, backend build, frontend build
+bin/run doctor             # Check Docker, DB, backend, proxy, route fallback
+```
+
+Use command-specific help when needed:
+
+```sh
+bin/run help mcp-db
+```
+
+## Database
+
+The development database runs in Docker as `bookshelf-db`.
+
+Host connection:
+
+```txt
+postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf
+```
+
+Container-network connection:
+
+```txt
+postgresql://bookshelf:bookshelf@db:5432/bookshelf
+```
+
+Prisma schema and migrations live under `backend/prisma/`.
+
+Useful commands:
+
+```sh
+bin/run db
+npm run db:generate
+npm run db:migrate:dev -- --name your_migration_name
+npm run db:seed
+```
+
+## MCP Database Tooling
+
+The repo includes a committable read-only MCP server for inspecting the local Docker Postgres database:
+
+```sh
 bin/run mcp-db
 ```
 
-Use `bin/run help <command>` for command-specific usage. See `tools/bookshelf-db-mcp/README.md` for the read-only database role, MCP client config example, and available MCP tools.
+Before using it with a read-only role, apply the local role helper:
 
-## Your Solution Repo
+```sh
+bin/run mcp-db-role
+```
 
-The `.gitignore` is pre-configured to exclude challenge reference files (`spec/`, `guidance/`, `AGENTS.md`, etc.) from your solution repo. These files are your development reference — they stay on your machine for AI sessions and planning, but they don't belong in the finished product.
+MCP client config and safety details live in `tools/bookshelf-db-mcp/README.md`. The server exposes:
 
-Your public repo should contain:
+- `database_overview`
+- `list_tables`
+- `describe_table`
+- `query_readonly`
 
-- Your application code
-- Your completed README (rename `README-template.md` → `README.md`)
-- The sample data files (needed for the guest experience)
-- The starter tokens (consumed by your build)
+`query_readonly` runs in a read-only transaction, blocks mutation/DDL keywords, rejects multiple statements, sets timeouts, and caps returned rows. The database role is still the real safety boundary.
 
-This is how real products work: you reference the spec during development, you ship the product.
+## API Types
 
-## Learning Outcomes
+Frontend API types are generated from the running backend Swagger JSON:
 
-By completing this challenge, you'll have demonstrated:
+```sh
+bin/run api-types
+```
 
-- **API integration and data normalization** — Handling real-world book API inconsistencies: missing covers, varied ISBNs, duplicate editions, incomplete metadata
-- **Full-stack architecture** — Database schema design, API routes, server-side data fetching, client-side state management
-- **Product design** — Shelf organization, reading progress UX, goal tracking, year-in-review statistics, and book discovery
-- **Data visualization** — Charts, progress indicators, reading statistics, and a year-in-review experience that tells a story
-- **Real-world deployment** — Live URL, environment configuration, production error handling, API key management
-- **Design taste** — Typography pairing (serif + sans-serif), warm color palette, visual hierarchy, responsive book cover grids without a Figma reference
+The generated file is `frontend/src/app/core/api/bookshelf-api.types.ts`. Do not hand-edit it.
 
-## Key Design Moments
+## Validation
 
-These screens are where your design taste will be most visible:
+Main local validation:
 
-1. **Library / shelf view** — Where users spend 80% of their time. Book cover grids need visual rhythm, consistent spacing, and clear hierarchy between shelf sections.
-2. **Year-in-review / statistics** — The most shareable screen. Data visualization, bold typography, and a distinct visual treatment that feels like a special moment.
-3. **Landing page** — First impression. Book covers should be prominently featured. The warm, literary aesthetic should be evident within 2 seconds.
+```sh
+bin/run validate
+```
 
-## Deploying Your Project
+Focused commands:
 
-Product Challenges require a live, publicly accessible URL. Recommended hosts:
+```sh
+npm run typecheck:backend
+npm run test:backend
+./node_modules/.bin/tsc --noEmit -p frontend/tsconfig.app.json
+./node_modules/.bin/tsc --noEmit -p frontend/tsconfig.spec.json
+npm run test:frontend -- --watch=false
+npm run build:frontend
+```
 
-- [Vercel](https://vercel.com/)
-- [Netlify](https://www.netlify.com/)
-- [Render](https://render.com/)
-- [Fly.io](https://fly.io/)
+Angular production builds can fail inside the Codex sandbox with an esbuild-related exit `134`; rerunning outside the sandbox is the useful signal when TypeScript and tests are clean.
 
-Make sure your environment variables are configured correctly and no secrets are exposed. Test your deployed URL in an incognito window before submitting — especially the guest experience.
+## Documentation Map
 
-For more guidance, see our [hosting guide](https://www.frontendmentor.io/guides/hosting-your-solution).
+- `docs/project-roadmap.md`: running decision log, stage history, and current implementation direction.
+- `AGENTS.md`: AI collaboration context and repo-specific working rules.
+- `backend/README.md`: backend setup and operational notes.
+- `frontend/src/app/core/api/README.md`: generated API type guidance.
+- `tools/bookshelf-db-mcp/README.md`: read-only DB MCP setup.
 
-## Submitting Your Solution
+## Product Notes
 
-Submit your solution on the platform for the rest of the community to see. Follow our [guide to submitting solutions](https://www.frontendmentor.io/guides/how-to-submit-solutions) for the full process.
-
-When submitting, you'll need:
-
-- **Live site URL** — Submit the URL to your guest experience (e.g., `your-app.vercel.app/guest`), not the landing page. This ensures our solution reporters analyse your product code rather than the homepage. Test in incognito first.
-- **Repository URL** — A public repo with your solution code and completed README
-
-For your retrospective, Product Challenges give you a lot to write about — design decisions, AI collaboration, technical trade-offs. Be specific about what you're proud of and where you'd like feedback. See our [guide to writing effective retrospectives](https://www.frontendmentor.io/guides/write-an-effective-retrospective) for tips.
-
-## Sharing Your Solution
-
-Product Challenges create portfolio pieces worth sharing beyond the platform:
-
-1. Share your solution page in the **#finished-projects** channel of our [community](https://www.frontendmentor.io/community).
-2. Post on LinkedIn or X — include both your live URL and repo link. The guest experience means anyone clicking your link sees the product immediately.
-3. Add it to your portfolio — see our [guide to using challenges in your portfolio](https://www.frontendmentor.io/guides/use-challenges-in-your-portfolio).
-4. Blog about your experience. The design decisions, AI collaboration journey, and technical challenges make for compelling content. Great platforms to write on are [dev.to](https://dev.to/), [Hashnode](https://hashnode.com/), and [CodeNewbie](https://community.codenewbie.org/).
-
-## Questions?
-
-If anything in the spec is unclear or you want to discuss the challenge, join our [Discord community](https://www.frontendmentor.io/community).
-
-## Got Feedback for Us?
-
-We love receiving feedback! If you have anything you'd like to mention, please email hi[at]frontendmentor[dot]io.
+Bookshelf started as a Frontend Mentor Product Challenge. The active implementation direction is full-stack, backend-first, with guest mode as the portfolio/demo path. The original challenge reference files are intentionally development context, not the shipped product documentation.

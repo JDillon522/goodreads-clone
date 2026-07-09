@@ -2,6 +2,13 @@ import { computed, Injectable, signal } from '@angular/core';
 
 import type { AuthTokenResponse, GuestSessionResponse } from '../api/api.types';
 
+/**
+ * Browser-backed session state for auth and guest users.
+ *
+ * Auth sessions persist in localStorage so returning users stay signed in.
+ * Guest sessions stay in sessionStorage so demo data is tab-scoped and can be
+ * marked dirty when guest-owned resources change.
+ */
 type SessionKind = 'anonymous' | 'guest' | 'user';
 type UserRole = 'ADMIN' | 'USER';
 
@@ -43,9 +50,13 @@ export class SessionStore {
   public readonly guestHasUnsavedChanges = this.guestDirtyValue.asReadonly();
   public readonly isGuest = computed(() => this.sessionKind() === 'guest');
   public readonly isSignedIn = computed(() => this.sessionKind() === 'user');
-  public readonly isAdmin = computed(() => this.sessionKind() === 'user' && this.userRoleValue() === 'ADMIN');
+  public readonly isAdmin = computed(
+    () => this.sessionKind() === 'user' && this.userRoleValue() === 'ADMIN',
+  );
   public readonly hasSession = computed(() => this.sessionKind() !== 'anonymous');
-
+  /**
+   * Stores bearer/refresh tokens and clears any active guest session.
+   */
   public setAuthSession(response: AuthTokenResponse): void {
     this.clearGuestSession();
     this.writeLocal(accessTokenKey, response.accessToken);
@@ -57,7 +68,9 @@ export class SessionStore {
     this.userEmailValue.set(response.user.email);
     this.userRoleValue.set(response.user.role);
   }
-
+  /**
+   * Stores a guest token and clears any signed-in user session.
+   */
   public setGuestSession(response: GuestSessionResponse): void {
     this.clearAuthSession();
     this.writeSession(guestTokenKey, response.guestToken);
@@ -67,7 +80,9 @@ export class SessionStore {
     this.guestExpiresAtValue.set(response.expiresAt);
     this.guestDirtyValue.set(false);
   }
-
+  /**
+   * Marks the current guest session as dirty after a guest library, shelf, or goal mutation.
+   */
   public markGuestChanged(): void {
     if (!this.isGuest()) {
       return;
@@ -76,12 +91,16 @@ export class SessionStore {
     this.writeSession(guestDirtyKey, 'true');
     this.guestDirtyValue.set(true);
   }
-
+  /**
+   * Clears all auth and guest state, usually after sign-out or failed session validation.
+   */
   public clear(): void {
     this.clearAuthSession();
     this.clearGuestSession();
   }
-
+  /**
+   * Removes persisted signed-in user credentials and role metadata.
+   */
   private clearAuthSession(): void {
     localStorage.removeItem(accessTokenKey);
     localStorage.removeItem(refreshTokenKey);
@@ -92,7 +111,9 @@ export class SessionStore {
     this.userEmailValue.set(null);
     this.userRoleValue.set(null);
   }
-
+  /**
+   * Removes tab-scoped guest credentials and dirty state.
+   */
   private clearGuestSession(): void {
     sessionStorage.removeItem(guestTokenKey);
     sessionStorage.removeItem(guestExpiresAtKey);
@@ -101,25 +122,35 @@ export class SessionStore {
     this.guestExpiresAtValue.set(null);
     this.guestDirtyValue.set(false);
   }
-
+  /**
+   * Reads persisted auth values from localStorage during service construction.
+   */
   private readLocal(key: string): string | null {
     return localStorage.getItem(key);
   }
-
+  /**
+   * Reads the persisted role while rejecting stale or unknown role strings.
+   */
   private readRole(): UserRole | null {
     const role = localStorage.getItem(userRoleKey);
 
     return role === 'ADMIN' || role === 'USER' ? role : null;
   }
-
+  /**
+   * Persists signed-in session values across browser restarts.
+   */
   private writeLocal(key: string, value: string): void {
     localStorage.setItem(key, value);
   }
-
+  /**
+   * Reads tab-scoped guest values from sessionStorage.
+   */
   private readSession(key: string): string | null {
     return sessionStorage.getItem(key);
   }
-
+  /**
+   * Persists guest values for the lifetime of the current browser tab.
+   */
   private writeSession(key: string, value: string): void {
     sessionStorage.setItem(key, value);
   }

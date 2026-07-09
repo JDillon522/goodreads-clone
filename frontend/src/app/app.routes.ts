@@ -3,6 +3,12 @@ import { Routes } from '@angular/router';
 import { adminGuard } from './core/session/admin.guard';
 import { sessionGuard } from './core/session/session.guard';
 
+/**
+ * Lazy route map for the public auth screens and protected app shell.
+ *
+ * The `/app` branch validates session status once, while `/app/admin` adds the
+ * client-side admin role guard before loading the admin page.
+ */
 export const routes: Routes = [
   {
     path: '',
@@ -21,13 +27,16 @@ export const routes: Routes = [
   },
   {
     path: 'auth/password-reset',
-    loadComponent: () => import('./routes/auth/password-reset/password-reset').then((m) => m.PasswordReset),
+    loadComponent: () =>
+      import('./routes/auth/password-reset/password-reset').then((m) => m.PasswordReset),
     title: 'Reset password - Bookshelf',
   },
   {
     path: 'auth/password-reset/confirm',
     loadComponent: () =>
-      import('./routes/auth/password-reset-confirm/password-reset-confirm').then((m) => m.PasswordResetConfirm),
+      import('./routes/auth/password-reset-confirm/password-reset-confirm').then(
+        (m) => m.PasswordResetConfirm,
+      ),
     title: 'Confirm reset - Bookshelf',
   },
   {
@@ -43,7 +52,8 @@ export const routes: Routes = [
       },
       {
         path: 'shelves/manage',
-        loadComponent: () => import('./routes/manage-shelves/manage-shelves').then((m) => m.ManageShelves),
+        loadComponent: () =>
+          import('./routes/manage-shelves/manage-shelves').then((m) => m.ManageShelves),
         title: 'Manage shelves - Bookshelf',
       },
       {

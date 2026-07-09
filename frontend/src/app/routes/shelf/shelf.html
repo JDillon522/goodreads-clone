@@ -4,7 +4,11 @@
       <p class="eyebrow">Shelf</p>
       <h1>{{ currentShelf()?.name ?? 'Shelf' }}</h1>
     </div>
-    <a class="primary-button" routerLink="/app/search" [queryParams]="{ shelfId: currentShelf()?.id }">
+    <a
+      class="primary-button"
+      routerLink="/app/search"
+      [queryParams]="{ shelfId: currentShelf()?.id }"
+    >
       <i class="ph ph-plus" aria-hidden="true"></i>
       <span>Add book</span>
     </a>

@@ -21,6 +21,10 @@ import { UpdateLibraryItemRequestDto } from './dto/update-library-item-request.d
 import { UpdateProgressRequestDto } from './dto/update-progress-request.dto';
 import { calculateProgress, normalizeText } from './library-rules';
 
+/**
+ * Owns the user's or guest's saved library items. This service keeps book persistence, shelf
+ * membership, progress updates, ratings, notes, and the effective Unshelved fallback in one place.
+ */
 type LibraryItemWithRelations = Prisma.LibraryItemGetPayload<{
   include: typeof libraryItemInclude;
 }>;
@@ -29,11 +33,17 @@ type LibraryExecutor = Prisma.TransactionClient | PrismaService;
 
 @Injectable()
 export class LibraryService {
+  /**
+   * Receives persistence and activity dependencies from Nest.
+   */
   public constructor(
     private readonly activityService: ActivityService,
     private readonly prisma: PrismaService,
   ) {}
-
+  /**
+   * Adds an Open Library book to the owner's library, defaulting to Unshelved when no target shelf
+   * is supplied. Existing books gain another shelf membership instead of being duplicated.
+   */
   public async addLibraryItem(
     owner: OwnerContext,
     dto: AddLibraryItemRequestDto,
@@ -52,6 +62,8 @@ export class LibraryService {
       });
 
       if (existingItem) {
+        // Library items can live on multiple shelves; duplicate detection prevents duplicate books
+        // while still allowing the user to classify the same item under another shelf.
         if (existingItem.shelves.some((membership) => membership.shelfId === shelf.id)) {
           throw new ConflictException('This book is already on that shelf.');
         }
@@ -109,7 +121,10 @@ export class LibraryService {
 
     return this.toLibraryItemResponse(owner, item);
   }
-
+  /**
+   * Removes an owned library item and its dependent shelf/progress/activity records via Prisma
+   * cascade rules.
+   */
   public async deleteLibraryItem(owner: OwnerContext, libraryItemId: string): Promise<void> {
     const item = await this.getOwnedLibraryItem(owner, libraryItemId);
 
@@ -117,14 +132,20 @@ export class LibraryService {
       where: { id: item.id },
     });
   }
-
+  /**
+   * Fetches one owned library item and maps inactive-only shelf memberships to effective
+   * Unshelved in the response.
+   */
   public async getLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemResponseDto> {
     return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, libraryItemId));
   }
-
+  /**
+   * Lists the owner's library, optionally scoped to one active shelf. Filtering by Unshelved also
+   * includes items whose only memberships are inactive shelves.
+   */
   public async listLibraryItems(
     owner: OwnerContext,
     query: LibraryQueryDto,
@@ -138,6 +159,8 @@ export class LibraryService {
           ...this.ownerWhere(owner),
           ...(shelf.slug === 'unshelved'
             ? {
+                // Unshelved is both a real shelf and the visible fallback for items orphaned by
+                // deactivated shelf memberships.
                 OR: [
                   { shelves: { some: { shelfId: query.shelfId } } },
                   {
@@ -166,7 +189,9 @@ export class LibraryService {
 
     return this.toLibraryItemResponses(owner, items);
   }
-
+  /**
+   * Backward-compatible move endpoint that now means "add this shelf membership."
+   */
   public async moveLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
@@ -174,7 +199,9 @@ export class LibraryService {
   ): Promise<LibraryItemResponseDto> {
     return this.addShelfToLibraryItem(owner, libraryItemId, dto);
   }
-
+  /**
+   * Adds another active shelf membership to an owned library item.
+   */
   public async addShelfToLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
@@ -208,7 +235,10 @@ export class LibraryService {
 
     return this.toLibraryItemResponse(owner, updatedItem);
   }
-
+  /**
+   * Removes one active shelf membership. If this would leave the item with no active shelves, the
+   * item is moved to Unshelved unless the user is trying to remove Unshelved itself.
+   */
   public async removeShelfFromLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
@@ -227,6 +257,8 @@ export class LibraryService {
       );
 
       if (remainingMemberships.length === 0) {
+        // The UI should never show a shelf-less item. Persist a real Unshelved membership before
+        // deleting the last active non-Unshelved membership.
         if (membership.shelf.slug === 'unshelved') {
           throw new BadRequestException('A library item must belong to at least one shelf.');
         }
@@ -262,7 +294,10 @@ export class LibraryService {
 
     return this.toLibraryItemResponse(owner, updatedItem);
   }
-
+  /**
+   * Updates detail-page metadata: rating, notes, and explicit reading status. Absent optional
+   * fields are left untouched, while present null/blank values clear existing data.
+   */
   public async updateLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
@@ -283,6 +318,8 @@ export class LibraryService {
     }
 
     if (dto.status) {
+      // Status is explicit user intent. Finishing sets the completion date once; leaving READ clears
+      // completion metadata instead of preserving stale "finished" state.
       data.status = dto.status;
       data.dateFinished =
         dto.status === LibraryItemStatus.READ ? (item.dateFinished ?? new Date()) : null;
@@ -334,7 +371,10 @@ export class LibraryService {
 
     return this.toLibraryItemResponse(owner, updatedItem);
   }
-
+  /**
+   * Records progress history and updates the current progress snapshot. Progress can promote a
+   * WANT_TO_READ item to READING or mark a completed item as READ.
+   */
   public async updateProgress(
     owner: OwnerContext,
     libraryItemId: string,
@@ -404,7 +444,9 @@ export class LibraryService {
 
     return this.toLibraryItemResponse(owner, updatedItem);
   }
-
+  /**
+   * Fetches an active default shelf for the owner.
+   */
   private async getDefaultShelf(
     executor: LibraryExecutor,
     owner: OwnerContext,
@@ -425,7 +467,10 @@ export class LibraryService {
 
     return shelf;
   }
-
+  /**
+   * Returns the owner's Unshelved shelf, recreating it only as a defensive fallback for older or
+   * damaged data where the protected shelf is missing.
+   */
   private async getOrCreateUnshelvedShelf(
     executor: Prisma.TransactionClient,
     owner: OwnerContext,
@@ -468,14 +513,18 @@ export class LibraryService {
 
     return created;
   }
-
+  /**
+   * Fetches one library item within the current owner boundary.
+   */
   private async getOwnedLibraryItem(
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemWithRelations> {
     return this.getOwnedLibraryItemWithExecutor(this.prisma, owner, libraryItemId);
   }
-
+  /**
+   * Transaction-aware owned item lookup with book and shelf relations needed for response mapping.
+   */
   private async getOwnedLibraryItemWithExecutor(
     executor: LibraryExecutor,
     owner: OwnerContext,
@@ -495,7 +544,9 @@ export class LibraryService {
 
     return item;
   }
-
+  /**
+   * Fetches one active shelf inside the current owner boundary.
+   */
   private async getOwnedShelf(
     executor: LibraryExecutor,
     owner: OwnerContext,
@@ -516,7 +567,9 @@ export class LibraryService {
 
     return shelf;
   }
-
+  /**
+   * Maps the stored book record to the public library book DTO.
+   */
   private toBookResponse(book: LibraryItemWithRelations['book']): LibraryBookResponseDto {
     return {
       authors: book.authors,
@@ -539,7 +592,9 @@ export class LibraryService {
       title: book.title,
     };
   }
-
+  /**
+   * Maps a single item through the same fallback path used by list responses.
+   */
   private async toLibraryItemResponse(
     owner: OwnerContext,
     item: LibraryItemWithRelations,
@@ -548,7 +603,9 @@ export class LibraryService {
 
     return response;
   }
-
+  /**
+   * Preloads Unshelved only when at least one response item needs the effective fallback shelf.
+   */
   private async toLibraryItemResponses(
     owner: OwnerContext,
     items: LibraryItemWithRelations[],
@@ -563,7 +620,10 @@ export class LibraryService {
 
     return items.map((item) => this.toLibraryItemResponseWithFallback(item, unshelvedShelf));
   }
-
+  /**
+   * Maps one library item and hides inactive shelves, substituting Unshelved when no active
+   * memberships remain.
+   */
   private toLibraryItemResponseWithFallback(
     item: LibraryItemWithRelations,
     unshelvedShelf: ShelfSummaryResponseDto | null,
@@ -589,7 +649,9 @@ export class LibraryService {
       updatedAt: item.updatedAt.toISOString(),
     };
   }
-
+  /**
+   * Fetches the active Unshelved shelf summary required for effective fallback responses.
+   */
   private async getUnshelvedShelfSummary(
     executor: LibraryExecutor,
     owner: OwnerContext,
@@ -614,7 +676,9 @@ export class LibraryService {
 
     return shelf;
   }
-
+  /**
+   * Derives the initial explicit reading status from the first shelf a new item is added to.
+   */
   private statusForInitialShelf(slug: string): LibraryItemStatus {
     if (slug === 'read') {
       return LibraryItemStatus.READ;
@@ -626,7 +690,9 @@ export class LibraryService {
 
     return LibraryItemStatus.WANT_TO_READ;
   }
-
+  /**
+   * Maps an active shelf relation to the compact shelf summary shown on library items.
+   */
   private toShelfSummary(
     shelf: LibraryItemWithRelations['shelves'][number]['shelf'],
   ): ShelfSummaryResponseDto {
@@ -637,7 +703,9 @@ export class LibraryService {
       slug: shelf.slug,
     };
   }
-
+  /**
+   * Upserts the shared Open Library book record that library items reference.
+   */
   private async upsertBook(
     executor: LibraryExecutor,
     input: BookInputDto,
@@ -677,7 +745,9 @@ export class LibraryService {
       },
     });
   }
-
+  /**
+   * Converts the current owner context into a Prisma ownership predicate.
+   */
   private ownerWhere(owner: OwnerContext): ReturnType<typeof ownerRecord> {
     return ownerRecord(owner);
   }

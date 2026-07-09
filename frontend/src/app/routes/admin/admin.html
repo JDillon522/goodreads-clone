@@ -33,7 +33,9 @@
               <strong>{{ user.email }}</strong>
               <small>{{ user.username || 'no username' }}</small>
             </span>
-            <span class="status-pill" [class.is-muted]="user.deactivatedAt">{{ user.deactivatedAt ? 'Inactive' : user.role }}</span>
+            <span class="status-pill" [class.is-muted]="user.deactivatedAt">{{
+              user.deactivatedAt ? 'Inactive' : user.role
+            }}</span>
           </button>
         } @empty {
           <p class="muted">No users found.</p>
@@ -42,16 +44,37 @@
 
       <form class="stack-form" (submit)="submitCreateUser($event)">
         <h3>Create user</h3>
-        <app-form-control label="Email" type="email" autocomplete="off" [control]="createUserForm.email" />
-        <app-form-control label="Username" autocomplete="off" hint="Optional, used for sign-in." [control]="createUserForm.username" />
-        <app-form-control label="Display name" autocomplete="off" [control]="createUserForm.displayName" />
-        <app-form-control label="Password" type="password" autocomplete="new-password" [control]="createUserForm.password" />
+        <app-form-control
+          label="Email"
+          type="email"
+          autocomplete="off"
+          [control]="createUserForm.email"
+        />
+        <app-form-control
+          label="Username"
+          autocomplete="off"
+          hint="Optional, used for sign-in."
+          [control]="createUserForm.username"
+        />
+        <app-form-control
+          label="Display name"
+          autocomplete="off"
+          [control]="createUserForm.displayName"
+        />
+        <app-form-control
+          label="Password"
+          type="password"
+          autocomplete="new-password"
+          [control]="createUserForm.password"
+        />
         <app-form-control label="Role" kind="select" [control]="createUserForm.role">
           @for (role of roleOptions; track role) {
             <option [value]="role">{{ role }}</option>
           }
         </app-form-control>
-        <button class="primary-button" type="submit" [disabled]="createUserForm().submitting()">Create user</button>
+        <button class="primary-button" type="submit" [disabled]="createUserForm().submitting()">
+          Create user
+        </button>
       </form>
     </section>
 
@@ -65,23 +88,51 @@
 
       @if (selectedUser(); as user) {
         <form class="stack-form" (submit)="submitUpdateUser($event)">
-          <app-form-control label="Email" type="email" autocomplete="off" [control]="editUserForm.email" />
-          <app-form-control label="Username" autocomplete="off" hint="Leave blank to remove the username." [control]="editUserForm.username" />
-          <app-form-control label="Display name" autocomplete="off" [control]="editUserForm.displayName" />
-          <app-form-control label="New password" type="password" autocomplete="new-password" hint="Leave blank to keep the current password." [control]="editUserForm.password" />
+          <app-form-control
+            label="Email"
+            type="email"
+            autocomplete="off"
+            [control]="editUserForm.email"
+          />
+          <app-form-control
+            label="Username"
+            autocomplete="off"
+            hint="Leave blank to remove the username."
+            [control]="editUserForm.username"
+          />
+          <app-form-control
+            label="Display name"
+            autocomplete="off"
+            [control]="editUserForm.displayName"
+          />
+          <app-form-control
+            label="New password"
+            type="password"
+            autocomplete="new-password"
+            hint="Leave blank to keep the current password."
+            [control]="editUserForm.password"
+          />
           <app-form-control label="Role" kind="select" [control]="editUserForm.role">
             @for (role of roleOptions; track role) {
               <option [value]="role">{{ role }}</option>
             }
           </app-form-control>
           <div class="action-row">
-            <button class="primary-button" type="submit" [disabled]="editUserForm().submitting()">Save user</button>
+            <button class="primary-button" type="submit" [disabled]="editUserForm().submitting()">
+              Save user
+            </button>
             @if (user.deactivatedAt) {
-              <button class="secondary-button" type="button" (click)="reactivateSelectedUser()">Reactivate</button>
+              <button class="secondary-button" type="button" (click)="reactivateSelectedUser()">
+                Reactivate
+              </button>
             } @else {
-              <button class="secondary-button" type="button" (click)="deactivateSelectedUser()">Deactivate</button>
+              <button class="secondary-button" type="button" (click)="deactivateSelectedUser()">
+                Deactivate
+              </button>
             }
-            <button class="danger-button" type="button" (click)="deleteSelectedUser()">Delete</button>
+            <button class="danger-button" type="button" (click)="deleteSelectedUser()">
+              Delete
+            </button>
           </div>
         </form>
       } @else {
@@ -100,7 +151,9 @@
       @if (selectedUser(); as user) {
         <form class="inline-form" (submit)="submitCreateShelf($event)">
           <app-form-control label="New shelf" autocomplete="off" [control]="createShelfForm.name" />
-          <button class="primary-button" type="submit" [disabled]="createShelfForm().submitting()">Add shelf</button>
+          <button class="primary-button" type="submit" [disabled]="createShelfForm().submitting()">
+            Add shelf
+          </button>
         </form>
 
         <div class="shelf-admin-list" role="list">
@@ -118,13 +171,27 @@
                 <small>{{ shelf.slug }}</small>
               </span>
               <span class="count">{{ shelf.itemCount }}</span>
-              <span class="status-pill" [class.is-muted]="shelf.deactivatedAt">{{ shelf.deactivatedAt ? 'Inactive' : 'Active' }}</span>
+              <span class="status-pill" [class.is-muted]="shelf.deactivatedAt">{{
+                shelf.deactivatedAt ? 'Inactive' : 'Active'
+              }}</span>
             </button>
             <div class="reorder-actions" aria-label="Shelf reorder controls">
-              <button class="icon-button" type="button" [disabled]="first" (click)="moveShelf(shelf, -1)" [attr.aria-label]="'Move ' + shelf.name + ' up'">
+              <button
+                class="icon-button"
+                type="button"
+                [disabled]="first"
+                (click)="moveShelf(shelf, -1)"
+                [attr.aria-label]="'Move ' + shelf.name + ' up'"
+              >
                 <i class="ph ph-arrow-up" aria-hidden="true"></i>
               </button>
-              <button class="icon-button" type="button" [disabled]="last" (click)="moveShelf(shelf, 1)" [attr.aria-label]="'Move ' + shelf.name + ' down'">
+              <button
+                class="icon-button"
+                type="button"
+                [disabled]="last"
+                (click)="moveShelf(shelf, 1)"
+                [attr.aria-label]="'Move ' + shelf.name + ' down'"
+              >
                 <i class="ph ph-arrow-down" aria-hidden="true"></i>
               </button>
             </div>
@@ -138,14 +205,26 @@
             <h3>Edit shelf</h3>
             <app-form-control label="Name" autocomplete="off" [control]="editShelfForm.name" />
             <div class="action-row">
-              <button class="primary-button" type="submit" [disabled]="editShelfForm().submitting()">Save shelf</button>
+              <button
+                class="primary-button"
+                type="submit"
+                [disabled]="editShelfForm().submitting()"
+              >
+                Save shelf
+              </button>
               @if (shelf.deactivatedAt) {
-                <button class="secondary-button" type="button" (click)="reactivateSelectedShelf()">Reactivate</button>
+                <button class="secondary-button" type="button" (click)="reactivateSelectedShelf()">
+                  Reactivate
+                </button>
               } @else if (canDeactivateShelf(shelf)) {
-                <button class="secondary-button" type="button" (click)="deactivateSelectedShelf()">Deactivate</button>
+                <button class="secondary-button" type="button" (click)="deactivateSelectedShelf()">
+                  Deactivate
+                </button>
               }
               @if (canDeleteShelf(shelf)) {
-                <button class="danger-button" type="button" (click)="deleteSelectedShelf()">Delete</button>
+                <button class="danger-button" type="button" (click)="deleteSelectedShelf()">
+                  Delete
+                </button>
               }
             </div>
           </form>

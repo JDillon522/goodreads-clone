@@ -7,6 +7,9 @@ import { DatabaseModule } from '../database/database.module';
 import { LibraryController } from './library.controller';
 import { LibraryService } from './library.service';
 
+/**
+ * Wires owner-scoped library item endpoints with activity logging and token ownership guards.
+ */
 @Module({
   controllers: [LibraryController],
   exports: [LibraryService],

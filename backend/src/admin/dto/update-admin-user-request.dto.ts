@@ -11,6 +11,9 @@ import {
   ValidateIf,
 } from 'class-validator';
 
+/**
+ * Overview: Defines the Update Admin User Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class UpdateAdminUserRequestDto {
   @ApiPropertyOptional({ example: 'reader@example.com' })
   @IsOptional()

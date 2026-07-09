@@ -12,6 +12,9 @@ import {
   ValidateIf,
 } from 'class-validator';
 
+/**
+ * Overview: Defines the Update Library Item Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class UpdateLibraryItemRequestDto {
   @ApiPropertyOptional({
     description: 'Set a 1-5 rating or null to clear it.',

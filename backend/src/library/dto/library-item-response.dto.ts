@@ -4,6 +4,9 @@ import { LibraryItemStatus } from '@prisma/client';
 import { LibraryBookResponseDto } from './library-book-response.dto';
 import { ShelfSummaryResponseDto } from './shelf-summary-response.dto';
 
+/**
+ * Overview: Defines the Library Item Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class LibraryItemResponseDto {
   @ApiProperty({ example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5', format: 'uuid' })
   id!: string;

@@ -2,6 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { GoalStatsResponseDto } from './goal-stats-response.dto';
 
+/**
+ * Overview: Defines the Reading Goal Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class ReadingGoalResponseDto {
   @ApiPropertyOptional({
     example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5',

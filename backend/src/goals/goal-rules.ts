@@ -1,3 +1,6 @@
+/**
+ * Contains pure yearly goal calculations shared by the goals and stats services.
+ */
 export type GoalStatsInput = {
   completedBooks: number;
   now: Date;
@@ -16,7 +19,10 @@ export type GoalStats = {
   percentComplete: number;
   remainingBooks: number;
 };
-
+/**
+ * Calculates completion percentage and pace against the target, clamping `now` inside the requested
+ * calendar year so future or past dates do not produce impossible day counts.
+ */
 export function calculateGoalStats(input: GoalStatsInput): GoalStats {
   const start = Date.UTC(input.year, 0, 1);
   const end = Date.UTC(input.year + 1, 0, 1);

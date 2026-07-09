@@ -1,154 +1,221 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-const { spawnSync } = require('node:child_process');
-const net = require('node:net');
-const path = require('node:path');
+const { spawnSync } = require("node:child_process");
+const net = require("node:net");
+const path = require("node:path");
 
-const repoRoot = path.resolve(__dirname, '..');
-const readonlyRoleSql = path.join('tools', 'bookshelf-db-mcp', 'sql', 'create-readonly-role.sql');
+/**
+ * Overview: Provides the human-friendly project command runner for Docker, validation, database, and MCP workflows.
+ */
+const repoRoot = path.resolve(__dirname, "..");
+const readonlyRoleSql = path.join(
+  "tools",
+  "bookshelf-db-mcp",
+  "sql",
+  "create-readonly-role.sql",
+);
 
 const commands = [
   {
-    name: 'help',
-    aliases: ['-h', '--help'],
-    summary: 'Print this command list.',
-    usage: 'bin/run help [command]',
+    name: "help",
+    aliases: ["-h", "--help"],
+    summary: "Print this command list.",
+    usage: "bin/run help [command]",
     run: ([commandName]) => {
       printHelp(commandName);
       return 0;
-    }
+    },
   },
   {
-    name: 'up',
-    aliases: ['start', 'dev'],
-    summary: 'Start the full Docker dev stack. App: http://localhost:8080',
-    usage: 'bin/run up [docker compose up args]',
-    run: (args) => run('node', ['scripts/with-local-ca.mjs', 'docker', 'docker', 'compose', 'up', '--build', ...args])
+    name: "up",
+    aliases: ["start", "dev"],
+    summary: "Start the full Docker dev stack. App: http://localhost:8080",
+    usage: "bin/run up [docker compose up args]",
+    run: (args) =>
+      run("node", [
+        "scripts/with-local-ca.mjs",
+        "docker",
+        "docker",
+        "compose",
+        "up",
+        "--build",
+        ...args,
+      ]),
   },
   {
-    name: 'down',
-    aliases: ['stop'],
-    summary: 'Stop and remove the Docker dev stack containers.',
-    usage: 'bin/run down [docker compose down args]',
-    run: (args) => run('docker', ['compose', 'down', ...args])
+    name: "down",
+    aliases: ["stop"],
+    summary: "Stop and remove the Docker dev stack containers.",
+    usage: "bin/run down [docker compose down args]",
+    run: (args) => run("docker", ["compose", "down", ...args]),
   },
   {
-    name: 'prod-up',
-    summary: 'Start the production-style Docker stack from docker-compose.yml only.',
-    usage: 'bin/run prod-up [docker compose up args]',
-    run: (args) => run('docker', ['compose', '-f', 'docker-compose.yml', 'up', '--build', ...args])
+    name: "prod-up",
+    summary:
+      "Start the production-style Docker stack from docker-compose.yml only.",
+    usage: "bin/run prod-up [docker compose up args]",
+    run: (args) =>
+      run("docker", [
+        "compose",
+        "-f",
+        "docker-compose.yml",
+        "up",
+        "--build",
+        ...args,
+      ]),
   },
   {
-    name: 'prod-down',
-    summary: 'Stop the production-style Docker stack.',
-    usage: 'bin/run prod-down [docker compose down args]',
-    run: (args) => run('docker', ['compose', '-f', 'docker-compose.yml', 'down', ...args])
+    name: "prod-down",
+    summary: "Stop the production-style Docker stack.",
+    usage: "bin/run prod-down [docker compose down args]",
+    run: (args) =>
+      run("docker", ["compose", "-f", "docker-compose.yml", "down", ...args]),
   },
   {
-    name: 'ps',
-    aliases: ['status'],
-    summary: 'Show Docker Compose container status.',
-    usage: 'bin/run ps [docker compose ps args]',
-    run: (args) => run('docker', ['compose', 'ps', ...args])
+    name: "ps",
+    aliases: ["status"],
+    summary: "Show Docker Compose container status.",
+    usage: "bin/run ps [docker compose ps args]",
+    run: (args) => run("docker", ["compose", "ps", ...args]),
   },
   {
-    name: 'logs',
-    aliases: ['log'],
-    summary: 'Follow Docker Compose logs. Pass a service name to narrow output.',
-    usage: 'bin/run logs [service]',
-    run: (args) => run('docker', ['compose', 'logs', '-f', ...args])
+    name: "logs",
+    aliases: ["log"],
+    summary:
+      "Follow Docker Compose logs. Pass a service name to narrow output.",
+    usage: "bin/run logs [service]",
+    run: (args) => run("docker", ["compose", "logs", "-f", ...args]),
   },
   {
-    name: 'db',
-    aliases: ['database'],
-    summary: 'Start only the Postgres container.',
-    usage: 'bin/run db',
-    run: (args) => run('docker', ['compose', 'up', '-d', 'db', ...args])
+    name: "db",
+    aliases: ["database"],
+    summary: "Start only the Postgres container.",
+    usage: "bin/run db",
+    run: (args) => run("docker", ["compose", "up", "-d", "db", ...args]),
   },
   {
-    name: 'db-shell',
-    aliases: ['psql'],
-    summary: 'Open psql inside the Postgres container.',
-    usage: 'bin/run db-shell [psql args]',
-    run: (args) => run('docker', ['compose', 'exec', 'db', 'psql', '-U', 'bookshelf', '-d', 'bookshelf', ...args])
+    name: "db-shell",
+    aliases: ["psql"],
+    summary: "Open psql inside the Postgres container.",
+    usage: "bin/run db-shell [psql args]",
+    run: (args) =>
+      run("docker", [
+        "compose",
+        "exec",
+        "db",
+        "psql",
+        "-U",
+        "bookshelf",
+        "-d",
+        "bookshelf",
+        ...args,
+      ]),
   },
   {
-    name: 'mcp-db-role',
-    aliases: ['db-role', 'readonly-role'],
-    summary: 'Apply the local read-only Postgres role used by the DB MCP server.',
-    usage: 'bin/run mcp-db-role',
-    run: () => runAll([
-      ['docker', ['compose', 'cp', readonlyRoleSql, 'db:/tmp/create-readonly-role.sql']],
-      ['docker', ['compose', 'exec', '-T', 'db', 'psql', '-U', 'bookshelf', '-d', 'bookshelf', '-f', '/tmp/create-readonly-role.sql']]
-    ])
+    name: "mcp-db-role",
+    aliases: ["db-role", "readonly-role"],
+    summary:
+      "Apply the local read-only Postgres role used by the DB MCP server.",
+    usage: "bin/run mcp-db-role",
+    run: () =>
+      runAll([
+        [
+          "docker",
+          [
+            "compose",
+            "cp",
+            readonlyRoleSql,
+            "db:/tmp/create-readonly-role.sql",
+          ],
+        ],
+        [
+          "docker",
+          [
+            "compose",
+            "exec",
+            "-T",
+            "db",
+            "psql",
+            "-U",
+            "bookshelf",
+            "-d",
+            "bookshelf",
+            "-f",
+            "/tmp/create-readonly-role.sql",
+          ],
+        ],
+      ]),
   },
   {
-    name: 'mcp-db',
-    aliases: ['mcp'],
-    summary: 'Start the read-only Postgres MCP server over stdio.',
-    usage: 'bin/run mcp-db',
-    run: () => run('node', ['tools/bookshelf-db-mcp/src/server.mjs'])
+    name: "mcp-db",
+    aliases: ["mcp"],
+    summary: "Start the read-only Postgres MCP server over stdio.",
+    usage: "bin/run mcp-db",
+    run: () => run("node", ["tools/bookshelf-db-mcp/src/server.mjs"]),
   },
   {
-    name: 'api-types',
-    aliases: ['openapi'],
-    summary: 'Regenerate frontend OpenAPI types from the running backend.',
-    usage: 'bin/run api-types',
-    run: (args) => runNpmScript('api:types', args)
+    name: "api-types",
+    aliases: ["openapi"],
+    summary: "Regenerate frontend OpenAPI types from the running backend.",
+    usage: "bin/run api-types",
+    run: (args) => runNpmScript("api:types", args),
   },
   {
-    name: 'restart-backend',
-    aliases: ['backend'],
-    summary: 'Restart the backend Docker container.',
-    usage: 'bin/run restart-backend',
-    run: (args) => run('docker', ['compose', 'restart', 'backend', ...args])
+    name: "restart-backend",
+    aliases: ["backend"],
+    summary: "Restart the backend Docker container.",
+    usage: "bin/run restart-backend",
+    run: (args) => run("docker", ["compose", "restart", "backend", ...args]),
   },
   {
-    name: 'test',
-    aliases: ['tests'],
-    summary: 'Run all workspace tests.',
-    usage: 'bin/run test [npm args]',
-    run: (args) => runNpmScript('test', args)
+    name: "test",
+    aliases: ["tests"],
+    summary: "Run all workspace tests.",
+    usage: "bin/run test [npm args]",
+    run: (args) => runNpmScript("test", args),
   },
   {
-    name: 'typecheck',
-    aliases: ['types'],
-    summary: 'Run all workspace typechecks.',
-    usage: 'bin/run typecheck [npm args]',
-    run: (args) => runNpmScript('typecheck', args)
+    name: "typecheck",
+    aliases: ["types"],
+    summary: "Run all workspace typechecks.",
+    usage: "bin/run typecheck [npm args]",
+    run: (args) => runNpmScript("typecheck", args),
   },
   {
-    name: 'build',
-    summary: 'Run all workspace builds.',
-    usage: 'bin/run build [npm args]',
-    run: (args) => runNpmScript('build', args)
+    name: "build",
+    summary: "Run all workspace builds.",
+    usage: "bin/run build [npm args]",
+    run: (args) => runNpmScript("build", args),
   },
   {
-    name: 'format',
-    summary: 'Format all workspaces.',
-    usage: 'bin/run format [npm args]',
-    run: (args) => runNpmScript('format', args)
+    name: "format",
+    summary: "Format all workspaces.",
+    usage: "bin/run format [npm args]",
+    run: (args) => runNpmScript("format", args),
   },
   {
-    name: 'validate',
-    aliases: ['ci'],
-    summary: 'Run the main local validation pass: typecheck, tests, backend build, frontend build.',
-    usage: 'bin/run validate',
-    run: () => runAll([
-      ['npm', ['run', 'typecheck']],
-      ['npm', ['run', 'test']],
-      ['npm', ['run', 'build:backend']],
-      ['npm', ['run', 'build:frontend']]
-    ])
+    name: "validate",
+    aliases: ["ci"],
+    summary:
+      "Run the main local validation pass: typecheck, tests, backend build, frontend build.",
+    usage: "bin/run validate",
+    run: () =>
+      runAll([
+        ["npm", ["run", "typecheck"]],
+        ["npm", ["run", "test"]],
+        ["npm", ["run", "build:backend"]],
+        ["npm", ["run", "build:frontend"]],
+      ]),
   },
   {
-    name: 'doctor',
-    aliases: ['check'],
-    summary: 'Check local tool availability and common Bookshelf service endpoints.',
-    usage: 'bin/run doctor',
-    run: doctor
-  }
+    name: "doctor",
+    aliases: ["check"],
+    summary:
+      "Check local tool availability and common Bookshelf service endpoints.",
+    usage: "bin/run doctor",
+    run: doctor,
+  },
 ];
 
 const commandByName = new Map();
@@ -159,13 +226,16 @@ for (const command of commands) {
   }
 }
 
+/**
+ * Resolves the requested subcommand and returns the exit status expected by Node.
+ */
 async function main() {
-  const [rawCommand = 'help', ...args] = process.argv.slice(2);
+  const [rawCommand = "help", ...args] = process.argv.slice(2);
   const command = commandByName.get(rawCommand);
 
   if (!command) {
     console.error(`Unknown command: ${rawCommand}`);
-    console.error('');
+    console.error("");
     printHelp();
     return 1;
   }
@@ -173,12 +243,15 @@ async function main() {
   return await command.run(args);
 }
 
+/**
+ * Runs a child command from the repo root and returns its process exit status.
+ */
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: repoRoot,
     env: process.env,
-    stdio: 'inherit',
-    ...options
+    stdio: "inherit",
+    ...options,
   });
 
   if (result.error) {
@@ -194,6 +267,9 @@ function run(command, args, options = {}) {
   return result.status ?? 1;
 }
 
+/**
+ * Runs a sequence of commands and stops at the first failure.
+ */
 function runAll(steps) {
   for (const [command, args] of steps) {
     const status = run(command, args);
@@ -206,45 +282,69 @@ function runAll(steps) {
   return 0;
 }
 
+/**
+ * Delegates to npm scripts while preserving extra arguments after `--`.
+ */
 function runNpmScript(scriptName, args) {
-  return run('npm', ['run', scriptName, ...(args.length > 0 ? ['--', ...args] : [])]);
+  return run("npm", [
+    "run",
+    scriptName,
+    ...(args.length > 0 ? ["--", ...args] : []),
+  ]);
 }
 
+/**
+ * Checks local dependencies and common service endpoints used during development.
+ */
 async function doctor() {
   const checks = [];
 
-  checks.push(checkCommand('node', ['--version'], 'Node'));
-  checks.push(checkCommand('npm', ['--version'], 'npm'));
-  checks.push(checkCommand('docker', ['--version'], 'Docker'));
-  checks.push(checkCommand('docker', ['compose', 'version'], 'Docker Compose'));
-  checks.push(checkCommand('docker', ['compose', 'ps'], 'Compose project'));
-  checks.push(await checkTcp('127.0.0.1', 5433, 'Postgres host port'));
-  checks.push(await checkUrl('http://localhost:3000/api/health', 'Backend health'));
-  checks.push(await checkUrl('http://localhost:8080/api/health', 'Proxy API health'));
-  checks.push(await checkUrl('http://localhost:8080/app/search', 'Angular route fallback'));
+  checks.push(checkCommand("node", ["--version"], "Node"));
+  checks.push(checkCommand("npm", ["--version"], "npm"));
+  checks.push(checkCommand("docker", ["--version"], "Docker"));
+  checks.push(checkCommand("docker", ["compose", "version"], "Docker Compose"));
+  checks.push(checkCommand("docker", ["compose", "ps"], "Compose project"));
+  checks.push(await checkTcp("127.0.0.1", 5433, "Postgres host port"));
+  checks.push(
+    await checkUrl("http://localhost:3000/api/health", "Backend health"),
+  );
+  checks.push(
+    await checkUrl("http://localhost:8080/api/health", "Proxy API health"),
+  );
+  checks.push(
+    await checkUrl(
+      "http://localhost:8080/app/search",
+      "Angular route fallback",
+    ),
+  );
 
   const failed = checks.filter((check) => !check.ok);
 
   for (const check of checks) {
-    const marker = check.ok ? 'ok ' : 'err';
-    const detail = check.detail ? ` - ${check.detail}` : '';
+    const marker = check.ok ? "ok " : "err";
+    const detail = check.detail ? ` - ${check.detail}` : "";
     console.log(`${marker} ${check.label}${detail}`);
   }
 
   if (failed.length > 0) {
-    console.log('');
-    console.log('Some checks failed. Try `bin/run up` or `bin/run logs <service>` next.');
+    console.log("");
+    console.log(
+      "Some checks failed. Try `bin/run up` or `bin/run logs <service>` next.",
+    );
     return 1;
   }
 
   return 0;
 }
 
+/**
+ * Runs a version or status command and normalizes the result for doctor output.
+ */
 function checkCommand(command, args, label) {
   const result = spawnSync(command, args, {
     cwd: repoRoot,
-    encoding: 'utf8',
-    env: process.env
+    encoding: "utf8",
+    env: process.env,
   });
 
   if (result.error) {
@@ -252,35 +352,47 @@ function checkCommand(command, args, label) {
   }
 
   if (result.status !== 0) {
-    const detail = (result.stderr || result.stdout || `exit ${result.status}`).trim().split('\n')[0];
+    const detail = (result.stderr || result.stdout || `exit ${result.status}`)
+      .trim()
+      .split("\n")[0];
     return { label, ok: false, detail };
   }
 
-  const detail = (result.stdout || result.stderr).trim().split('\n')[0];
+  const detail = (result.stdout || result.stderr).trim().split("\n")[0];
   return { label, ok: true, detail };
 }
 
+/**
+ * Checks whether a TCP service accepts connections within a short timeout.
+ */
 function checkTcp(host, port, label) {
   return new Promise((resolve) => {
     const socket = net.createConnection({ host, port });
     const timeout = setTimeout(() => {
       socket.destroy();
-      resolve({ label, ok: false, detail: `timeout connecting to ${host}:${port}` });
+      resolve({
+        label,
+        ok: false,
+        detail: `timeout connecting to ${host}:${port}`,
+      });
     }, 1500);
 
-    socket.once('connect', () => {
+    socket.once("connect", () => {
       clearTimeout(timeout);
       socket.end();
       resolve({ label, ok: true, detail: `${host}:${port}` });
     });
 
-    socket.once('error', (error) => {
+    socket.once("error", (error) => {
       clearTimeout(timeout);
       resolve({ label, ok: false, detail: error.message });
     });
   });
 }
 
+/**
+ * Fetches a local HTTP endpoint and reports the status without throwing.
+ */
 async function checkUrl(url, label) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2000);
@@ -296,23 +408,26 @@ async function checkUrl(url, label) {
   }
 }
 
+/**
+ * Prints either the full command list or focused usage for one command.
+ */
 function printHelp(commandName) {
   if (commandName) {
     const command = commandByName.get(commandName);
 
     if (!command) {
       console.error(`Unknown command: ${commandName}`);
-      console.error('');
+      console.error("");
       return printHelp();
     }
 
     console.log(command.name);
     console.log(`  ${command.summary}`);
-    console.log('');
+    console.log("");
     console.log(`Usage: ${command.usage}`);
 
     if (command.aliases?.length) {
-      console.log(`Aliases: ${command.aliases.join(', ')}`);
+      console.log(`Aliases: ${command.aliases.join(", ")}`);
     }
 
     return;
@@ -327,8 +442,10 @@ Usage:
 
 Common commands:`);
 
-  for (const command of commands.filter((item) => item.name !== 'help')) {
-    const aliases = command.aliases?.length ? ` (${command.aliases.join(', ')})` : '';
+  for (const command of commands.filter((item) => item.name !== "help")) {
+    const aliases = command.aliases?.length
+      ? ` (${command.aliases.join(", ")})`
+      : "";
     console.log(`  ${command.name.padEnd(16)} ${command.summary}${aliases}`);
   }
 
@@ -340,7 +457,7 @@ Useful local URLs:
   Postgres host:    127.0.0.1:5433
 
 MCP client command:
-  node ${path.join(repoRoot, 'bin', 'run')} mcp-db
+  node ${path.join(repoRoot, "bin", "run")} mcp-db
 
 Notes:
   - \`bin/run up\` follows Docker logs in the foreground.

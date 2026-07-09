@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Book Search Facets DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class BookSearchDecadeFacetDto {
   @ApiProperty({ example: '1960s' })
   label!: string;

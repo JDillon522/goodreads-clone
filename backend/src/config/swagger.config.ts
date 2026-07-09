@@ -1,11 +1,17 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+/**
+ * Centralizes Swagger UI and OpenAPI JSON path names used by docs and API type generation.
+ */
 export const swaggerPaths = {
   json: 'docs-json',
   ui: 'docs',
 } as const;
-
+/**
+ * Registers the generated OpenAPI document and Swagger UI with stable operation ids for frontend
+ * type generation.
+ */
 export function setupSwagger(app: INestApplication, apiPrefix: string): void {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Bookshelf API')

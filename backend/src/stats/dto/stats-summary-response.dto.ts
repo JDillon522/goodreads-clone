@@ -3,6 +3,9 @@ import { LibraryItemStatus } from '@prisma/client';
 
 import { GoalStatsResponseDto } from '../../goals/dto/goal-stats-response.dto';
 
+/**
+ * Overview: Defines the Stats Summary Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class StatsTotalsResponseDto {
   @ApiProperty({ example: 42 })
   totalLibraryBooks!: number;

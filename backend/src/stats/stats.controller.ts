@@ -9,13 +9,21 @@ import { StatsSummaryResponseDto } from './dto/stats-summary-response.dto';
 import { YearInReviewResponseDto } from './dto/year-in-review-response.dto';
 import { StatsService } from './stats.service';
 
+/**
+ * Exposes owner-scoped reading statistics and year-in-review endpoints.
+ */
 @ApiBearerAuth('bearer')
 @ApiTags('Stats')
 @Controller('stats')
 @UseGuards(OwnerTokenGuard)
 export class StatsController {
+  /**
+   * Receives the stats application service from Nest.
+   */
   public constructor(private readonly statsService: StatsService) {}
-
+  /**
+   * Returns dashboard statistics for a year, defaulting to the current year.
+   */
   @Get('summary')
   @ApiOperation({ summary: 'Get reading statistics for a year.' })
   @ApiOkResponse({ type: StatsSummaryResponseDto })
@@ -25,7 +33,9 @@ export class StatsController {
   ): Promise<StatsSummaryResponseDto> {
     return this.statsService.getSummary(owner, query.year);
   }
-
+  /**
+   * Returns year-in-review highlights and summary metrics for the requested year.
+   */
   @Get('year-in-review/:year')
   @ApiOperation({ summary: 'Get year-in-review highlights and statistics.' })
   @ApiParam({ example: 2026, name: 'year' })

@@ -7,6 +7,9 @@ import { DatabaseModule } from '../database/database.module';
 import { GoalsController } from './goals.controller';
 import { GoalsService } from './goals.service';
 
+/**
+ * Wires owner-scoped goal endpoints with activity logging and token ownership guards.
+ */
 @Module({
   controllers: [GoalsController],
   exports: [GoalsService],

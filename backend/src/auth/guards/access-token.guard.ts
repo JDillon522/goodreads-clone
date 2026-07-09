@@ -6,14 +6,25 @@ import { PrismaService } from '../../database/prisma.service';
 import type { AccessTokenPayload } from '../types/access-token-payload';
 import type { AuthenticatedRequest, HttpHeaderValue } from '../types/authenticated-request';
 
+/**
+ * Validates short-lived authenticated-user JWTs and attaches the current database user to the
+ * request. The database lookup blocks deleted or deactivated users even when their token has not
+ * expired yet.
+ */
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
+  /**
+   * Receives JWT, config, and persistence dependencies from Nest.
+   */
   public constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
-
+  /**
+   * Accepts requests with a valid bearer access token and rejects missing, expired, malformed, or
+   * deactivated-user credentials.
+   */
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractBearerToken(request.headers.authorization);
@@ -58,7 +69,9 @@ export class AccessTokenGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or expired bearer token.');
     }
   }
-
+  /**
+   * Extracts the token value from a standard `Authorization: Bearer ...` header.
+   */
   private extractBearerToken(header: HttpHeaderValue): string | undefined {
     const value = Array.isArray(header) ? header[0] : header;
 

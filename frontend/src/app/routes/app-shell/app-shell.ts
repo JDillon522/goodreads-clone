@@ -9,6 +9,12 @@ import { SessionStore } from '../../core/session/session-store';
 import { Shelves } from '../../core/shelves/shelves';
 import { Theme } from '../../core/theme/theme';
 
+/**
+ * Authenticated app shell with navigation, shelf links, session controls, and theme access.
+ *
+ * The shell listens to library and shelf revision signals so sidebar shelf links
+ * stay current after mutations elsewhere in the app.
+ */
 @Component({
   selector: 'app-app-shell',
   imports: [DatePipe, RouterLink, RouterLinkActive, RouterOutlet],
@@ -27,7 +33,9 @@ export class AppShell {
   protected readonly shelves = signal<ShelfResponse[]>([]);
   protected readonly isLoadingShelves = signal(true);
   protected readonly shelfError = signal<string | null>(null);
-
+  /**
+   * Reloads sidebar shelves whenever shelf definitions or library membership changes.
+   */
   public constructor() {
     effect(() => {
       this.shelvesService.version();
@@ -35,12 +43,16 @@ export class AppShell {
       void this.loadShelves();
     });
   }
-
+  /**
+   * Signs out and returns to the public landing screen.
+   */
   protected async signOut(): Promise<void> {
     await this.auth.signOut();
     await this.router.navigate(['/']);
   }
-
+  /**
+   * Loads active shelves for sidebar navigation.
+   */
   private async loadShelves(): Promise<void> {
     this.isLoadingShelves.set(true);
 

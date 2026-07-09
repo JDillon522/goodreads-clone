@@ -6,6 +6,9 @@ import { Auth } from '../../core/auth/auth';
 import { SessionStore } from '../../core/session/session-store';
 import { Theme, ThemePreference } from '../../core/theme/theme';
 
+/**
+ * Settings route for session metadata, theme preference, and sign-out.
+ */
 @Component({
   selector: 'app-settings',
   imports: [DatePipe],
@@ -19,11 +22,15 @@ export class Settings {
 
   protected readonly session = inject(SessionStore);
   protected readonly theme = inject(Theme);
-
+  /**
+   * Applies the selected theme preference through the shared theme service.
+   */
   protected setTheme(preference: ThemePreference): void {
     this.theme.setPreference(preference);
   }
-
+  /**
+   * Signs out and returns to the public landing route.
+   */
   protected async signOut(): Promise<void> {
     await this.auth.signOut();
     await this.router.navigate(['/']);

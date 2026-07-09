@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
+/**
+ * Overview: Defines the Signup Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class SignupRequestDto {
   @ApiProperty({ example: 'reader@example.com' })
   @IsEmail()

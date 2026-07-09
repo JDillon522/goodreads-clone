@@ -5,6 +5,9 @@ import { form, minLength, required, submit } from '@angular/forms/signals';
 import { Auth } from '../../../core/auth/auth';
 import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
+/**
+ * Password reset confirmation route.
+ */
 @Component({
   selector: 'app-password-reset-confirm',
   imports: [RouterLink, UiFormControl],
@@ -23,7 +26,9 @@ export class PasswordResetConfirm {
     required(path.newPassword, { message: 'New password is required.' });
     minLength(path.newPassword, 8, { message: 'Use at least 8 characters.' });
   });
-
+  /**
+   * Exchanges a reset token for a fresh auth session and enters the app shell.
+   */
   protected async submitConfirm(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set(null);

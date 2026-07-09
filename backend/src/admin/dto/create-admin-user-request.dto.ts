@@ -10,6 +10,9 @@ import {
   MinLength,
 } from 'class-validator';
 
+/**
+ * Overview: Defines the Create Admin User Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class CreateAdminUserRequestDto {
   @ApiProperty({ example: 'reader@example.com' })
   @IsEmail()

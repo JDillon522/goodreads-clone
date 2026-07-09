@@ -8,6 +8,9 @@ import { UsersModule } from '../users/users.module';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
+/**
+ * Wires admin controllers with auth guards plus user and shelf management services.
+ */
 @Module({
   controllers: [AdminController],
   imports: [AuthModule, DatabaseModule, JwtModule.register({}), ShelvesModule, UsersModule],

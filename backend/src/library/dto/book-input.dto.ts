@@ -13,6 +13,9 @@ import {
   Min,
 } from 'class-validator';
 
+/**
+ * Overview: Defines the Book Input DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class BookInputDto {
   @ApiProperty({ example: 'OPEN_LIBRARY' })
   @IsIn(['OPEN_LIBRARY'])

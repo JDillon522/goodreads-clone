@@ -3,6 +3,9 @@ import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@
 import type { AuthenticatedRequest } from '../types/authenticated-request';
 import type { AuthenticatedUser } from '../types/authenticated-user';
 
+/**
+ * Extracts the authenticated user context attached by AccessTokenGuard.
+ */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthenticatedUser => {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();

@@ -13,11 +13,19 @@ import {
   ReadinessUnavailableResponseDto,
 } from './dto/readiness-response.dto';
 
+/**
+ * Exposes liveness and readiness endpoints for Docker, proxy, and deployment checks.
+ */
 @ApiTags('System')
 @Controller('health')
 export class HealthController {
+  /**
+   * Receives Prisma so readiness can verify database connectivity.
+   */
   public constructor(private readonly prismaService: PrismaService) {}
-
+  /**
+   * Returns process-level liveness without checking dependencies.
+   */
   @Get()
   @ApiOperation({ summary: 'Check backend service health' })
   @ApiOkResponse({ type: HealthResponseDto })
@@ -31,6 +39,9 @@ export class HealthController {
     };
   }
 
+  /**
+   * Verifies the backend can talk to Postgres before reporting ready.
+   */
   @Get('ready')
   @ApiOperation({ summary: 'Check backend readiness, including database connectivity' })
   @ApiOkResponse({ type: ReadinessResponseDto })

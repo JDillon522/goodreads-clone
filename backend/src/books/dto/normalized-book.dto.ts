@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Normalized Book DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class NormalizedBookDto {
   @ApiProperty({ example: 'OPEN_LIBRARY' })
   provider!: 'OPEN_LIBRARY';

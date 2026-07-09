@@ -11,11 +11,17 @@ import { OpenLibraryCacheService } from './open-library/open-library-cache.servi
 import { OpenLibraryClientService } from './open-library/open-library-client.service';
 import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
 
+/**
+ * Orchestrates Open Library lookup calls, cache storage, filter query composition, and normalized
+ * API responses for book search and detail endpoints.
+ */
 @Injectable()
 export class BooksService {
   private readonly detailCacheTtlHours: number;
   private readonly searchCacheTtlHours: number;
-
+  /**
+   * Reads cache TTL settings and receives Open Library collaborators from Nest.
+   */
   public constructor(
     configService: ConfigService,
     private readonly cache: OpenLibraryCacheService,
@@ -27,7 +33,9 @@ export class BooksService {
     this.searchCacheTtlHours =
       configService.get<number>('OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS') ?? 24;
   }
-
+  /**
+   * Returns normalized work or edition detail, using the cached normalized record when available.
+   */
   public async getOpenLibraryDetail(
     type: OpenLibraryDetailKind,
     id: string,
@@ -53,7 +61,10 @@ export class BooksService {
 
     return normalized;
   }
-
+  /**
+   * Searches Open Library with Bookshelf filters, caches by normalized query/filter/page, and returns
+   * the user-facing query separately from provider-specific search clauses.
+   */
   public async searchBooks(query: BookSearchQueryDto): Promise<BookSearchResponseDto> {
     const normalizedQuery = query.query.trim().replace(/\s+/g, ' ');
     const page = query.page ?? 1;
@@ -89,15 +100,21 @@ export class BooksService {
 
     return normalized;
   }
-
+  /**
+   * Calculates cache expiration dates from hour-based settings.
+   */
   private dateAfterHours(hours: number): Date {
     return new Date(Date.now() + hours * 60 * 60 * 1000);
   }
-
+  /**
+   * Builds the stable cache key for one Open Library detail resource.
+   */
   private detailCacheKey(type: OpenLibraryDetailKind, id: string): string {
     return `detail:${type}:${id}`;
   }
-
+  /**
+   * Hashes search state so filters, pagination, and normalized query text do not collide.
+   */
   private searchCacheKey(
     query: string,
     page: number,
@@ -110,7 +127,10 @@ export class BooksService {
 
     return `search:${hash}`;
   }
-
+  /**
+   * Ensures callers do not request work details through edition ids or edition details through work
+   * ids.
+   */
   private validateOpenLibraryKeyPair(type: OpenLibraryDetailKind, id: string): void {
     if (type === 'works' && !id.endsWith('W')) {
       throw new BadRequestException(
@@ -125,7 +145,9 @@ export class BooksService {
     }
   }
 }
-
+/**
+ * Normalizes optional search filters and rejects impossible year ranges before provider calls.
+ */
 function normalizeSearchFilters(query: BookSearchQueryDto): BookSearchFiltersDto {
   const filters: BookSearchFiltersDto = {
     format: query.format ?? null,
@@ -144,14 +166,15 @@ function normalizeSearchFilters(query: BookSearchQueryDto): BookSearchFiltersDto
 
   return filters;
 }
-
+/**
+ * Converts Bookshelf filter state into documented Open Library search clauses while preserving the
+ * original user query for the response payload.
+ */
 function openLibraryQueryFromFilters(query: string, filters: BookSearchFiltersDto): string {
   const clauses = [query];
 
   if (typeof filters.yearFrom === 'number' || typeof filters.yearTo === 'number') {
-    clauses.push(
-      `first_publish_year:[${filters.yearFrom ?? '*'} TO ${filters.yearTo ?? '*'}]`,
-    );
+    clauses.push(`first_publish_year:[${filters.yearFrom ?? '*'} TO ${filters.yearTo ?? '*'}]`);
   }
 
   if (filters.subject) {
@@ -164,7 +187,9 @@ function openLibraryQueryFromFilters(query: string, filters: BookSearchFiltersDt
 
   return clauses.join(' ');
 }
-
+/**
+ * Quotes user-entered phrase filters for Open Library search syntax.
+ */
 function quoteOpenLibraryPhrase(value: string): string {
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }

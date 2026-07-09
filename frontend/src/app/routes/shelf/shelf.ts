@@ -6,6 +6,9 @@ import type { LibraryItemResponse, ShelfResponse } from '../../core/api/api.type
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
 
+/**
+ * Shelf route showing the books that currently belong to one active shelf.
+ */
 @Component({
   selector: 'app-shelf',
   imports: [RouterLink],
@@ -23,7 +26,9 @@ export class Shelf {
   protected readonly items = signal<LibraryItemResponse[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly error = signal<string | null>(null);
-
+  /**
+   * Reloads shelf metadata and contents when the route shelf id changes.
+   */
   public constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const shelfId = params.get('id');
@@ -32,21 +37,32 @@ export class Shelf {
       }
     });
   }
-
+  /**
+   * Returns a cover URL only when the stored book snapshot has one.
+   */
   protected coverUrl(item: LibraryItemResponse): string | null {
     return typeof item.book.coverUrl === 'string' ? item.book.coverUrl : null;
   }
-
+  /**
+   * Chooses the normalized primary author, falling back to the first stored author.
+   */
   protected primaryAuthor(item: LibraryItemResponse): string {
-    return typeof item.book.primaryAuthor === 'string' ? item.book.primaryAuthor : item.book.authors[0] ?? 'Unknown author';
+    return typeof item.book.primaryAuthor === 'string'
+      ? item.book.primaryAuthor
+      : (item.book.authors[0] ?? 'Unknown author');
   }
-
+  /**
+   * Loads all shelves to find the current label and all books for the shelf id.
+   */
   private async loadShelf(shelfId: string): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
     try {
-      const [shelves, items] = await Promise.all([this.shelvesService.list(), this.library.list(shelfId)]);
+      const [shelves, items] = await Promise.all([
+        this.shelvesService.list(),
+        this.library.list(shelfId),
+      ]);
       this.currentShelf.set(shelves.find((shelf) => shelf.id === shelfId) ?? null);
       this.items.set(items);
     } catch {

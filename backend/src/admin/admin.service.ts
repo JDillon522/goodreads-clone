@@ -15,6 +15,10 @@ import { AdminUserResponseDto } from './dto/admin-user-response.dto';
 import { CreateAdminUserRequestDto } from './dto/create-admin-user-request.dto';
 import { UpdateAdminUserRequestDto } from './dto/update-admin-user-request.dto';
 
+/**
+ * Implements admin-only user and shelf management. User operations work directly against accounts;
+ * shelf operations delegate to ShelvesService under the selected user's owner context.
+ */
 type AdminUserRecord = Pick<
   User,
   'createdAt' | 'deactivatedAt' | 'displayName' | 'email' | 'id' | 'role' | 'updatedAt' | 'username'
@@ -22,12 +26,17 @@ type AdminUserRecord = Pick<
 
 @Injectable()
 export class AdminService {
+  /**
+   * Receives persistence plus user and shelf application services from Nest.
+   */
   public constructor(
     private readonly prisma: PrismaService,
     private readonly shelvesService: ShelvesService,
     private readonly usersService: UsersService,
   ) {}
-
+  /**
+   * Creates a user with defaults from the admin page and returns the complete admin response shape.
+   */
   public async createUser(dto: CreateAdminUserRequestDto): Promise<AdminUserResponseDto> {
     try {
       const user = await this.usersService.createWithDefaults({
@@ -43,11 +52,16 @@ export class AdminService {
       this.handlePrismaError(error);
     }
   }
-
+  /**
+   * Marks a user inactive without deleting their library data.
+   */
   public async deactivateUser(userId: string): Promise<AdminUserResponseDto> {
     return this.updateUserRecord(userId, { deactivatedAt: new Date() });
   }
-
+  /**
+   * Hard-deletes a user; dependent library/session/preference/activity records are removed by
+   * database cascade rules.
+   */
   public async deleteUser(userId: string): Promise<void> {
     try {
       await this.prisma.user.delete({ where: { id: userId } });
@@ -55,7 +69,9 @@ export class AdminService {
       this.handlePrismaError(error);
     }
   }
-
+  /**
+   * Lists all shelves for a selected user, including deactivated shelves for admin recovery.
+   */
   public async listUserShelves(userId: string): Promise<ShelfResponseDto[]> {
     await this.requireUser(userId);
 
@@ -63,7 +79,9 @@ export class AdminService {
       includeDeactivated: true,
     });
   }
-
+  /**
+   * Lists authenticated users for the admin page.
+   */
   public async listUsers(): Promise<AdminUserResponseDto[]> {
     const users = await this.prisma.user.findMany({
       orderBy: [{ email: 'asc' }, { createdAt: 'asc' }],
@@ -72,11 +90,16 @@ export class AdminService {
 
     return users.map((user) => this.toUserResponse(user));
   }
-
+  /**
+   * Re-enables a previously deactivated user.
+   */
   public async reactivateUser(userId: string): Promise<AdminUserResponseDto> {
     return this.updateUserRecord(userId, { deactivatedAt: null });
   }
-
+  /**
+   * Applies partial user edits from admin forms. Omitted fields are untouched; nullable optional
+   * fields can be cleared.
+   */
   public async updateUser(
     userId: string,
     dto: UpdateAdminUserRequestDto,
@@ -105,7 +128,9 @@ export class AdminService {
 
     return this.updateUserRecord(userId, data);
   }
-
+  /**
+   * Creates a shelf for a selected user through the normal shelf service rules.
+   */
   public async createUserShelf(
     userId: string,
     dto: CreateShelfRequestDto,
@@ -114,13 +139,17 @@ export class AdminService {
 
     return this.shelvesService.createShelf(userOwnerContext(userId), dto);
   }
-
+  /**
+   * Deactivates one selected user's shelf while preserving its memberships.
+   */
   public async deactivateUserShelf(userId: string, shelfId: string): Promise<ShelfResponseDto> {
     await this.requireUser(userId);
 
     return this.shelvesService.deactivateShelf(userOwnerContext(userId), shelfId);
   }
-
+  /**
+   * Hard-deletes one selected user's shelf using admin-inclusive visibility.
+   */
   public async deleteUserShelf(userId: string, shelfId: string): Promise<DeleteShelfResponseDto> {
     await this.requireUser(userId);
 
@@ -128,13 +157,17 @@ export class AdminService {
       includeDeactivated: true,
     });
   }
-
+  /**
+   * Reactivates one selected user's shelf.
+   */
   public async reactivateUserShelf(userId: string, shelfId: string): Promise<ShelfResponseDto> {
     await this.requireUser(userId);
 
     return this.shelvesService.reactivateShelf(userOwnerContext(userId), shelfId);
   }
-
+  /**
+   * Renames one selected user's shelf, including deactivated shelves.
+   */
   public async updateUserShelf(
     userId: string,
     shelfId: string,
@@ -146,7 +179,9 @@ export class AdminService {
       includeDeactivated: true,
     });
   }
-
+  /**
+   * Reorders all shelves for a selected user, including deactivated shelves.
+   */
   public async updateUserShelfOrder(
     userId: string,
     dto: UpdateShelfOrderRequestDto,
@@ -157,7 +192,9 @@ export class AdminService {
       includeDeactivated: true,
     });
   }
-
+  /**
+   * Translates expected Prisma constraint and missing-record errors into API exceptions.
+   */
   private handlePrismaError(error: unknown): never {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
@@ -171,29 +208,39 @@ export class AdminService {
 
     throw error;
   }
-
+  /**
+   * Hashes admin-created or admin-reset passwords with Argon2id.
+   */
   private hashPassword(password: string): Promise<string> {
     return argon2.hash(password, {
       type: argon2.argon2id,
     });
   }
-
+  /**
+   * Normalizes emails before uniqueness checks and persistence.
+   */
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
   }
-
+  /**
+   * Trims optional display names and treats blank input as absent.
+   */
   private normalizeOptionalText(value: string | undefined): string | undefined {
     const normalized = value?.trim();
 
     return normalized ? normalized : undefined;
   }
-
+  /**
+   * Normalizes optional usernames for case-insensitive signin and uniqueness.
+   */
   private normalizeOptionalUsername(value: string | undefined): string | undefined {
     const normalized = value?.trim().toLowerCase();
 
     return normalized ? normalized : undefined;
   }
-
+  /**
+   * Fetches a selected user or throws NotFound before delegating to owner-scoped services.
+   */
   private async requireUser(userId: string): Promise<AdminUserResponseDto> {
     const user = await this.prisma.user.findUnique({
       select: adminUserSelect,
@@ -206,7 +253,9 @@ export class AdminService {
 
     return this.toUserResponse(user);
   }
-
+  /**
+   * Applies a user update and maps known Prisma failures to API exceptions.
+   */
   private async updateUserRecord(
     userId: string,
     data: Prisma.UserUpdateInput,
@@ -223,7 +272,9 @@ export class AdminService {
       this.handlePrismaError(error);
     }
   }
-
+  /**
+   * Serializes the admin user record into the admin API response shape.
+   */
   private toUserResponse(user: AdminUserRecord): AdminUserResponseDto {
     return {
       createdAt: user.createdAt.toISOString(),

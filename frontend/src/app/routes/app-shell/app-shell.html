@@ -37,7 +37,12 @@
     <section class="shelves" aria-labelledby="shelves-heading">
       <div class="shelves__header">
         <h2 id="shelves-heading">Shelves</h2>
-        <a class="manage-shelves-link" routerLink="/app/shelves/manage" routerLinkActive="is-active" aria-label="Manage shelves">
+        <a
+          class="manage-shelves-link"
+          routerLink="/app/shelves/manage"
+          routerLinkActive="is-active"
+          aria-label="Manage shelves"
+        >
           <i class="ph ph-gear-six" aria-hidden="true"></i>
         </a>
       </div>
@@ -62,7 +67,10 @@
 
     <div class="sidebar__footer">
       @if (session.isGuest() && session.guestHasUnsavedChanges()) {
-        <p class="guest-note">Your changes last until {{ session.guestExpiresAt() | date: 'short' }} unless you create an account.</p>
+        <p class="guest-note">
+          Your changes last until {{ session.guestExpiresAt() | date: 'short' }} unless you create
+          an account.
+        </p>
       }
       <button class="icon-button" type="button" (click)="theme.toggle()" aria-label="Toggle theme">
         @if (theme.effectiveTheme() === 'dark') {

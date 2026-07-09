@@ -1,5 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Book Search Filters DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class BookSearchFiltersDto {
   @ApiPropertyOptional({ example: 1960, nullable: true, type: Number })
   yearFrom!: null | number;

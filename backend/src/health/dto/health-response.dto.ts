@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+/**
+ * Overview: Defines the Health Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class HealthResponseDto {
   @ApiProperty({ description: 'Liveness status for the backend process.', example: 'ok' })
   public readonly status!: 'ok';

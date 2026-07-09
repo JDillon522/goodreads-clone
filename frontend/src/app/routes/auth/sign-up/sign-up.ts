@@ -6,6 +6,9 @@ import { Auth } from '../../../core/auth/auth';
 import type { SignupRequest } from '../../../core/api/api.types';
 import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
+/**
+ * Account creation route for new authenticated readers.
+ */
 @Component({
   selector: 'app-sign-up',
   imports: [RouterLink, UiFormControl],
@@ -25,7 +28,9 @@ export class SignUp {
     required(path.password, { message: 'Password is required.' });
     minLength(path.password, 8, { message: 'Use at least 8 characters.' });
   });
-
+  /**
+   * Creates an account, omitting blank optional display name, then enters the app shell.
+   */
   protected async submitSignUp(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set(null);

@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MaxLength, MinLength } from 'class-validator';
 
+/**
+ * Overview: Defines the Password Reset Confirm Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class PasswordResetConfirmRequestDto {
   @ApiProperty({
     description: 'Opaque password reset token from the reset request response in development.',

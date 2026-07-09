@@ -5,6 +5,10 @@ import type { User } from '@prisma/client';
 import { defaultShelves } from '../common/shelves/default-shelves';
 import { PrismaService } from '../database/prisma.service';
 
+/**
+ * Owns user lookup and account creation with the default Bookshelf data each user needs on first
+ * sign-in: shelves and preferences.
+ */
 export type AuthUserRecord = Pick<
   User,
   'createdAt' | 'deactivatedAt' | 'displayName' | 'email' | 'id' | 'role' | 'username'
@@ -20,8 +24,13 @@ export type CreateUserInput = {
 
 @Injectable()
 export class UsersService {
+  /**
+   * Receives Prisma from Nest.
+   */
   public constructor(private readonly prisma: PrismaService) {}
-
+  /**
+   * Creates a user plus the initial Unshelved, Want to Read, Currently Reading, and Read shelves.
+   */
   public async createWithDefaults(input: CreateUserInput): Promise<AuthUserRecord> {
     return this.prisma.$transaction(async (transaction) => {
       const user = await transaction.user.create({
@@ -62,7 +71,9 @@ export class UsersService {
       return user;
     });
   }
-
+  /**
+   * Finds a user by normalized email for signup, signin, and password reset flows.
+   */
   public async findByEmail(
     email: string,
   ): Promise<(AuthUserRecord & { passwordHash: string }) | null> {
@@ -70,7 +81,9 @@ export class UsersService {
       where: { email },
     });
   }
-
+  /**
+   * Finds a user by either normalized email or username for the shared signin field.
+   */
   public async findBySigninIdentifier(
     identifier: string,
   ): Promise<(AuthUserRecord & { passwordHash: string }) | null> {
@@ -84,7 +97,9 @@ export class UsersService {
       where: { username: normalized },
     });
   }
-
+  /**
+   * Fetches the public auth user shape by id without exposing password hashes.
+   */
   public async findById(id: string): Promise<AuthUserRecord | null> {
     return this.prisma.user.findUnique({
       select: {

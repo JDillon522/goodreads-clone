@@ -7,6 +7,9 @@ import {
   StatsSummaryResponseDto,
 } from './stats-summary-response.dto';
 
+/**
+ * Overview: Defines the Year In Review Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class YearInReviewHighlightsResponseDto {
   @ApiProperty({ example: true })
   hasCompletedBooks!: boolean;

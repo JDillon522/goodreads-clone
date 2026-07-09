@@ -4,6 +4,9 @@ import { BookSearchFacetsDto } from './book-search-facets.dto';
 import { BookSearchFiltersDto } from './book-search-filters.dto';
 import { NormalizedBookDto } from './normalized-book.dto';
 
+/**
+ * Overview: Defines the Book Search Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class BookSearchResponseDto {
   @ApiProperty({ example: 'the left hand of darkness' })
   query!: string;

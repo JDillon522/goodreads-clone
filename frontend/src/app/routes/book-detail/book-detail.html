@@ -61,7 +61,11 @@
           </ul>
           @if (availableShelves().length > 0) {
             <form class="shelf-add-form" (submit)="submitAddShelf($event)">
-              <app-form-control label="Add to shelf" kind="select" [control]="shelfMembershipForm.shelfId">
+              <app-form-control
+                label="Add to shelf"
+                kind="select"
+                [control]="shelfMembershipForm.shelfId"
+              >
                 @for (shelf of availableShelves(); track shelf.id) {
                   <option [value]="shelf.id">{{ shelf.name }}</option>
                 }
@@ -80,9 +84,17 @@
             <option value="PERCENT">Percent</option>
           </app-form-control>
           @if (progressForm.trackingMode().value() === 'PAGE') {
-            <app-form-control label="Current page" type="number" [control]="progressForm.currentPage" />
+            <app-form-control
+              label="Current page"
+              type="number"
+              [control]="progressForm.currentPage"
+            />
           } @else {
-            <app-form-control label="Current percent" type="number" [control]="progressForm.currentPercent" />
+            <app-form-control
+              label="Current percent"
+              type="number"
+              [control]="progressForm.currentPercent"
+            />
           }
           <button class="primary-button" type="submit" [disabled]="progressForm().submitting()">
             {{ progressForm().submitting() ? 'Saving...' : 'Save progress' }}
@@ -96,7 +108,13 @@
               <option [value]="rating">{{ ratingLabel(rating) }}</option>
             }
           </app-form-control>
-          <app-form-control label="Notes" kind="textarea" [rows]="6" hint="Plain-text notes stay private in your library." [control]="reviewForm.notes" />
+          <app-form-control
+            label="Notes"
+            kind="textarea"
+            [rows]="6"
+            hint="Plain-text notes stay private in your library."
+            [control]="reviewForm.notes"
+          />
           <button class="primary-button" type="submit" [disabled]="reviewForm().submitting()">
             {{ reviewForm().submitting() ? 'Saving...' : 'Save rating and notes' }}
           </button>

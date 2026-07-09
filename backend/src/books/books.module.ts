@@ -7,6 +7,9 @@ import { OpenLibraryCacheService } from './open-library/open-library-cache.servi
 import { OpenLibraryClientService } from './open-library/open-library-client.service';
 import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
 
+/**
+ * Wires Open Library search/detail endpoints, provider client, cache, and normalizer services.
+ */
 @Module({
   controllers: [BooksController],
   imports: [DatabaseModule],

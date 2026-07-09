@@ -8,6 +8,10 @@ import { ReadingGoalResponseDto } from './dto/reading-goal-response.dto';
 import { UpdateReadingGoalRequestDto } from './dto/update-reading-goal-request.dto';
 import { calculateGoalStats } from './goal-rules';
 
+/**
+ * Owns yearly reading goals for user and guest owners, including progress stats and activity events
+ * when goals are set or completed.
+ */
 type ReadingGoalRecord = {
   completedAt: Date | null;
   id: string | null;
@@ -17,15 +21,22 @@ type ReadingGoalRecord = {
 
 @Injectable()
 export class GoalsService {
+  /**
+   * Receives persistence and activity dependencies from Nest.
+   */
   public constructor(
     private readonly activityService: ActivityService,
     private readonly prisma: PrismaService,
   ) {}
-
+  /**
+   * Returns the goal for the current calendar year.
+   */
   public async getCurrentGoal(owner: OwnerContext): Promise<ReadingGoalResponseDto> {
     return this.getGoalForYear(owner, new Date().getFullYear());
   }
-
+  /**
+   * Returns a persisted yearly goal or the default goal shape when none has been saved yet.
+   */
   public async getGoalForYear(owner: OwnerContext, year: number): Promise<ReadingGoalResponseDto> {
     const goal = await this.prisma.readingGoal.findFirst({
       where: {
@@ -36,7 +47,9 @@ export class GoalsService {
 
     return this.toGoalResponse(owner, goal ?? this.emptyGoal(year));
   }
-
+  /**
+   * Upserts the owner's target for a year and records completion if already-read books meet it.
+   */
   public async updateGoal(
     owner: OwnerContext,
     year: number,
@@ -87,7 +100,9 @@ export class GoalsService {
 
     return this.toGoalResponse(owner, goal);
   }
-
+  /**
+   * Counts books finished inside the UTC calendar year for the owner.
+   */
   private async countCompletedBooks(owner: OwnerContext, year: number): Promise<number> {
     const start = new Date(Date.UTC(year, 0, 1));
     const end = new Date(Date.UTC(year + 1, 0, 1));
@@ -102,7 +117,9 @@ export class GoalsService {
       },
     });
   }
-
+  /**
+   * Provides the default response model before the user saves an explicit target.
+   */
   private emptyGoal(year: number): ReadingGoalRecord {
     return {
       completedAt: null,
@@ -111,7 +128,9 @@ export class GoalsService {
       year,
     };
   }
-
+  /**
+   * Adds calculated pace/completion stats to a stored or default goal record.
+   */
   private async toGoalResponse(
     owner: OwnerContext,
     goal: ReadingGoalRecord,
@@ -132,11 +151,15 @@ export class GoalsService {
       year: goal.year,
     };
   }
-
+  /**
+   * Converts the current owner context into a Prisma ownership predicate.
+   */
   private ownerWhere(owner: OwnerContext): ReturnType<typeof ownerRecord> {
     return ownerRecord(owner);
   }
-
+  /**
+   * Selects the compound unique key for user-owned versus guest-owned yearly goals.
+   */
   private uniqueGoalWhere(owner: OwnerContext, year: number): Prisma.ReadingGoalWhereUniqueInput {
     return owner.type === 'user'
       ? {

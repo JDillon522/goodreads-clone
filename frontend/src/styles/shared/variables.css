@@ -106,11 +106,11 @@
   --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 
-  --text-xs: 0.6875rem;
-  --text-sm: 0.8125rem;
-  --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5625rem;
+  --text-xs: 0.8rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.45rem;
+  --text-xl: 1.7rem;
   --text-2xl: 1.9375rem;
   --text-3xl: 2.4375rem;
 

@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { AuthUserResponseDto } from './auth-user-response.dto';
 
+/**
+ * Overview: Defines the Auth Token Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class AuthTokenResponseDto {
   @ApiProperty({
     description: 'Short-lived JWT access token for Authorization: Bearer requests.',

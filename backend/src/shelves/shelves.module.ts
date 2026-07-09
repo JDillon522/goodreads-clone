@@ -7,6 +7,9 @@ import { DatabaseModule } from '../database/database.module';
 import { ShelvesController } from './shelves.controller';
 import { ShelvesService } from './shelves.service';
 
+/**
+ * Wires owner-scoped shelf endpoints with activity logging and token ownership guards.
+ */
 @Module({
   controllers: [ShelvesController],
   exports: [ShelvesService],

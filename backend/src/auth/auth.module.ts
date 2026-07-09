@@ -8,6 +8,9 @@ import { AuthService } from './auth.service';
 import { AdminGuard } from './guards/admin.guard';
 import { AccessTokenGuard } from './guards/access-token.guard';
 
+/**
+ * Wires account-auth endpoints, token guards, JWT support, and user lookup dependencies.
+ */
 @Module({
   controllers: [AuthController],
   exports: [AccessTokenGuard, AdminGuard],

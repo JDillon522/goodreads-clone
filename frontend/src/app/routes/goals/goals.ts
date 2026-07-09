@@ -5,6 +5,9 @@ import type { ReadingGoalResponse } from '../../core/api/api.types';
 import { Goals as GoalsService } from '../../core/goals/goals';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
+/**
+ * Reading goals route for the current calendar year.
+ */
 @Component({
   selector: 'app-goals',
   imports: [UiFormControl],
@@ -26,15 +29,21 @@ export class Goals {
     min(path.targetBooks, 1);
     max(path.targetBooks, 500);
   });
-
+  /**
+   * Loads the current year's goal when the route opens.
+   */
   public constructor() {
     void this.loadGoal();
   }
-
+  /**
+   * Exposes the fixed year captured at component construction for template labels.
+   */
   protected currentYear(): number {
     return this.year;
   }
-
+  /**
+   * Saves the target book count for the current year.
+   */
   protected async submitGoal(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set(null);
@@ -50,7 +59,9 @@ export class Goals {
       this.error.set('Goal could not be updated.');
     }
   }
-
+  /**
+   * Loads the backend goal and seeds the editable target count.
+   */
   private async loadGoal(): Promise<void> {
     try {
       const response = await this.goals.current();

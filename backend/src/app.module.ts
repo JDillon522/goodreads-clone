@@ -14,6 +14,9 @@ import { ShelvesModule } from './shelves/shelves.module';
 import { SessionModule } from './session/session.module';
 import { StatsModule } from './stats/stats.module';
 
+/**
+ * Root Nest module that validates environment config and loads every Bookshelf feature module.
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({

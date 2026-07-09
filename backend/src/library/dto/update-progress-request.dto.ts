@@ -3,6 +3,9 @@ import { ProgressTrackingMode } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
+/**
+ * Overview: Defines the Update Progress Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class UpdateProgressRequestDto {
   @ApiProperty({ enum: ProgressTrackingMode, example: ProgressTrackingMode.PAGE })
   @IsEnum(ProgressTrackingMode)

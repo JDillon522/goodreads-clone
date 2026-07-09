@@ -34,7 +34,9 @@
         @for (shelf of shelves(); track shelf.id; let first = $first; let last = $last) {
           <article class="shelf-row">
             <div class="shelf-row__main">
-              <span class="drag-handle" aria-hidden="true"><i class="ph ph-dots-six-vertical"></i></span>
+              <span class="drag-handle" aria-hidden="true"
+                ><i class="ph ph-dots-six-vertical"></i
+              ></span>
               <div>
                 <h3>{{ shelf.name }}</h3>
                 <p>
@@ -46,18 +48,40 @@
               </div>
             </div>
             <div class="shelf-row__actions" [attr.aria-label]="'Actions for ' + shelf.name">
-              <button class="icon-button" type="button" [disabled]="first" (click)="moveShelf(shelf, -1)" [attr.aria-label]="'Move ' + shelf.name + ' up'">
+              <button
+                class="icon-button"
+                type="button"
+                [disabled]="first"
+                (click)="moveShelf(shelf, -1)"
+                [attr.aria-label]="'Move ' + shelf.name + ' up'"
+              >
                 <i class="ph ph-arrow-up" aria-hidden="true"></i>
               </button>
-              <button class="icon-button" type="button" [disabled]="last" (click)="moveShelf(shelf, 1)" [attr.aria-label]="'Move ' + shelf.name + ' down'">
+              <button
+                class="icon-button"
+                type="button"
+                [disabled]="last"
+                (click)="moveShelf(shelf, 1)"
+                [attr.aria-label]="'Move ' + shelf.name + ' down'"
+              >
                 <i class="ph ph-arrow-down" aria-hidden="true"></i>
               </button>
-              <button class="secondary-button" type="button" (click)="openRenameShelfDialog(shelf)" [attr.aria-label]="'Rename ' + shelf.name">
+              <button
+                class="secondary-button"
+                type="button"
+                (click)="openRenameShelfDialog(shelf)"
+                [attr.aria-label]="'Rename ' + shelf.name"
+              >
                 <i class="ph ph-pencil-simple" aria-hidden="true"></i>
                 <span>Rename</span>
               </button>
               @if (canDeleteShelf(shelf)) {
-                <button class="danger-button" type="button" (click)="openDeleteShelfDialog(shelf)" [attr.aria-label]="'Delete ' + shelf.name">
+                <button
+                  class="danger-button"
+                  type="button"
+                  (click)="openDeleteShelfDialog(shelf)"
+                  [attr.aria-label]="'Delete ' + shelf.name"
+                >
                   <i class="ph ph-trash" aria-hidden="true"></i>
                   <span>Delete</span>
                 </button>
@@ -74,13 +98,20 @@
   <form class="dialog__body" (submit)="submitRenameShelf($event)">
     <header class="dialog__header">
       <h2>Rename shelf</h2>
-      <button class="icon-button" type="button" (click)="closeRenameShelfDialog()" aria-label="Close rename shelf dialog">
+      <button
+        class="icon-button"
+        type="button"
+        (click)="closeRenameShelfDialog()"
+        aria-label="Close rename shelf dialog"
+      >
         <i class="ph ph-x" aria-hidden="true"></i>
       </button>
     </header>
     <app-form-control label="Shelf name" autocomplete="off" [control]="renameShelfForm.name" />
     <footer class="dialog__actions">
-      <button class="secondary-button" type="button" (click)="closeRenameShelfDialog()">Cancel</button>
+      <button class="secondary-button" type="button" (click)="closeRenameShelfDialog()">
+        Cancel
+      </button>
       <button class="primary-button" type="submit" [disabled]="renameShelfForm().submitting()">
         {{ renameShelfForm().submitting() ? 'Saving...' : 'Save' }}
       </button>
@@ -92,7 +123,12 @@
   <section class="dialog__body">
     <header class="dialog__header">
       <h2>Delete shelf</h2>
-      <button class="icon-button" type="button" (click)="closeDeleteShelfDialog()" aria-label="Close delete shelf dialog">
+      <button
+        class="icon-button"
+        type="button"
+        (click)="closeDeleteShelfDialog()"
+        aria-label="Close delete shelf dialog"
+      >
         <i class="ph ph-x" aria-hidden="true"></i>
       </button>
     </header>
@@ -112,12 +148,14 @@
         </ul>
       }
       <footer class="dialog__actions">
-        <button class="primary-button" type="button" (click)="closeDeleteShelfDialog()">Done</button>
+        <button class="primary-button" type="button" (click)="closeDeleteShelfDialog()">
+          Done
+        </button>
       </footer>
     } @else {
       <p class="muted">
-        Delete {{ selectedDeleteShelf()?.name ?? 'this shelf' }}? Books will stay in their other shelves. Books with no
-        remaining shelf will move to Unshelved.
+        Delete {{ selectedDeleteShelf()?.name ?? 'this shelf' }}? Books will stay in their other
+        shelves. Books with no remaining shelf will move to Unshelved.
       </p>
       @if (isLoadingDeletePreview()) {
         <p class="muted">Checking books...</p>
@@ -134,8 +172,15 @@
         </ul>
       }
       <footer class="dialog__actions">
-        <button class="secondary-button" type="button" (click)="closeDeleteShelfDialog()">Cancel</button>
-        <button class="danger-button" type="button" (click)="confirmDeleteShelf()" [disabled]="isDeletingShelf()">
+        <button class="secondary-button" type="button" (click)="closeDeleteShelfDialog()">
+          Cancel
+        </button>
+        <button
+          class="danger-button"
+          type="button"
+          (click)="confirmDeleteShelf()"
+          [disabled]="isDeletingShelf()"
+        >
           {{ isDeletingShelf() ? 'Deleting...' : 'Delete shelf' }}
         </button>
       </footer>

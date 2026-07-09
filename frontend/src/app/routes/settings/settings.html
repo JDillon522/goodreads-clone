@@ -7,9 +7,27 @@
   <section class="settings-panel">
     <h2>Theme</h2>
     <div class="segmented-control" aria-label="Theme preference">
-      <button type="button" (click)="setTheme('light')" [class.is-active]="theme.preference() === 'light'">Light</button>
-      <button type="button" (click)="setTheme('dark')" [class.is-active]="theme.preference() === 'dark'">Dark</button>
-      <button type="button" (click)="setTheme('system')" [class.is-active]="theme.preference() === 'system'">System</button>
+      <button
+        type="button"
+        (click)="setTheme('light')"
+        [class.is-active]="theme.preference() === 'light'"
+      >
+        Light
+      </button>
+      <button
+        type="button"
+        (click)="setTheme('dark')"
+        [class.is-active]="theme.preference() === 'dark'"
+      >
+        Dark
+      </button>
+      <button
+        type="button"
+        (click)="setTheme('system')"
+        [class.is-active]="theme.preference() === 'system'"
+      >
+        System
+      </button>
     </div>
   </section>
 

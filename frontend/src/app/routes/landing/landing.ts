@@ -4,6 +4,9 @@ import { Router, RouterLink } from '@angular/router';
 import { Guest } from '../../core/guest/guest';
 import { Theme } from '../../core/theme/theme';
 
+/**
+ * Public landing route with sign-in links, theme toggle access, and guest-mode entry.
+ */
 @Component({
   selector: 'app-landing',
   imports: [RouterLink],
@@ -18,7 +21,9 @@ export class Landing {
   protected readonly theme = inject(Theme);
   protected readonly isStartingGuest = signal(false);
   protected readonly error = signal<string | null>(null);
-
+  /**
+   * Creates a guest owner, activates its token locally, and enters the app shell.
+   */
   protected async startGuest(): Promise<void> {
     this.error.set(null);
     this.isStartingGuest.set(true);

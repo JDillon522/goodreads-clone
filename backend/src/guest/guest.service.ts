@@ -19,6 +19,10 @@ import { PrismaService } from '../database/prisma.service';
 import { normalizeText, roundPercent } from '../library/library-rules';
 import { GuestSessionResponseDto } from './dto/guest-session-response.dto';
 
+/**
+ * Creates and maintains guest demo sessions. Guest sessions use the same owner-aware shelves,
+ * library items, goals, and activity data as authenticated users, but are keyed by an opaque token.
+ */
 type SampleBook = {
   author?: string;
   coverUrl?: string;
@@ -42,12 +46,17 @@ const guestSeedBookLimit = 12;
 
 @Injectable()
 export class GuestService {
+  /**
+   * Receives config, persistence, and activity dependencies from Nest.
+   */
   public constructor(
     private readonly activityService: ActivityService,
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {}
-
+  /**
+   * Deletes expired guest sessions; related demo data is removed by database cascade behavior.
+   */
   public async cleanupExpiredSessions(now = new Date()): Promise<GuestCleanupResult> {
     const result = await this.prisma.guestSession.deleteMany({
       where: {
@@ -59,7 +68,9 @@ export class GuestService {
 
     return { deletedSessions: result.count };
   }
-
+  /**
+   * Creates a guest session, default shelves, preferences, a yearly goal, and seeded sample books.
+   */
   public async createSession(): Promise<GuestSessionResponseDto> {
     const guestToken = createOpaqueToken();
     const expiresAt = this.dateAfterDays(this.guestSessionTtlDays());
@@ -115,7 +126,9 @@ export class GuestService {
       tokenType: 'Bearer',
     };
   }
-
+  /**
+   * Persists the standard shelf set for a guest session and returns the ids keyed by slug.
+   */
   private async createDefaultShelves(
     transaction: GuestTransaction,
     guestSessionId: string,
@@ -138,7 +151,10 @@ export class GuestService {
       'want-to-read': this.requireShelf(shelves, 'want-to-read'),
     };
   }
-
+  /**
+   * Creates one sample book and library item with deterministic shelf/status/progress data so the
+   * guest experience shows realistic app states.
+   */
   private async createSeedLibraryItem(
     transaction: GuestTransaction,
     guestSessionId: string,
@@ -203,23 +219,33 @@ export class GuestService {
       });
     }
   }
-
+  /**
+   * Calculates guest-session expiration dates.
+   */
   private dateAfterDays(days: number): Date {
     return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   }
-
+  /**
+   * Creates deterministic-looking historical dates for seeded demo activity.
+   */
   private dateDaysAgo(daysAgo: number): Date {
     return new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
   }
-
+  /**
+   * Uses the sample source id as the guest demo dedupe key.
+   */
   private dedupeKeyForSampleBook(book: SampleBook): string {
     return this.sourceIdForSampleBook(book);
   }
-
+  /**
+   * Reads the guest-session TTL setting with a seven-day default.
+   */
   private guestSessionTtlDays(): number {
     return this.configService.get<number>('GUEST_SESSION_TTL_DAYS') ?? 7;
   }
-
+  /**
+   * Loads and lightly validates sample books from the repo data file.
+   */
   private loadSampleBooks(): SampleBook[] {
     const sampleBooksPath = this.sampleBooksPath();
     const parsed = JSON.parse(readFileSync(sampleBooksPath, 'utf8')) as unknown;
@@ -230,7 +256,9 @@ export class GuestService {
 
     return parsed.filter((book): book is SampleBook => this.isSampleBook(book));
   }
-
+  /**
+   * Narrows unknown JSON entries to the minimal sample-book shape needed for seeding.
+   */
   private isSampleBook(book: unknown): book is SampleBook {
     return (
       typeof book === 'object' &&
@@ -239,7 +267,9 @@ export class GuestService {
       typeof (book as { title?: unknown }).title === 'string'
     );
   }
-
+  /**
+   * Asserts that the expected default shelf slug was created in the transaction.
+   */
   private requireShelf(
     shelves: Array<{ id: string; slug: string }>,
     slug: DefaultShelfSlug,
@@ -252,7 +282,9 @@ export class GuestService {
 
     return { id: shelf.id };
   }
-
+  /**
+   * Maps sample JSON into the shared Book table shape.
+   */
   private sampleBookData(
     book: SampleBook,
     sourceId: string,
@@ -276,7 +308,10 @@ export class GuestService {
       title: book.title,
     };
   }
-
+  /**
+   * Assigns deterministic demo progress: read books are complete, currently-reading books are in
+   * progress, and want-to-read books have no progress.
+   */
   private seedProgressPercent(
     book: SampleBook,
     index: number,
@@ -295,7 +330,9 @@ export class GuestService {
 
     return roundPercent(book.pageCount ? Math.min(85, percentage) : percentage);
   }
-
+  /**
+   * Spreads the sample list across read, currently-reading, and want-to-read shelves.
+   */
   private shelfSlugForSeedIndex(index: number): DefaultShelfSlug {
     if (index < 4) {
       return 'read';
@@ -307,7 +344,9 @@ export class GuestService {
 
     return 'want-to-read';
   }
-
+  /**
+   * Builds a stable SAMPLE provider id, preferring ISBNs before normalized title/author fallback.
+   */
   private sourceIdForSampleBook(book: SampleBook): string {
     if (book.isbn13) {
       return `isbn13:${book.isbn13}`;
@@ -319,7 +358,9 @@ export class GuestService {
 
     return `title-author:${normalizeText(book.title)}:${normalizeText(book.author ?? 'unknown')}`;
   }
-
+  /**
+   * Resolves the sample-book data path for both repo-root and backend working directories.
+   */
   private sampleBooksPath(): string {
     const candidates = [
       resolve(process.cwd(), 'data/sample-books.json'),

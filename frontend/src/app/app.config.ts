@@ -5,6 +5,9 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { authTokenInterceptor } from './core/api/auth-token.interceptor';
 
+/**
+ * Root Angular providers for routing, global error listeners, and authenticated HTTP calls.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),

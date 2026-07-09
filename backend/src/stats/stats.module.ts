@@ -6,6 +6,9 @@ import { DatabaseModule } from '../database/database.module';
 import { StatsController } from './stats.controller';
 import { StatsService } from './stats.service';
 
+/**
+ * Wires owner-scoped stats and year-in-review endpoints.
+ */
 @Module({
   controllers: [StatsController],
   exports: [StatsService],

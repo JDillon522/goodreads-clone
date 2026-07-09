@@ -1,3 +1,6 @@
+/**
+ * Contains pure aggregation helpers for stats summaries and year-in-review calculations.
+ */
 export type CompletedPageEstimateInput = {
   currentPage?: null | number;
   pageCount: null | number;
@@ -20,7 +23,10 @@ export type RankedValue = {
   count: number;
   name: string;
 };
-
+/**
+ * Estimates completed page totals by using known page counts first, falling back to final current
+ * pages, then applying the known-book average to books with no page data.
+ */
 export function calculateCompletedPageEstimate(
   items: CompletedPageEstimateInput[],
 ): CompletedPageEstimate {
@@ -48,7 +54,9 @@ export function calculateCompletedPageEstimate(
     knownCompletedPages,
   };
 }
-
+/**
+ * Estimates pages read for an in-progress item from current page, or percent plus page count.
+ */
 export function estimateProgressPages(item: ProgressPageEstimateInput): number {
   if (typeof item.currentPage === 'number' && item.currentPage > 0) {
     return Math.round(item.currentPage);
@@ -65,7 +73,9 @@ export function estimateProgressPages(item: ProgressPageEstimateInput): number {
 
   return 0;
 }
-
+/**
+ * Counts and sorts repeated labels for top authors, genres, and other ranked stat lists.
+ */
 export function rankValues(values: readonly string[], limit = 8): RankedValue[] {
   const counts = new Map<string, number>();
 

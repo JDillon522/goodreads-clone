@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { FormField, type FieldTree } from '@angular/forms/signals';
 
+/**
+ * Shared signal-form control wrapper.
+ *
+ * The component standardizes labels, hints, validation messages, `aria-describedby`,
+ * and the input/select/textarea branches used by route forms.
+ */
 type UiFormControlKind = 'input' | 'select';
 type UiFormControlSize = 'compact' | 'default';
 type UiFormInputType = 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url';
@@ -43,11 +49,15 @@ export class UiFormControl {
   });
   protected readonly messageText = computed(() => this.errorText() || this.hint());
   protected readonly describedBy = computed(() => (this.messageText() ? this.messageId : null));
-
+  /**
+   * Casts the required form control for inputs that can hold strings or numbers.
+   */
   protected inputControl(): FieldTree<number | string> {
     return this.control() as FieldTree<number | string>;
   }
-
+  /**
+   * Casts the required form control for controls that only bind string values.
+   */
   protected textControl(): FieldTree<string> {
     return this.control() as FieldTree<string>;
   }

@@ -1,5 +1,8 @@
 import * as Joi from 'joi';
 
+/**
+ * Validates and normalizes environment variables before Nest modules read configuration values.
+ */
 type Environment = {
   API_PREFIX: string;
   CORS_ORIGIN: string;
@@ -43,7 +46,9 @@ const environmentSchema = Joi.object<Environment>({
   PASSWORD_RESET_TOKEN_TTL_MINUTES: Joi.number().integer().positive().default(30),
   PORT: Joi.number().port().default(3000),
 }).unknown(true);
-
+/**
+ * Applies defaults, coerces numeric values, and blocks unsafe production JWT secrets.
+ */
 export function validateEnvironment(config: Record<string, unknown>): Environment {
   const { error, value } = environmentSchema.validate(config, {
     abortEarly: false,

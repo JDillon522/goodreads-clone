@@ -54,7 +54,9 @@ describe('OpenLibraryNormalizerService', () => {
       count: 2,
       facets: {
         formats: [{ count: 0, label: 'Readable online / eBook', value: 'ebook' }],
-        publishedDecades: [{ count: 1, label: '1960s', value: '1960s', yearFrom: 1960, yearTo: 1969 }],
+        publishedDecades: [
+          { count: 1, label: '1960s', value: '1960s', yearFrom: 1960, yearTo: 1969 },
+        ],
         subjects: [
           { count: 1, label: 'Fiction', value: 'Fiction' },
           { count: 1, label: 'Science fiction', value: 'Science fiction' },
@@ -140,7 +142,9 @@ describe('OpenLibraryNormalizerService', () => {
     });
     expect(result.facets).toEqual({
       formats: [{ count: 2, label: 'Readable online / eBook', value: 'ebook' }],
-      publishedDecades: [{ count: 2, label: '2010s', value: '2010s', yearFrom: 2010, yearTo: 2019 }],
+      publishedDecades: [
+        { count: 2, label: '2010s', value: '2010s', yearFrom: 2010, yearTo: 2019 },
+      ],
       subjects: [{ count: 2, label: 'Fantasy', value: 'Fantasy' }],
     });
     expect(result.items).toEqual([

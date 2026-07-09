@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { form, minLength, required, submit } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 
@@ -12,6 +20,13 @@ import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
+/**
+ * User shelf management route.
+ *
+ * This page owns normal-user shelf creation, renaming, deletion preview, and
+ * ordering. Unshelved is treated as a real shelf but remains protected from
+ * deletion by both the UI and backend.
+ */
 @Component({
   selector: 'app-manage-shelves',
   imports: [UiFormControl],
@@ -23,8 +38,10 @@ export class ManageShelves {
   private readonly library = inject(LibraryService);
   private readonly router = inject(Router);
   private readonly shelvesService = inject(Shelves);
-  private readonly renameShelfDialog = viewChild<ElementRef<HTMLDialogElement>>('renameShelfDialog');
-  private readonly deleteShelfDialog = viewChild<ElementRef<HTMLDialogElement>>('deleteShelfDialog');
+  private readonly renameShelfDialog =
+    viewChild<ElementRef<HTMLDialogElement>>('renameShelfDialog');
+  private readonly deleteShelfDialog =
+    viewChild<ElementRef<HTMLDialogElement>>('deleteShelfDialog');
   private readonly createShelfModel = signal({ name: '' });
   private readonly renameShelfModel = signal({ name: '' });
 
@@ -46,7 +63,9 @@ export class ManageShelves {
     required(path.name, { message: 'Shelf name is required.' });
     minLength(path.name, 2, { message: 'Use at least 2 characters.' });
   });
-
+  /**
+   * Reloads shelves after shelf or library revisions because deletes can change book memberships.
+   */
   public constructor() {
     effect(() => {
       this.shelvesService.version();
@@ -54,18 +73,24 @@ export class ManageShelves {
       void this.loadShelves();
     });
   }
-
+  /**
+   * Allows deleting every active shelf except Unshelved, which is the protected fallback shelf.
+   */
   protected canDeleteShelf(shelf: ShelfResponse): boolean {
     return shelf.slug !== 'unshelved';
   }
-
+  /**
+   * Enables reorder controls only when moving would keep the shelf inside the current list bounds.
+   */
   protected canMoveShelf(shelf: ShelfResponse, offset: -1 | 1): boolean {
     const index = this.shelves().findIndex((candidate) => candidate.id === shelf.id);
     const nextIndex = index + offset;
 
     return index >= 0 && nextIndex >= 0 && nextIndex < this.shelves().length;
   }
-
+  /**
+   * Closes the delete modal and clears preview/result state from the previous shelf.
+   */
   protected closeDeleteShelfDialog(): void {
     this.deleteShelfDialog()?.nativeElement.close();
     this.selectedDeleteShelf.set(null);
@@ -73,12 +98,16 @@ export class ManageShelves {
     this.deleteResult.set(null);
     this.isLoadingDeletePreview.set(false);
   }
-
+  /**
+   * Closes the rename modal and clears the selected shelf reference.
+   */
   protected closeRenameShelfDialog(): void {
     this.renameShelfDialog()?.nativeElement.close();
     this.selectedRenameShelf.set(null);
   }
-
+  /**
+   * Deletes the selected shelf after preview and navigates away if the user was viewing it.
+   */
   protected async confirmDeleteShelf(): Promise<void> {
     const shelf = this.selectedDeleteShelf();
 
@@ -103,7 +132,9 @@ export class ManageShelves {
       this.isDeletingShelf.set(false);
     }
   }
-
+  /**
+   * Persists a local one-step reorder through the shelf order endpoint.
+   */
   protected async moveShelf(shelf: ShelfResponse, offset: -1 | 1): Promise<void> {
     if (!this.canMoveShelf(shelf, offset)) {
       return;
@@ -118,13 +149,17 @@ export class ManageShelves {
     this.shelfError.set(null);
 
     try {
-      this.shelves.set(await this.shelvesService.updateOrder({ shelfIds: reordered.map((item) => item.id) }));
+      this.shelves.set(
+        await this.shelvesService.updateOrder({ shelfIds: reordered.map((item) => item.id) }),
+      );
       this.shelfMessage.set(`${shelf.name} shelf reordered.`);
     } catch {
       this.shelfError.set('Shelf order could not be updated.');
     }
   }
-
+  /**
+   * Opens the delete modal and loads the books that will be affected before confirmation.
+   */
   protected async openDeleteShelfDialog(shelf: ShelfResponse): Promise<void> {
     if (!this.canDeleteShelf(shelf)) {
       return;
@@ -139,6 +174,8 @@ export class ManageShelves {
     this.deleteShelfDialog()?.nativeElement.showModal();
 
     try {
+      // Preview uses the library endpoint so users see the visible books that
+      // will move to Unshelved if this is their last active shelf.
       this.deletePreviewItems.set(await this.library.list(shelf.id));
     } catch {
       this.shelfError.set('Books on this shelf could not be previewed.');
@@ -146,7 +183,9 @@ export class ManageShelves {
       this.isLoadingDeletePreview.set(false);
     }
   }
-
+  /**
+   * Opens the rename modal with the current shelf name prefilled.
+   */
   protected openRenameShelfDialog(shelf: ShelfResponse): void {
     this.selectedRenameShelf.set(shelf);
     this.renameShelfModel.set({ name: shelf.name });
@@ -154,15 +193,21 @@ export class ManageShelves {
     this.shelfError.set(null);
     this.renameShelfDialog()?.nativeElement.showModal();
   }
-
+  /**
+   * Formats shelf names from a delete result, falling back to Unshelved when none remain.
+   */
   protected resultShelfNames(book: DeletedShelfBookResponse): string {
     return book.shelves.map((shelf) => shelf.name).join(', ') || 'Unshelved';
   }
-
+  /**
+   * Formats shelf names from a preview item, falling back to Unshelved for empty membership.
+   */
   protected shelfNames(item: LibraryItemResponse): string {
     return item.shelves.map((shelf) => shelf.name).join(', ') || 'Unshelved';
   }
-
+  /**
+   * Creates a shelf from trimmed form input and lets service revisions refresh shell/sidebar state.
+   */
   protected async submitCreateShelf(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.shelfMessage.set(null);
@@ -183,7 +228,9 @@ export class ManageShelves {
       this.shelfError.set('Shelf could not be created.');
     }
   }
-
+  /**
+   * Renames the selected shelf and closes the modal after a successful save.
+   */
   protected async submitRenameShelf(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const shelf = this.selectedRenameShelf();
@@ -210,7 +257,9 @@ export class ManageShelves {
       this.shelfError.set('Shelf could not be renamed.');
     }
   }
-
+  /**
+   * Loads the active shelves that this user can manage.
+   */
   private async loadShelves(): Promise<void> {
     this.isLoadingShelves.set(true);
 

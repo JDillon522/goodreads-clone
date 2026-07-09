@@ -5,6 +5,12 @@ import { email, form, required, submit } from '@angular/forms/signals';
 import { Auth } from '../../../core/auth/auth';
 import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 
+/**
+ * Password reset request route.
+ *
+ * In development the backend may echo a reset token, so the route stores both
+ * the user-facing message and optional token returned by the API.
+ */
 @Component({
   selector: 'app-password-reset',
   imports: [RouterLink, UiFormControl],
@@ -23,7 +29,9 @@ export class PasswordReset {
     required(path.email, { message: 'Email is required.' });
     email(path.email, { message: 'Use a valid email address.' });
   });
-
+  /**
+   * Requests a reset token and displays the backend response state.
+   */
   protected async submitReset(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set(null);

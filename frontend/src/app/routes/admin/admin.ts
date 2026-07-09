@@ -11,6 +11,13 @@ import type {
 } from '../../core/api/api.types';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
+/**
+ * Admin management route for authenticated users and their shelves.
+ *
+ * The selected user scopes every shelf operation. User and shelf changes reload
+ * the relevant lists after each mutation so the page reflects deactivation,
+ * deletion, and reorder side effects returned by the backend.
+ */
 type UserRole = AdminUserResponse['role'];
 
 @Component({
@@ -48,11 +55,11 @@ export class Admin {
   protected readonly isLoadingShelves = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
-  protected readonly selectedUser = computed(() =>
-    this.users().find((user) => user.id === this.selectedUserId()) ?? null,
+  protected readonly selectedUser = computed(
+    () => this.users().find((user) => user.id === this.selectedUserId()) ?? null,
   );
-  protected readonly selectedShelf = computed(() =>
-    this.shelves().find((shelf) => shelf.id === this.selectedShelfId()) ?? null,
+  protected readonly selectedShelf = computed(
+    () => this.shelves().find((shelf) => shelf.id === this.selectedShelfId()) ?? null,
   );
   protected readonly createUserForm = form(this.createUserModel, (path) => {
     required(path.email, { message: 'Email is required.' });
@@ -72,24 +79,34 @@ export class Admin {
     required(path.name, { message: 'Shelf name is required.' });
     minLength(path.name, 2, { message: 'Use at least 2 characters.' });
   });
-
+  /**
+   * Loads the user list on entry and automatically selects the first user when available.
+   */
   public constructor() {
     void this.loadUsers();
   }
-
+  /**
+   * Allows shelf deactivation only for active, non-Unshelved shelves.
+   */
   protected canDeactivateShelf(shelf: ShelfResponse): boolean {
     return shelf.slug !== 'unshelved' && !shelf.deactivatedAt;
   }
-
+  /**
+   * Blocks hard deletion of Unshelved because books need a durable fallback shelf.
+   */
   protected canDeleteShelf(shelf: ShelfResponse): boolean {
     return shelf.slug !== 'unshelved';
   }
-
+  /**
+   * Selects a shelf and seeds the edit form from its current name.
+   */
   protected selectShelf(shelf: ShelfResponse): void {
     this.selectedShelfId.set(shelf.id);
     this.editShelfModel.set({ name: shelf.name });
   }
-
+  /**
+   * Selects a user, resets shelf selection, seeds the user edit form, and loads that user's shelves.
+   */
   protected async selectUser(user: AdminUserResponse): Promise<void> {
     this.selectedUserId.set(user.id);
     this.selectedShelfId.set(null);
@@ -102,7 +119,9 @@ export class Admin {
     });
     await this.loadShelves(user.id);
   }
-
+  /**
+   * Creates a shelf for the selected user rather than the signed-in admin account.
+   */
   protected async submitCreateShelf(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const user = this.selectedUser();
@@ -130,7 +149,9 @@ export class Admin {
       this.error.set('Admin action failed.');
     }
   }
-
+  /**
+   * Creates a managed user and selects it after the refreshed list is loaded.
+   */
   protected async submitCreateUser(event: SubmitEvent): Promise<void> {
     event.preventDefault();
 
@@ -146,6 +167,8 @@ export class Admin {
           role: value.role,
         };
 
+        // Optional profile fields are omitted when blank so backend defaults and
+        // uniqueness checks do not receive empty strings.
         if (value.displayName.trim()) {
           request.displayName = value.displayName.trim();
         }
@@ -173,7 +196,9 @@ export class Admin {
       this.error.set('Admin action failed.');
     }
   }
-
+  /**
+   * Renames the selected shelf within the selected user's shelf collection.
+   */
   protected async submitUpdateShelf(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const user = this.selectedUser();
@@ -201,7 +226,9 @@ export class Admin {
       this.error.set('Admin action failed.');
     }
   }
-
+  /**
+   * Updates profile fields and role, sending a password only when the admin entered one.
+   */
   protected async submitUpdateUser(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const user = this.selectedUser();
@@ -239,7 +266,9 @@ export class Admin {
       this.error.set('Admin action failed.');
     }
   }
-
+  /**
+   * Soft-deactivates the selected shelf without deleting the row or its historical memberships.
+   */
   protected async deactivateSelectedShelf(): Promise<void> {
     const user = this.selectedUser();
     const shelf = this.selectedShelf();
@@ -254,7 +283,9 @@ export class Admin {
       await this.loadShelves(user.id);
     });
   }
-
+  /**
+   * Soft-deactivates the selected user so they can no longer sign in or call APIs.
+   */
   protected async deactivateSelectedUser(): Promise<void> {
     const user = this.selectedUser();
 
@@ -268,12 +299,19 @@ export class Admin {
       await this.loadUsers(user.id);
     });
   }
-
+  /**
+   * Hard-deletes the selected shelf after confirmation, except for protected Unshelved.
+   */
   protected async deleteSelectedShelf(): Promise<void> {
     const user = this.selectedUser();
     const shelf = this.selectedShelf();
 
-    if (!user || !shelf || !this.canDeleteShelf(shelf) || !globalThis.confirm(`Delete ${shelf.name}?`)) {
+    if (
+      !user ||
+      !shelf ||
+      !this.canDeleteShelf(shelf) ||
+      !globalThis.confirm(`Delete ${shelf.name}?`)
+    ) {
       return;
     }
 
@@ -284,7 +322,9 @@ export class Admin {
       await this.loadShelves(user.id);
     });
   }
-
+  /**
+   * Hard-deletes the selected user and clears local shelf state before reloading the user list.
+   */
   protected async deleteSelectedUser(): Promise<void> {
     const user = this.selectedUser();
 
@@ -301,7 +341,9 @@ export class Admin {
       await this.loadUsers();
     });
   }
-
+  /**
+   * Reorders shelves for the selected user using a one-step local array move.
+   */
   protected async moveShelf(shelf: ShelfResponse, offset: -1 | 1): Promise<void> {
     const user = this.selectedUser();
     const currentShelves = this.shelves();
@@ -318,11 +360,15 @@ export class Admin {
     reordered.splice(nextIndex, 0, moved);
 
     await this.runAction(async () => {
-      this.shelves.set(await this.admin.updateShelfOrder(user.id, { shelfIds: reordered.map((item) => item.id) }));
+      this.shelves.set(
+        await this.admin.updateShelfOrder(user.id, { shelfIds: reordered.map((item) => item.id) }),
+      );
       this.message.set(`${shelf.name} reordered.`);
     });
   }
-
+  /**
+   * Restores a deactivated shelf for the selected user.
+   */
   protected async reactivateSelectedShelf(): Promise<void> {
     const user = this.selectedUser();
     const shelf = this.selectedShelf();
@@ -337,7 +383,9 @@ export class Admin {
       await this.loadShelves(user.id);
     });
   }
-
+  /**
+   * Restores a deactivated user and refreshes the selected row.
+   */
   protected async reactivateSelectedUser(): Promise<void> {
     const user = this.selectedUser();
 
@@ -351,7 +399,9 @@ export class Admin {
       await this.loadUsers(user.id);
     });
   }
-
+  /**
+   * Loads shelves for the selected user scope, including admin-visible inactive shelves.
+   */
   private async loadShelves(userId: string): Promise<void> {
     this.isLoadingShelves.set(true);
     this.error.set(null);
@@ -364,7 +414,9 @@ export class Admin {
       this.isLoadingShelves.set(false);
     }
   }
-
+  /**
+   * Loads users and keeps a requested user selected after create/update/deactivate actions.
+   */
   private async loadUsers(selectedUserId?: string): Promise<void> {
     this.isLoadingUsers.set(true);
     this.error.set(null);
@@ -383,7 +435,9 @@ export class Admin {
       this.isLoadingUsers.set(false);
     }
   }
-
+  /**
+   * Wraps admin mutations with shared message/error clearing and failure handling.
+   */
   private async runAction(action: () => Promise<void>): Promise<void> {
     this.error.set(null);
     this.message.set(null);
@@ -394,5 +448,4 @@ export class Admin {
       this.error.set('Admin action failed.');
     }
   }
-
 }

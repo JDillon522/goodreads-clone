@@ -14,6 +14,10 @@ import {
 import { YearInReviewResponseDto } from './dto/year-in-review-response.dto';
 import { calculateCompletedPageEstimate, estimateProgressPages, rankValues } from './stats-rules';
 
+/**
+ * Computes dashboard and year-in-review statistics from library, shelf, progress, goal, and
+ * activity data. Page totals are estimates when books are missing page counts.
+ */
 const monthLabels = [
   'Jan',
   'Feb',
@@ -46,8 +50,14 @@ type StatsShelf = Prisma.ShelfGetPayload<Record<string, never>>;
 
 @Injectable()
 export class StatsService {
+  /**
+   * Receives Prisma from Nest.
+   */
   public constructor(private readonly prisma: PrismaService) {}
-
+  /**
+   * Builds the stats summary for one owner and calendar year, including all-time status totals and
+   * year-scoped completion, goal, progress, and activity metrics.
+   */
   public async getSummary(
     owner: OwnerContext,
     year = new Date().getUTCFullYear(),
@@ -92,6 +102,8 @@ export class StatsService {
     ]);
     const generatedAt = new Date();
     const completed = items.filter((item) => this.isFinishedInYear(item, start, end));
+    // Some Open Library records do not have page counts. The estimate keeps totals useful by using
+    // known completed books to fill in unknown completed-book page totals.
     const completedPageEstimate = calculateCompletedPageEstimate(
       completed.map((item) => ({
         currentPage: item.currentPage,
@@ -157,7 +169,9 @@ export class StatsService {
       year,
     };
   }
-
+  /**
+   * Wraps the stats summary with highlight picks suitable for a year-in-review page.
+   */
   public async getYearInReview(
     owner: OwnerContext,
     year: number,
@@ -178,7 +192,9 @@ export class StatsService {
       year,
     };
   }
-
+  /**
+   * Returns the one-decimal average rating for completed, rated books.
+   */
   private averageRating(items: StatsLibraryItem[]): null | number {
     if (items.length === 0) {
       return null;
@@ -188,7 +204,9 @@ export class StatsService {
 
     return Math.round((total / items.length) * 10) / 10;
   }
-
+  /**
+   * Selects the strongest month by completed books, using estimated pages as the tie-breaker.
+   */
   private bestMonth(
     monthlyCompletions: StatsMonthlyCompletionResponseDto[],
   ): null | StatsMonthlyCompletionResponseDto {
@@ -220,7 +238,10 @@ export class StatsService {
 
     return best;
   }
-
+  /**
+   * Estimates completed pages for a book using page count first, then final current page, then the
+   * summary-level fallback average.
+   */
   private estimatedCompletedPagesForItem(item: StatsLibraryItem, fallbackPages: number): number {
     if (typeof item.book.pageCount === 'number' && item.book.pageCount > 0) {
       return item.book.pageCount;
@@ -232,7 +253,9 @@ export class StatsService {
 
     return fallbackPages;
   }
-
+  /**
+   * Estimates pages read for an in-progress item from page or percent progress.
+   */
   private estimateProgressPagesForItem(item: StatsLibraryItem): number {
     return estimateProgressPages({
       currentPage: item.currentPage,
@@ -240,11 +263,15 @@ export class StatsService {
       pageCount: item.book.pageCount,
     });
   }
-
+  /**
+   * Checks whether an item completed inside the UTC year window.
+   */
   private isFinishedInYear(item: StatsLibraryItem, start: Date, end: Date): boolean {
     return Boolean(item.dateFinished && item.dateFinished >= start && item.dateFinished < end);
   }
-
+  /**
+   * Finds the completed book with the highest estimated page count.
+   */
   private longestCompletedBook(
     completed: StatsLibraryItem[],
     fallbackPages: number,
@@ -257,7 +284,9 @@ export class StatsService {
 
     return longest ? this.toBookHighlight(longest, fallbackPages) : null;
   }
-
+  /**
+   * Aggregates completed books and estimated pages into fixed Jan-Dec buckets.
+   */
   private monthlyCompletions(
     completed: StatsLibraryItem[],
     fallbackPages: number,
@@ -281,19 +310,28 @@ export class StatsService {
 
     return months;
   }
-
+  /**
+   * Converts nullable Prisma decimals into nullable JavaScript numbers.
+   */
   private numberFromDecimal(value: null | Prisma.Decimal): null | number {
     return value ? value.toNumber() : null;
   }
-
+  /**
+   * Converts the current owner context into the shared Prisma ownership predicate.
+   */
   private ownerWhere(owner: OwnerContext): ReturnType<typeof ownerRecord> {
     return ownerRecord(owner);
   }
-
+  /**
+   * Picks the primary author for ranking and highlight displays.
+   */
   private primaryAuthor(item: StatsLibraryItem): string {
     return item.book.primaryAuthor ?? item.book.authors[0] ?? '';
   }
-
+  /**
+   * Counts active shelf memberships for every library item. Items with no active memberships are
+   * counted under Unshelved to match the library response fallback.
+   */
   private shelfBreakdown(
     items: StatsLibraryItem[],
     shelves: StatsShelf[],
@@ -316,6 +354,8 @@ export class StatsService {
       );
 
       if (activeMemberships.length === 0) {
+        // Deactivated shelves keep their memberships in the database, but stats should show the
+        // same effective Unshelved behavior as the rest of the app.
         const key = unshelved?.id ?? 'unshelved';
         const current = counts.get(key) ?? {
           count: 0,
@@ -342,14 +382,18 @@ export class StatsService {
 
     return [...counts.values()].filter((shelf) => shelf.count > 0);
   }
-
+  /**
+   * Counts all library items by explicit reading status.
+   */
   private statusBreakdown(items: StatsLibraryItem[]): StatsStatusBreakdownResponseDto[] {
     return Object.values(LibraryItemStatus).map((status) => ({
       count: items.filter((item) => item.status === status).length,
       status,
     }));
   }
-
+  /**
+   * Maps a library item into the compact highlight card shape used by stats views.
+   */
   private toBookHighlight(
     item: StatsLibraryItem,
     fallbackPages: number,
@@ -365,7 +409,9 @@ export class StatsService {
       title: item.book.title,
     };
   }
-
+  /**
+   * Returns up to five completed books sorted by rating, then most recent completion.
+   */
   private topRatedBooks(
     completed: StatsLibraryItem[],
     fallbackPages: number,
@@ -380,7 +426,9 @@ export class StatsService {
       .slice(0, 5)
       .map((item) => this.toBookHighlight(item, fallbackPages));
   }
-
+  /**
+   * Builds UTC-exclusive year bounds for consistent server-side aggregation.
+   */
   private yearBounds(year: number): { end: Date; start: Date } {
     return {
       end: new Date(Date.UTC(year + 1, 0, 1)),

@@ -4,6 +4,9 @@ import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
 
 import { BookInputDto } from './book-input.dto';
 
+/**
+ * Overview: Defines the Add Library Item Request DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class AddLibraryItemRequestDto {
   @ApiProperty({ type: BookInputDto })
   @ValidateNested()

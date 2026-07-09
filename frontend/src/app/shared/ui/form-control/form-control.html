@@ -1,4 +1,8 @@
-<label class="form-control" [class.form-control--compact]="size() === 'compact'" [class.form-control--invalid]="showError()">
+<label
+  class="form-control"
+  [class.form-control--compact]="size() === 'compact'"
+  [class.form-control--invalid]="showError()"
+>
   <span class="form-control__label">{{ label() }}</span>
 
   <span class="form-control__field">
@@ -7,12 +11,21 @@
     }
 
     @if (kind() === 'select') {
-      <select class="form-control__native" [formField]="textControl()" [attr.aria-describedby]="describedBy()">
+      <select
+        class="form-control__native"
+        [formField]="textControl()"
+        [attr.aria-describedby]="describedBy()"
+      >
         <ng-content />
       </select>
       <i class="form-control__trailing-icon ph ph-caret-down" aria-hidden="true"></i>
     } @else if (kind() === 'textarea') {
-      <textarea class="form-control__native" [rows]="rows()" [formField]="textControl()" [attr.aria-describedby]="describedBy()"></textarea>
+      <textarea
+        class="form-control__native"
+        [rows]="rows()"
+        [formField]="textControl()"
+        [attr.aria-describedby]="describedBy()"
+      ></textarea>
     } @else {
       <input
         class="form-control__native"
@@ -25,7 +38,11 @@
   </span>
 
   @if (messageText()) {
-    <span class="form-control__message" [class.form-control__message--error]="showError()" [id]="messageId">
+    <span
+      class="form-control__message"
+      [class.form-control__message--error]="showError()"
+      [id]="messageId"
+    >
       {{ messageText() }}
     </span>
   }

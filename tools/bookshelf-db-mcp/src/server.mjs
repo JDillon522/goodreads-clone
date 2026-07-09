@@ -1,44 +1,65 @@
 #!/usr/bin/env node
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import pg from 'pg';
-import { z } from 'zod';
-import { assertReadonlySql, normalizeQueryLimit, SqlSafetyError } from './sql-safety.mjs';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import pg from "pg";
+import { z } from "zod";
+import {
+  assertReadonlySql,
+  normalizeQueryLimit,
+  SqlSafetyError,
+} from "./sql-safety.mjs";
 
+/**
+ * Overview: Starts the read-only Bookshelf Postgres MCP server and exposes safe inspection tools over stdio.
+ */
 const { Pool, escapeIdentifier } = pg;
 
-const DEFAULT_DATABASE_URL = 'postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf';
-const DEFAULT_SCHEMA = 'public';
+const DEFAULT_DATABASE_URL =
+  "postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf";
+const DEFAULT_SCHEMA = "public";
 const DEFAULT_MAX_ROWS = 200;
 const DEFAULT_STATEMENT_TIMEOUT_MS = 5000;
 
-const databaseUrl = process.env.BOOKSHELF_MCP_DATABASE_URL ?? process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL;
-const defaultSchema = readIdentifierEnv('BOOKSHELF_MCP_SCHEMA', DEFAULT_SCHEMA);
-const maxRows = readPositiveIntEnv('BOOKSHELF_MCP_MAX_ROWS', DEFAULT_MAX_ROWS);
-const statementTimeoutMs = readPositiveIntEnv('BOOKSHELF_MCP_STATEMENT_TIMEOUT_MS', DEFAULT_STATEMENT_TIMEOUT_MS);
+const databaseUrl =
+  process.env.BOOKSHELF_MCP_DATABASE_URL ??
+  process.env.DATABASE_URL ??
+  DEFAULT_DATABASE_URL;
+const defaultSchema = readIdentifierEnv("BOOKSHELF_MCP_SCHEMA", DEFAULT_SCHEMA);
+const maxRows = readPositiveIntEnv("BOOKSHELF_MCP_MAX_ROWS", DEFAULT_MAX_ROWS);
+const statementTimeoutMs = readPositiveIntEnv(
+  "BOOKSHELF_MCP_STATEMENT_TIMEOUT_MS",
+  DEFAULT_STATEMENT_TIMEOUT_MS,
+);
 
 const pool = new Pool({
-  application_name: 'bookshelf-db-mcp',
+  application_name: "bookshelf-db-mcp",
   connectionString: databaseUrl,
-  max: 2
+  max: 2,
 });
 
 const server = new McpServer({
-  name: 'bookshelf-db-mcp',
-  version: '0.1.0'
+  name: "bookshelf-db-mcp",
+  version: "0.1.0",
 });
 
 server.registerTool(
-  'database_overview',
+  "database_overview",
   {
-    title: 'Database overview',
-    description: 'Show the connected database, current user, active schema, and relation counts.',
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
+    title: "Database overview",
+    description:
+      "Show the connected database, current user, active schema, and relation counts.",
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
   },
   async () => {
     const result = await withReadonlyClient(async (client) => {
-      const database = await client.query('select current_database() as database, current_user as user, version() as version');
+      const database = await client.query(
+        "select current_database() as database, current_user as user, version() as version",
+      );
       const relations = await client.query(
         `
           select table_type, count(*)::int as count
@@ -47,7 +68,7 @@ server.registerTool(
           group by table_type
           order by table_type
         `,
-        [defaultSchema]
+        [defaultSchema],
       );
 
       return {
@@ -56,33 +77,46 @@ server.registerTool(
           user: database.rows[0]?.user,
           schema: defaultSchema,
           maxRows,
-          statementTimeoutMs
+          statementTimeoutMs,
         },
         version: database.rows[0]?.version,
-        relationCounts: relations.rows
+        relationCounts: relations.rows,
       };
     });
 
     return jsonResult(result);
-  }
+  },
 );
 
 server.registerTool(
-  'list_tables',
+  "list_tables",
   {
-    title: 'List tables',
-    description: 'List tables, and optionally views, for a schema.',
+    title: "List tables",
+    description: "List tables, and optionally views, for a schema.",
     inputSchema: {
-      schema: z.string().min(1).default(defaultSchema).describe('Postgres schema name. Defaults to public.'),
-      includeViews: z.boolean().default(true).describe('Whether to include views in the result.')
+      schema: z
+        .string()
+        .min(1)
+        .default(defaultSchema)
+        .describe("Postgres schema name. Defaults to public."),
+      includeViews: z
+        .boolean()
+        .default(true)
+        .describe("Whether to include views in the result."),
     },
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
   },
   async ({ schema, includeViews }) => {
-    assertIdentifier(schema, 'schema');
+    assertIdentifier(schema, "schema");
 
     const result = await withReadonlyClient(async (client) => {
-      const relationTypes = includeViews ? ['BASE TABLE', 'VIEW'] : ['BASE TABLE'];
+      const relationTypes = includeViews
+        ? ["BASE TABLE", "VIEW"]
+        : ["BASE TABLE"];
       const response = await client.query(
         `
           select table_schema, table_name, table_type
@@ -91,35 +125,44 @@ server.registerTool(
             and table_type = any($2::text[])
           order by table_type, table_name
         `,
-        [schema, relationTypes]
+        [schema, relationTypes],
       );
 
       return {
         schema,
         includeViews,
         count: response.rowCount,
-        relations: response.rows
+        relations: response.rows,
       };
     });
 
     return jsonResult(result);
-  }
+  },
 );
 
 server.registerTool(
-  'describe_table',
+  "describe_table",
   {
-    title: 'Describe table',
-    description: 'Show columns, constraints, indexes, and foreign keys for a table.',
+    title: "Describe table",
+    description:
+      "Show columns, constraints, indexes, and foreign keys for a table.",
     inputSchema: {
-      schema: z.string().min(1).default(defaultSchema).describe('Postgres schema name. Defaults to public.'),
-      table: z.string().min(1).describe('Table name to inspect.')
+      schema: z
+        .string()
+        .min(1)
+        .default(defaultSchema)
+        .describe("Postgres schema name. Defaults to public."),
+      table: z.string().min(1).describe("Table name to inspect."),
     },
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
   },
   async ({ schema, table }) => {
-    assertIdentifier(schema, 'schema');
-    assertIdentifier(table, 'table');
+    assertIdentifier(schema, "schema");
+    assertIdentifier(table, "table");
 
     const result = await withReadonlyClient(async (client) => {
       const [columns, constraints, indexes, foreignKeys] = await Promise.all([
@@ -131,7 +174,7 @@ server.registerTool(
               and table_name = $2
             order by ordinal_position
           `,
-          [schema, table]
+          [schema, table],
         ),
         client.query(
           `
@@ -145,7 +188,7 @@ server.registerTool(
               and tc.table_name = $2
             order by tc.constraint_type, tc.constraint_name, kcu.ordinal_position
           `,
-          [schema, table]
+          [schema, table],
         ),
         client.query(
           `
@@ -155,7 +198,7 @@ server.registerTool(
               and tablename = $2
             order by indexname
           `,
-          [schema, table]
+          [schema, table],
         ),
         client.query(
           `
@@ -179,8 +222,8 @@ server.registerTool(
               and tc.table_name = $2
             order by tc.constraint_name, kcu.ordinal_position
           `,
-          [schema, table]
-        )
+          [schema, table],
+        ),
       ]);
 
       return {
@@ -189,29 +232,46 @@ server.registerTool(
         columns: columns.rows,
         constraints: constraints.rows,
         indexes: indexes.rows,
-        foreignKeys: foreignKeys.rows
+        foreignKeys: foreignKeys.rows,
       };
     });
 
     return jsonResult(result);
-  }
+  },
 );
 
 server.registerTool(
-  'query_readonly',
+  "query_readonly",
   {
-    title: 'Query read-only',
-    description: 'Run a single read-only SELECT/WITH/VALUES query with an enforced result limit.',
+    title: "Query read-only",
+    description:
+      "Run a single read-only SELECT/WITH/VALUES query with an enforced result limit.",
     inputSchema: {
-      sql: z.string().min(1).max(20_000).describe('A single SELECT, WITH, or VALUES query. Do not include a trailing semicolon.'),
+      sql: z
+        .string()
+        .min(1)
+        .max(20_000)
+        .describe(
+          "A single SELECT, WITH, or VALUES query. Do not include a trailing semicolon.",
+        ),
       params: z
         .array(z.union([z.string(), z.number(), z.boolean(), z.null()]))
         .max(50)
         .default([])
-        .describe('Optional positional parameters for $1, $2, etc.'),
-      limit: z.number().int().positive().max(1000).optional().describe('Maximum rows to return. Capped by BOOKSHELF_MCP_MAX_ROWS.')
+        .describe("Optional positional parameters for $1, $2, etc."),
+      limit: z
+        .number()
+        .int()
+        .positive()
+        .max(1000)
+        .optional()
+        .describe("Maximum rows to return. Capped by BOOKSHELF_MCP_MAX_ROWS."),
     },
-    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true }
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    },
   },
   async ({ sql, params, limit }) => {
     const readonlySql = assertReadonlySql(sql);
@@ -219,39 +279,46 @@ server.registerTool(
     const limitParamIndex = params.length + 1;
 
     const result = await withReadonlyClient(async (client) => {
-      const response = await client.query(`select * from (${readonlySql}) as bookshelf_mcp_result limit $${limitParamIndex}`, [...params, rowLimit]);
+      const response = await client.query(
+        `select * from (${readonlySql}) as bookshelf_mcp_result limit $${limitParamIndex}`,
+        [...params, rowLimit],
+      );
 
       return {
         rowCount: response.rowCount,
         returnedRows: response.rows.length,
         limit: rowLimit,
         columns: response.fields.map((field) => field.name),
-        rows: response.rows
+        rows: response.rows,
       };
     });
 
     return jsonResult(result);
-  }
+  },
 );
 
 async function withReadonlyClient(callback) {
   const client = await pool.connect();
 
   try {
-    await client.query('begin read only');
+    // Every tool call runs in a read-only transaction with local timeouts so slow
+    // or blocked inspection queries cannot hold the development database hostage.
+    await client.query("begin read only");
     await client.query(`set local statement_timeout = ${statementTimeoutMs}`);
     await client.query(`set local lock_timeout = ${statementTimeoutMs}`);
-    await client.query(`set local search_path to ${escapeIdentifier(defaultSchema)}, pg_catalog`);
+    await client.query(
+      `set local search_path to ${escapeIdentifier(defaultSchema)}, pg_catalog`,
+    );
 
     const result = await callback(client);
-    await client.query('commit');
+    await client.query("commit");
     return result;
   } catch (error) {
     await rollbackQuietly(client);
 
     if (error instanceof SqlSafetyError) {
       return {
-        error: error.message
+        error: error.message,
       };
     }
 
@@ -263,23 +330,27 @@ async function withReadonlyClient(callback) {
 
 async function rollbackQuietly(client) {
   try {
-    await client.query('rollback');
+    await client.query("rollback");
   } catch {
     // Ignore rollback failures so the original error can surface.
   }
 }
-
+/**
+ * Wraps JSON data as an MCP text result so clients can render it consistently.
+ */
 function jsonResult(value) {
   return {
     content: [
       {
-        type: 'text',
-        text: JSON.stringify(value, null, 2)
-      }
-    ]
+        type: "text",
+        text: JSON.stringify(value, null, 2),
+      },
+    ],
   };
 }
-
+/**
+ * Reads positive integer environment overrides for query limits and timeouts.
+ */
 function readPositiveIntEnv(name, fallback) {
   const value = process.env[name];
 
@@ -295,13 +366,17 @@ function readPositiveIntEnv(name, fallback) {
 
   return parsed;
 }
-
+/**
+ * Reads schema-like environment values and rejects anything beyond simple identifiers.
+ */
 function readIdentifierEnv(name, fallback) {
   const value = process.env[name] || fallback;
   assertIdentifier(value, name);
   return value;
 }
-
+/**
+ * Guards metadata tools from using unsafe schema or table identifier strings.
+ */
 function assertIdentifier(value, label) {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(value)) {
     throw new Error(`${label} must be a simple Postgres identifier.`);
@@ -313,7 +388,7 @@ async function main() {
   await server.connect(transport);
 }
 
-for (const signal of ['SIGINT', 'SIGTERM']) {
+for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, async () => {
     await pool.end();
     process.exit(0);

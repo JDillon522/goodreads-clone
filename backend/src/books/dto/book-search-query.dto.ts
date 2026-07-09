@@ -1,16 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-  MinLength,
-} from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
+/**
+ * Overview: Defines the Book Search Query DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
+ */
 export class BookSearchQueryDto {
   @ApiProperty({
     description: 'Search terms for title, author, ISBN, or subject.',

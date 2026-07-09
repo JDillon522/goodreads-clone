@@ -5,6 +5,9 @@ import { DatabaseModule } from '../database/database.module';
 import { GuestController } from './guest.controller';
 import { GuestService } from './guest.service';
 
+/**
+ * Wires guest-session creation with database access and activity logging.
+ */
 @Module({
   controllers: [GuestController],
   exports: [GuestService],

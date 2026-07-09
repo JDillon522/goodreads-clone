@@ -3,6 +3,9 @@ import { createParamDecorator, ExecutionContext, UnauthorizedException } from '@
 import type { OwnerContext } from './owner-context';
 import type { OwnerRequest } from './owner-request';
 
+/**
+ * Extracts the normalized owner context attached by OwnerTokenGuard.
+ */
 export const CurrentOwner = createParamDecorator(
   (_data: unknown, context: ExecutionContext): OwnerContext => {
     const request = context.switchToHttp().getRequest<OwnerRequest>();
