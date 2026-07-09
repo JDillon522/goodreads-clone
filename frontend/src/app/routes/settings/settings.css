@@ -55,6 +55,11 @@
     box-shadow var(--motion-fast) var(--motion-ease);
 }
 
+.segmented-control button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .segmented-control button.is-active {
   background: var(--color-accent);
   color: var(--color-on-accent);
@@ -70,6 +75,81 @@
   color: var(--color-text-secondary);
 }
 
+.theme-source {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  max-inline-size: 42rem;
+}
+
+.theme-source img {
+  inline-size: 4rem;
+  aspect-ratio: 2 / 3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-book);
+  object-fit: cover;
+}
+
+.theme-swatches {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.theme-swatch {
+  display: grid;
+  grid-template-columns: 2rem minmax(8rem, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  min-block-size: 2.5rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-2);
+}
+
+.theme-swatch__color {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-swatch__meta {
+  display: grid;
+  gap: 0.1rem;
+  min-inline-size: 0;
+}
+
+.theme-swatch__meta strong {
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.theme-swatch__meta code,
+.theme-swatch__value {
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.theme-swatch__value {
+  justify-self: end;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.success-message {
+  color: var(--color-success);
+}
+
+.error-message {
+  color: var(--color-error);
+}
+
 .danger-button {
   justify-self: start;
   min-block-size: 2.5rem;
@@ -79,4 +159,19 @@
   color: var(--color-error);
   padding-inline: var(--space-4);
   font-weight: var(--font-semibold);
+}
+
+@media (max-width: 40rem) {
+  .theme-source {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-swatch {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .theme-swatch__value {
+    grid-column: 2;
+    justify-self: start;
+  }
 }

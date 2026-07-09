@@ -160,6 +160,7 @@ Authoritative v1 defaults:
 | 2026-07-08 | Session validation guard                                   | App routes validate stored user or guest tokens through `/api/session/status` before loading the shell; stale sessions are cleared and redirected to sign-in.                                                                                          |
 | 2026-07-09 | Source documentation standard                              | Runtime TS/JS files should carry a useful top-of-file overview after imports and JSDoc for meaningful functions/methods; generated files, specs, and routine HTML/CSS stay comment-light.                                                              |
 | 2026-07-09 | Flow Ninja-inspired visual direction                       | Borrow Flow Ninja's sharper product polish: stronger contrast, deliberate hover/focus motion, raised panels, tactile navigation, and metric-forward stats without copying agency-site structure.                                                       |
+| 2026-07-09 | Book-cover palette theming                                 | Theme preferences now support default, automatic top-book, and custom-book cover palettes; generated palettes store both light and dark CSS token sets and only override accent/highlight-style variables.                                             |
 
 ## Open Questions
 
@@ -238,3 +239,5 @@ Authoritative v1 defaults:
 - Documented local tooling code for `bin/run`, the local CA wrapper, and the read-only Postgres MCP server while keeping generated files, specs, and routine HTML/CSS untouched.
 - Verified the documentation pass with script syntax checks, `npm run typecheck`, `npm run test`, `npm run build:backend`, `npm run build:frontend`, `npm run format:check`, and `git diff --check`; Angular build/typecheck required the usual unsandboxed rerun after sandbox exit 134.
 - Applied a Flow Ninja-inspired product polish pass across the frontend: higher-contrast tokens, stronger shared button/form/dialog styling, tactile sidebar hover/active states, a more action-led landing hero, raised book/filter/shelf panels, and metric-forward stats cards.
+- Added persisted book-cover theming: owner preferences can keep default colors, auto-generate from the user's top rated covered book, or manually use a selected book detail cover as the custom palette source.
+- Added backend palette extraction with Open Library cover URL allowlisting, JPEG decoding, light/dark token generation, preference DTOs/endpoints, regenerated OpenAPI frontend types, Settings color-source controls, and a book-detail `Use cover as theme` action.

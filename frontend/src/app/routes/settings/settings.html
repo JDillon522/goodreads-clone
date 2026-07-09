@@ -32,6 +32,73 @@
   </section>
 
   <section class="settings-panel">
+    <h2>Book colors</h2>
+    <div class="segmented-control" aria-label="Book color source">
+      <button
+        type="button"
+        (click)="setPaletteMode('default')"
+        [class.is-active]="theme.paletteMode() === 'default'"
+      >
+        Default
+      </button>
+      <button
+        type="button"
+        (click)="setPaletteMode('autoTopBook')"
+        [class.is-active]="theme.paletteMode() === 'autoTopBook'"
+      >
+        Top book
+      </button>
+      <button
+        type="button"
+        [disabled]="theme.paletteMode() !== 'customBook'"
+        [class.is-active]="theme.paletteMode() === 'customBook'"
+      >
+        Custom book
+      </button>
+    </div>
+
+    @if (theme.paletteSource(); as source) {
+      <div class="theme-source">
+        @if (source.coverUrl) {
+          <img [src]="source.coverUrl" [alt]="source.title + ' cover'" />
+        }
+        <div>
+          <p class="muted">Using {{ source.title }}.</p>
+          @if (theme.palette(); as palette) {
+            <div class="theme-swatches" aria-label="Active book color swatches">
+              @for (swatch of themeSwatches; track swatch.tone + swatch.token) {
+                <div class="theme-swatch">
+                  <span
+                    class="theme-swatch__color"
+                    [style.background]="palette[swatch.tone][swatch.token]"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="theme-swatch__meta">
+                    <strong>{{ swatch.label }}</strong>
+                    <code>{{ swatch.token }}</code>
+                  </span>
+                  <span class="theme-swatch__value">
+                    {{ palette[swatch.tone][swatch.token] }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    } @else if (theme.paletteMode() === 'autoTopBook') {
+      <p class="muted">No covered library book is available for automatic colors yet.</p>
+    }
+
+    @if (status()) {
+      <p class="success-message">{{ status() }}</p>
+    }
+    @if (error()) {
+      <p class="error-message" role="alert">{{ error() }}</p>
+    }
+  </section>
+
+  <section class="settings-panel">
     <h2>Session</h2>
     <p class="muted">
       @if (session.isGuest()) {

@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import type { LibraryItemResponse, ShelfResponse } from '../../core/api/api.types';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
+import { Theme } from '../../core/theme/theme';
 import { BookDetail } from './book-detail';
 
 const timestamp = '2026-07-08T12:00:00.000Z';
@@ -50,6 +51,9 @@ function libraryItem(overrides: Partial<LibraryItemResponse> = {}): LibraryItemR
 
 class MockLibrary {
   private currentItem = libraryItem();
+  public setCurrentItem(item: LibraryItemResponse): void {
+    this.currentItem = item;
+  }
 
   public readonly addShelf = vi.fn(async (_id: string, _request: { shelfId: string }) => {
     this.currentItem = { ...this.currentItem, shelves: [readShelf, fantasyShelf] };
@@ -57,17 +61,22 @@ class MockLibrary {
   });
   public readonly get = vi.fn(async () => this.currentItem);
   public readonly removeShelf = vi.fn(async (_id: string, shelfId: string) => {
-    this.currentItem = { ...this.currentItem, shelves: this.currentItem.shelves.filter((shelf) => shelf.id !== shelfId) };
+    this.currentItem = {
+      ...this.currentItem,
+      shelves: this.currentItem.shelves.filter((shelf) => shelf.id !== shelfId),
+    };
     return this.currentItem;
   });
   public readonly update = vi.fn(async (_id: string, request: Partial<LibraryItemResponse>) => {
     this.currentItem = { ...this.currentItem, ...request };
     return this.currentItem;
   });
-  public readonly updateProgress = vi.fn(async (_id: string, request: Partial<LibraryItemResponse>) => {
-    this.currentItem = { ...this.currentItem, ...request };
-    return this.currentItem;
-  });
+  public readonly updateProgress = vi.fn(
+    async (_id: string, request: Partial<LibraryItemResponse>) => {
+      this.currentItem = { ...this.currentItem, ...request };
+      return this.currentItem;
+    },
+  );
 }
 
 class MockShelves {
@@ -76,19 +85,29 @@ class MockShelves {
   public readonly list = vi.fn(async () => [shelf(readShelf), shelf(fantasyShelf, 0)]);
 }
 
+class MockTheme {
+  public readonly useBookAsCustomTheme = vi.fn().mockResolvedValue(undefined);
+}
+
 describe('BookDetail', () => {
   let library: MockLibrary;
+  let theme: MockTheme;
 
   beforeEach(async () => {
     library = new MockLibrary();
+    theme = new MockTheme();
 
     await TestBed.configureTestingModule({
       imports: [BookDetail],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: 'item-1' })) } },
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ id: 'item-1' })) },
+        },
         { provide: LibraryService, useValue: library },
         { provide: Shelves, useClass: MockShelves },
+        { provide: Theme, useValue: theme },
       ],
     }).compileComponents();
   });
@@ -129,7 +148,9 @@ describe('BookDetail', () => {
     selects()[1].value = 'fantasy';
     selects()[1].dispatchEvent(new Event('input', { bubbles: true }));
     selects()[1].dispatchEvent(new Event('change', { bubbles: true }));
-    element.querySelector<HTMLFormElement>('.shelf-add-form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    element
+      .querySelector<HTMLFormElement>('.shelf-add-form')!
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await fixture.whenStable();
     expect(library.addShelf).toHaveBeenCalledWith('item-1', { shelfId: 'fantasy' });
 
@@ -142,7 +163,10 @@ describe('BookDetail', () => {
     pageInput.dispatchEvent(new Event('input', { bubbles: true }));
     forms()[2].dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await fixture.whenStable();
-    expect(library.updateProgress).toHaveBeenCalledWith('item-1', { currentPage: 42, trackingMode: 'PAGE' });
+    expect(library.updateProgress).toHaveBeenCalledWith('item-1', {
+      currentPage: 42,
+      trackingMode: 'PAGE',
+    });
 
     const reviewSelect = selects().at(-1)!;
     reviewSelect.value = '5';
@@ -151,9 +175,34 @@ describe('BookDetail', () => {
     const notes = element.querySelector<HTMLTextAreaElement>('textarea')!;
     notes.value = 'Loved it.';
     notes.dispatchEvent(new Event('input', { bubbles: true }));
-    forms().at(-1)!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    forms()
+      .at(-1)!
+      .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     await fixture.whenStable();
 
     expect(library.update).toHaveBeenLastCalledWith('item-1', { notes: 'Loved it.', rating: 5 });
+  });
+
+  it('uses the current book cover as a custom theme source', async () => {
+    library.setCurrentItem(
+      libraryItem({
+        book: {
+          ...libraryItem().book,
+          coverUrl: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+        },
+      }),
+    );
+    const fixture = TestBed.createComponent(BookDetail);
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('.cover-theme-button')!
+      .click();
+    await fixture.whenStable();
+
+    expect(theme.useBookAsCustomTheme).toHaveBeenCalledWith('item-1');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Theme updated from this cover.',
+    );
   });
 });

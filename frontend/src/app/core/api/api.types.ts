@@ -31,6 +31,12 @@ export type GuestSessionResponse = Schema<'GuestSessionResponseDto'>;
 
 export type SessionStatusResponse = Schema<'SessionStatusResponseDto'>;
 
+export type ThemePalette = Schema<'ThemePaletteDto'>;
+export type ThemePaletteSource = Schema<'ThemePaletteSourceDto'>;
+export type ThemePaletteTokenSet = Schema<'ThemePaletteTokenSetDto'>;
+export type ThemePreferenceResponse = Schema<'ThemePreferenceResponseDto'>;
+export type UpdateThemePreferenceRequest = Schema<'UpdateThemePreferenceRequestDto'>;
+
 export type BookInput = Schema<'BookInputDto'>;
 export type BookSearchFacets = Schema<'BookSearchFacetsDto'>;
 export type BookSearchFilters = Schema<'BookSearchFiltersDto'>;

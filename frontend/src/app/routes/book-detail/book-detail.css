@@ -25,6 +25,11 @@
   align-items: start;
 }
 
+.cover-stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .book-cover {
   display: grid;
   overflow: hidden;
@@ -179,6 +184,19 @@
   color: var(--color-text-primary);
 }
 
+.cover-theme-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+}
+
+.cover-theme-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .success-message {
   color: var(--color-success);
 }
@@ -193,6 +211,14 @@
   }
 
   .book-cover {
+    inline-size: min(100%, 13rem);
+  }
+
+  .cover-stack {
+    justify-items: start;
+  }
+
+  .cover-theme-button {
     inline-size: min(100%, 13rem);
   }
 }

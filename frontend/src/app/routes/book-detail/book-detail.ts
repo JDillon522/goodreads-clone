@@ -21,6 +21,7 @@ import type {
 } from '../../core/api/api.types';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
+import { Theme } from '../../core/theme/theme';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
 /**
@@ -44,6 +45,7 @@ export class BookDetail {
   private readonly library = inject(LibraryService);
   private readonly route = inject(ActivatedRoute);
   private readonly shelvesService = inject(Shelves);
+  private readonly theme = inject(Theme);
   private readonly progressModel = signal({
     trackingMode: 'PAGE' as 'PAGE' | 'PERCENT',
     currentPage: 0,
@@ -60,6 +62,7 @@ export class BookDetail {
   protected readonly status = signal<string | null>(null);
   protected readonly addingShelf = signal(false);
   protected readonly removingShelfId = signal<string | null>(null);
+  protected readonly applyingTheme = signal(false);
   protected readonly ratingOptions: readonly RatingFormValue[] = ['none', '1', '2', '3', '4', '5'];
   protected readonly itemShelves = computed<ShelfSummaryResponse[]>(() => {
     const item = this.item();
@@ -241,6 +244,29 @@ export class BookDetail {
       this.error.set('Shelf could not be removed.');
     } finally {
       this.removingShelfId.set(null);
+    }
+  }
+  /**
+   * Generates and saves a custom app palette from this book's cover.
+   */
+  protected async useCoverAsTheme(): Promise<void> {
+    const item = this.item();
+
+    if (!item || !this.coverUrl()) {
+      return;
+    }
+
+    this.error.set(null);
+    this.status.set(null);
+    this.applyingTheme.set(true);
+
+    try {
+      await this.theme.useBookAsCustomTheme(item.id);
+      this.status.set('Theme updated from this cover.');
+    } catch {
+      this.error.set('This cover could not be used as a theme.');
+    } finally {
+      this.applyingTheme.set(false);
     }
   }
   /**

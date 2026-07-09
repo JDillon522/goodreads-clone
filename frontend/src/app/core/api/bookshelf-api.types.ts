@@ -561,6 +561,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/preferences/theme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get theme preferences for the current owner. */
+        get: operations["getThemePreference"];
+        /** Update theme preferences for the current owner. */
+        put: operations["updateThemePreference"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session/status": {
         parameters: {
             query?: never;
@@ -1310,6 +1328,96 @@ export interface components {
             currentPage?: number;
             /** @example 50 */
             currentPercent?: number;
+        };
+        ThemePaletteTokenSetDto: {
+            /** @example #eef6f4 */
+            "--color-bg-primary": string;
+            /** @example #dcecea */
+            "--color-bg-secondary": string;
+            /** @example #d3e2dd */
+            "--color-bg-tertiary": string;
+            /** @example #fafdfe */
+            "--color-surface": string;
+            /** @example #fbfcfa */
+            "--color-surface-raised": string;
+            /** @example #bfd4d7 */
+            "--color-border": string;
+            /** @example #d7e6e7 */
+            "--color-border-subtle": string;
+            /** @example #167f9f */
+            "--color-accent": string;
+            /** @example #0e5f79 */
+            "--color-accent-hover": string;
+            /** @example #dff3f8 */
+            "--color-accent-subtle": string;
+            /** @example #eef9fb */
+            "--color-accent-muted": string;
+            /** @example #ffffff */
+            "--color-on-accent": string;
+            /** @example rgba(22, 127, 159, 0.24) */
+            "--color-focus-ring": string;
+            /** @example #d99a19 */
+            "--color-highlight": string;
+            /** @example #fff3d6 */
+            "--color-highlight-subtle": string;
+            /** @example #1d1200 */
+            "--color-on-highlight": string;
+            /** @example #167f9f */
+            "--color-progress": string;
+            /** @example #d99a19 */
+            "--color-rating": string;
+        };
+        ThemePaletteDto: {
+            light: components["schemas"]["ThemePaletteTokenSetDto"];
+            dark: components["schemas"]["ThemePaletteTokenSetDto"];
+        };
+        ThemePaletteSourceDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            libraryItemId?: string | null;
+            /** @example The Left Hand of Darkness */
+            title: string;
+            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            coverUrl: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-07-09T12:00:00.000Z
+             */
+            generatedAt: string;
+        };
+        ThemePreferenceResponseDto: {
+            /**
+             * @example system
+             * @enum {string}
+             */
+            theme: "light" | "dark" | "system";
+            /**
+             * @example customBook
+             * @enum {string}
+             */
+            paletteMode: "default" | "autoTopBook" | "customBook";
+            palette: components["schemas"]["ThemePaletteDto"] | null;
+            source: components["schemas"]["ThemePaletteSourceDto"] | null;
+        };
+        UpdateThemePreferenceRequestDto: {
+            /**
+             * @example dark
+             * @enum {string}
+             */
+            theme?: "light" | "dark" | "system";
+            /**
+             * @example customBook
+             * @enum {string}
+             */
+            paletteMode?: "default" | "autoTopBook" | "customBook";
+            /**
+             * Format: uuid
+             * @description Required when paletteMode is customBook.
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            libraryItemId?: string;
         };
         SessionStatusResponseDto: {
             /** @example true */
@@ -2499,6 +2607,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
+    getThemePreference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemePreferenceResponseDto"];
+                };
+            };
+        };
+    };
+    updateThemePreference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateThemePreferenceRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemePreferenceResponseDto"];
                 };
             };
         };

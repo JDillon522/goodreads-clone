@@ -10,11 +10,24 @@
     <p class="error-message" role="alert">{{ error() }}</p>
   } @else if (item()) {
     <article class="book-detail">
-      <div class="book-cover">
+      <div class="cover-stack">
+        <div class="book-cover">
+          @if (coverUrl()) {
+            <img [src]="coverUrl()" [alt]="item()!.book.title + ' cover'" />
+          } @else {
+            <i class="ph ph-book-open-text" aria-hidden="true"></i>
+          }
+        </div>
         @if (coverUrl()) {
-          <img [src]="coverUrl()" [alt]="item()!.book.title + ' cover'" />
-        } @else {
-          <i class="ph ph-book-open-text" aria-hidden="true"></i>
+          <button
+            class="secondary-button cover-theme-button"
+            type="button"
+            (click)="useCoverAsTheme()"
+            [disabled]="applyingTheme()"
+          >
+            <i class="ph ph-palette" aria-hidden="true"></i>
+            <span>{{ applyingTheme() ? 'Generating...' : 'Use cover as theme' }}</span>
+          </button>
         }
       </div>
 

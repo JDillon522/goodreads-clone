@@ -10,6 +10,7 @@ import { GoalsModule } from './goals/goals.module';
 import { GuestModule } from './guest/guest.module';
 import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
+import { PreferencesModule } from './preferences/preferences.module';
 import { ShelvesModule } from './shelves/shelves.module';
 import { SessionModule } from './session/session.module';
 import { StatsModule } from './stats/stats.module';
@@ -31,6 +32,7 @@ import { StatsModule } from './stats/stats.module';
     GuestModule,
     HealthModule,
     LibraryModule,
+    PreferencesModule,
     ShelvesModule,
     SessionModule,
     StatsModule,

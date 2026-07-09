@@ -18,7 +18,10 @@ import { UiFormControl } from '../../../shared/ui/form-control/form-control';
 export class SignIn {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
-  private readonly model = signal({ email: '', password: '' });
+  private readonly model = signal({
+    email: 'joseph.dillon.522+bookshelf@gmail.com',
+    password: 'MacrossSDF1!',
+  });
 
   protected readonly error = signal<string | null>(null);
   protected readonly signInForm = form(this.model, (path) => {

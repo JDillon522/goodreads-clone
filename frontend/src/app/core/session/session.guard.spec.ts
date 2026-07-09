@@ -9,11 +9,25 @@ import {
 
 import { Session } from './session';
 import { sessionGuard } from './session.guard';
+import { SessionStore } from './session-store';
+import { Theme } from '../theme/theme';
 
 class MockSession {
   public readonly status = vi.fn().mockResolvedValue({
     authenticated: true,
     ownerType: 'USER',
+  });
+}
+
+class MockTheme {
+  public readonly hydrate = vi.fn().mockResolvedValue(undefined);
+}
+
+class MockSessionStore {
+  public readonly hasSession = vi.fn(() => true);
+  public readonly clear = vi.fn(() => {
+    localStorage.clear();
+    sessionStorage.clear();
   });
 }
 
@@ -27,8 +41,14 @@ describe('sessionGuard', () => {
   it('validates stored user sessions through the backend status endpoint', async () => {
     localStorage.setItem('bookshelf.accessToken', 'token');
     const session = new MockSession();
+    const theme = new MockTheme();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Session, useValue: session }],
+      providers: [
+        provideRouter([]),
+        { provide: Session, useValue: session },
+        { provide: SessionStore, useClass: MockSessionStore },
+        { provide: Theme, useValue: theme },
+      ],
     });
 
     const result = await TestBed.runInInjectionContext(() =>
@@ -37,6 +57,7 @@ describe('sessionGuard', () => {
 
     expect(result).toBe(true);
     expect(session.status).toHaveBeenCalled();
+    expect(theme.hydrate).toHaveBeenCalled();
   });
 
   it('clears stale sessions and redirects to sign in when backend validation fails', async () => {
@@ -46,7 +67,12 @@ describe('sessionGuard', () => {
     const session = new MockSession();
     session.status.mockRejectedValueOnce(new Error('Unauthorized'));
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Session, useValue: session }],
+      providers: [
+        provideRouter([]),
+        { provide: Session, useValue: session },
+        { provide: SessionStore, useClass: MockSessionStore },
+        { provide: Theme, useClass: MockTheme },
+      ],
     });
     const router = TestBed.inject(Router);
 
@@ -62,8 +88,15 @@ describe('sessionGuard', () => {
 
   it('redirects anonymous sessions to sign in without calling the backend', async () => {
     const session = new MockSession();
+    const sessionStore = new MockSessionStore();
+    sessionStore.hasSession.mockReturnValue(false);
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: Session, useValue: session }],
+      providers: [
+        provideRouter([]),
+        { provide: Session, useValue: session },
+        { provide: SessionStore, useValue: sessionStore },
+        { provide: Theme, useClass: MockTheme },
+      ],
     });
     const router = TestBed.inject(Router);
 

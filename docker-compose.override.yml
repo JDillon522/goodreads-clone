@@ -28,7 +28,7 @@ services:
     volumes:
       - .:/app
       - backend-node-modules:/app/node_modules
-    command: sh -c "npm run prisma:generate -w backend && npm run start:dev -w backend"
+    command: sh -c "npm install && npm run prisma:generate -w backend && npm run db:migrate:deploy -w backend && npm run start:dev -w backend"
 
   frontend:
     build:

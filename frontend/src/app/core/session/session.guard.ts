@@ -3,6 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { Session } from './session';
 import { SessionStore } from './session-store';
+import { Theme } from '../theme/theme';
 
 /**
  * App-area route guard that validates stored tokens before protected routes render.
@@ -13,16 +14,25 @@ import { SessionStore } from './session-store';
  */
 export const sessionGuard: CanActivateFn = async () => {
   const session = inject(SessionStore);
+  const sessionApi = inject(Session);
+  const theme = inject(Theme);
   const router = inject(Router);
 
   if (session.hasSession()) {
     try {
-      await inject(Session).status();
-      return true;
+      await sessionApi.status();
     } catch {
       session.clear();
       return router.createUrlTree(['/auth/sign-in']);
     }
+
+    try {
+      await theme.hydrate();
+    } catch {
+      // Session validation controls route access; theme hydration is cosmetic and can retry later.
+    }
+
+    return true;
   }
 
   return router.createUrlTree(['/auth/sign-in']);

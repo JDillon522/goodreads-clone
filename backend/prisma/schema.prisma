@@ -45,6 +45,12 @@ enum ThemePreference {
   SYSTEM
 }
 
+enum ThemePaletteMode {
+  AUTO_TOP_BOOK
+  CUSTOM_BOOK
+  DEFAULT
+}
+
 enum UserRole {
   ADMIN
   USER
@@ -241,16 +247,22 @@ model ReadingGoal {
 }
 
 model UserPreference {
-  id             String          @id @default(uuid()) @db.Uuid
-  userId         String?         @unique @db.Uuid
-  guestSessionId String?         @unique @db.Uuid
-  theme          ThemePreference @default(SYSTEM)
-  defaultShelfId String?         @db.Uuid
-  displayMode    String          @default("grid")
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  guestSession   GuestSession?   @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
-  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                              String           @id @default(uuid()) @db.Uuid
+  userId                          String?          @unique @db.Uuid
+  guestSessionId                  String?          @unique @db.Uuid
+  theme                           ThemePreference  @default(SYSTEM)
+  themePaletteMode                ThemePaletteMode @default(DEFAULT)
+  themePalette                    Json?
+  themePaletteSourceLibraryItemId String?          @db.Uuid
+  themePaletteSourceTitle         String?
+  themePaletteSourceCoverUrl      String?
+  themePaletteGeneratedAt         DateTime?
+  defaultShelfId                  String?          @db.Uuid
+  displayMode                     String           @default("grid")
+  createdAt                       DateTime         @default(now())
+  updatedAt                       DateTime         @updatedAt
+  guestSession                    GuestSession?    @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  user                            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ActivityEvent {
