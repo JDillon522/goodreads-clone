@@ -1,32 +1,29 @@
 services:
-
   db:
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:?Set POSTGRES_HOST_PORT in .env}:5432"
 
   backend:
     build:
       target: development
-    env_file:
-      - backend/.env.docker
     environment:
       NODE_ENV: development
-      PORT: 3000
-      API_PREFIX: api
-      CORS_ORIGIN: http://localhost:4200
-      DATABASE_URL: postgresql://bookshelf:bookshelf@db:5432/bookshelf?schema=public
-      JWT_ACCESS_SECRET: dev-only-access-secret-replace-before-deploy
-      JWT_REFRESH_SECRET: dev-only-refresh-secret-replace-before-deploy
-      GUEST_SESSION_TTL_DAYS: 7
+      PORT: ${PORT:-3000}
+      API_PREFIX: ${API_PREFIX:-api}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER in .env}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@${POSTGRES_CONTAINER_HOST:-db}:${POSTGRES_CONTAINER_PORT:-5432}/${POSTGRES_DB:?Set POSTGRES_DB in .env}?schema=${POSTGRES_SCHEMA:-public}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env}
+      GUEST_SESSION_TTL_DAYS: ${GUEST_SESSION_TTL_DAYS:-7}
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
-      GOOGLE_BOOKS_BASE_URL: https://www.googleapis.com/books/v1
-      GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: 8000
-      PASSWORD_RESET_TOKEN_TTL_MINUTES: 30
-      OPEN_LIBRARY_BASE_URL: https://openlibrary.org
-      OPEN_LIBRARY_USER_AGENT: "Bookshelf/0.1.0 (local development; contact: local@example.com)"
-      OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS: 24
-      OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS: 168
-      OPEN_LIBRARY_REQUEST_TIMEOUT_MS: 8000
+      GOOGLE_BOOKS_BASE_URL: ${GOOGLE_BOOKS_BASE_URL:-https://www.googleapis.com/books/v1}
+      GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: ${GOOGLE_BOOKS_REQUEST_TIMEOUT_MS:-8000}
+      PASSWORD_RESET_TOKEN_TTL_MINUTES: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:-30}
+      OPEN_LIBRARY_BASE_URL: ${OPEN_LIBRARY_BASE_URL:-https://openlibrary.org}
+      OPEN_LIBRARY_USER_AGENT: "${OPEN_LIBRARY_USER_AGENT:-Bookshelf/0.1.0 (local development; contact: local@example.com)}"
+      OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS: ${OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS:-24}
+      OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS: ${OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS:-168}
+      OPEN_LIBRARY_REQUEST_TIMEOUT_MS: ${OPEN_LIBRARY_REQUEST_TIMEOUT_MS:-8000}
       NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-/app/certs/local-ca.pem}
     volumes:
       - .:/app

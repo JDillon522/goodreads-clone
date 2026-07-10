@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { LibraryItemStatus, Prisma } from '@prisma/client';
 
+import { bookSummary, type BookMetadataRecord } from '../books/book-metadata.mapper';
+import { BookPersistenceService } from '../books/book-persistence.service';
 import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { calculateGoalStats } from '../goals/goal-rules';
@@ -34,7 +36,6 @@ const monthLabels = [
 ];
 
 const statsLibraryItemInclude = {
-  book: true,
   shelves: {
     include: {
       shelf: true,
@@ -42,9 +43,11 @@ const statsLibraryItemInclude = {
   },
 } satisfies Prisma.LibraryItemInclude;
 
-type StatsLibraryItem = Prisma.LibraryItemGetPayload<{
+type StatsLibraryItemBase = Prisma.LibraryItemGetPayload<{
   include: typeof statsLibraryItemInclude;
 }>;
+type StatsBook = Awaited<ReturnType<BookPersistenceService['ensureBookForIdentity']>>;
+type StatsLibraryItem = StatsLibraryItemBase & { book: StatsBook };
 
 type StatsShelf = Prisma.ShelfGetPayload<Record<string, never>>;
 
@@ -53,7 +56,10 @@ export class StatsService {
   /**
    * Receives Prisma from Nest.
    */
-  public constructor(private readonly prisma: PrismaService) {}
+  public constructor(
+    private readonly bookPersistence: BookPersistenceService,
+    private readonly prisma: PrismaService,
+  ) {}
   /**
    * Builds the stats summary for one owner and calendar year, including all-time status totals and
    * year-scoped completion, goal, progress, and activity metrics.
@@ -100,17 +106,26 @@ export class StatsService {
         },
       }),
     ]);
+    const resolvedItems = await Promise.all(
+      items.map(async (item) => ({
+        ...item,
+        book: await this.bookPersistence.ensureBookForIdentity({
+          isbn10: item.isbn10,
+          isbn13: item.isbn13,
+        }),
+      })),
+    );
     const generatedAt = new Date();
-    const completed = items.filter((item) => this.isFinishedInYear(item, start, end));
+    const completed = resolvedItems.filter((item) => this.isFinishedInYear(item, start, end));
     // Some Open Library records do not have page counts. The estimate keeps totals useful by using
     // known completed books to fill in unknown completed-book page totals.
     const completedPageEstimate = calculateCompletedPageEstimate(
       completed.map((item) => ({
         currentPage: item.currentPage,
-        pageCount: item.book.pageCount,
+        pageCount: this.bookSummary(item).pageCount,
       })),
     );
-    const estimatedPagesInProgress = items
+    const estimatedPagesInProgress = resolvedItems
       .filter((item) => item.status === LibraryItemStatus.READING && !item.dateFinished)
       .reduce((total, item) => total + this.estimateProgressPagesForItem(item), 0);
     const ratedCompleted = completed.filter((item) => typeof item.rating === 'number');
@@ -134,7 +149,7 @@ export class StatsService {
       authors: rankValues(completed.map((item) => this.primaryAuthor(item)).filter(Boolean), 8),
       generatedAt: generatedAt.toISOString(),
       genres: rankValues(
-        completed.flatMap((item) => item.book.genres),
+        completed.flatMap((item) => this.bookSummary(item).genres),
         8,
       ),
       goal: {
@@ -151,20 +166,23 @@ export class StatsService {
         ...completedPageEstimate,
         estimatedPagesInProgress,
       },
-      shelves: this.shelfBreakdown(items, shelves),
-      statuses: this.statusBreakdown(items),
+      shelves: this.shelfBreakdown(resolvedItems, shelves),
+      statuses: this.statusBreakdown(resolvedItems),
       topRatedBooks,
       totals: {
         activityEvents,
         averageRating: this.averageRating(ratedCompleted),
         booksCompleted: completed.length,
-        booksInProgress: items.filter((item) => item.status === LibraryItemStatus.READING).length,
-        booksReadAllTime: items.filter((item) => item.status === LibraryItemStatus.READ).length,
-        booksWantToRead: items.filter((item) => item.status === LibraryItemStatus.WANT_TO_READ)
+        booksInProgress: resolvedItems.filter((item) => item.status === LibraryItemStatus.READING)
           .length,
+        booksReadAllTime: resolvedItems.filter((item) => item.status === LibraryItemStatus.READ)
+          .length,
+        booksWantToRead: resolvedItems.filter(
+          (item) => item.status === LibraryItemStatus.WANT_TO_READ,
+        ).length,
         progressUpdates,
         ratedBooks: ratedCompleted.length,
-        totalLibraryBooks: items.length,
+        totalLibraryBooks: resolvedItems.length,
       },
       year,
     };
@@ -243,8 +261,10 @@ export class StatsService {
    * summary-level fallback average.
    */
   private estimatedCompletedPagesForItem(item: StatsLibraryItem, fallbackPages: number): number {
-    if (typeof item.book.pageCount === 'number' && item.book.pageCount > 0) {
-      return item.book.pageCount;
+    const pageCount = this.bookSummary(item).pageCount;
+
+    if (typeof pageCount === 'number' && pageCount > 0) {
+      return pageCount;
     }
 
     if (typeof item.currentPage === 'number' && item.currentPage > 0) {
@@ -260,7 +280,7 @@ export class StatsService {
     return estimateProgressPages({
       currentPage: item.currentPage,
       currentPercent: this.numberFromDecimal(item.currentPercent),
-      pageCount: item.book.pageCount,
+      pageCount: this.bookSummary(item).pageCount,
     });
   }
   /**
@@ -326,7 +346,9 @@ export class StatsService {
    * Picks the primary author for ranking and highlight displays.
    */
   private primaryAuthor(item: StatsLibraryItem): string {
-    return item.book.primaryAuthor ?? item.book.authors[0] ?? '';
+    const summary = this.bookSummary(item);
+
+    return summary.primaryAuthor ?? summary.authors[0] ?? '';
   }
   /**
    * Counts active shelf memberships for every library item. Items with no active memberships are
@@ -398,15 +420,17 @@ export class StatsService {
     item: StatsLibraryItem,
     fallbackPages: number,
   ): StatsBookHighlightResponseDto {
+    const summary = this.bookSummary(item);
+
     return {
-      coverUrl: item.book.coverUrl,
+      coverUrl: summary.coverUrl,
       dateFinished: item.dateFinished?.toISOString() ?? null,
       estimatedPages: this.estimatedCompletedPagesForItem(item, fallbackPages),
       id: item.id,
-      pageCount: item.book.pageCount,
+      pageCount: summary.pageCount,
       primaryAuthor: this.primaryAuthor(item) || null,
       rating: item.rating,
-      title: item.book.title,
+      title: summary.title,
     };
   }
   /**
@@ -434,5 +458,9 @@ export class StatsService {
       end: new Date(Date.UTC(year + 1, 0, 1)),
       start: new Date(Date.UTC(year, 0, 1)),
     };
+  }
+
+  private bookSummary(item: StatsLibraryItem) {
+    return bookSummary(item.book as BookMetadataRecord);
   }
 }

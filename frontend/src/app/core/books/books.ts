@@ -9,24 +9,22 @@ import type {
 } from '../api/api.types';
 
 /**
- * Books API wrapper for Open Library-backed search and detail lookup.
+ * Books API wrapper for Google-first search/detail lookup and shared book relation endpoints.
  *
  * Search accepts frontend filter state and passes it through to the backend,
- * which composes the Open Library query and returns normalized books plus facets.
+ * which calls Google Books and returns normalized books plus provider-native controls.
  */
-type OpenLibraryDetailType = 'books' | 'works';
 export type BookSearchRequestFilters = {
-  format?: 'ebook';
-  subject?: string;
-  yearFrom?: number;
-  yearTo?: number;
+  filter?: 'ebooks' | 'free-ebooks' | 'full' | 'paid-ebooks';
+  orderBy?: 'newest' | 'relevance';
+  printType?: 'all' | 'books' | 'magazines';
 };
 
 @Injectable({ providedIn: 'root' })
 export class Books {
   private readonly api = inject(ApiClient);
   /**
-   * Searches Open Library through the backend with pagination and optional filters.
+   * Searches Google Books through the backend with pagination and optional filters.
    */
   public search(
     query: string,
@@ -42,12 +40,10 @@ export class Books {
     });
   }
   /**
-   * Loads a normalized Open Library work or edition by provider id.
+   * Loads a normalized Google Books volume by provider id.
    */
-  public detail(type: OpenLibraryDetailType, id: string): Promise<NormalizedBook> {
-    return this.api.get<NormalizedBook>(
-      `/api/books/open-library/${type}/${encodeURIComponent(id)}`,
-    );
+  public googleDetail(id: string): Promise<NormalizedBook> {
+    return this.api.get<NormalizedBook>(`/api/books/google/${encodeURIComponent(id)}`);
   }
   /**
    * Loads detected series context for one persisted shared book.

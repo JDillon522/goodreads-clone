@@ -2,6 +2,7 @@
 "use strict";
 
 const { spawnSync } = require("node:child_process");
+const fs = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
 
@@ -9,12 +10,9 @@ const path = require("node:path");
  * Overview: Provides the human-friendly project command runner for Docker, validation, database, and MCP workflows.
  */
 const repoRoot = path.resolve(__dirname, "..");
-const readonlyRoleSql = path.join(
-  "tools",
-  "bookshelf-db-mcp",
-  "sql",
-  "create-readonly-role.sql",
-);
+const rootEnvPath = path.join(repoRoot, ".env");
+
+loadRootEnv();
 
 const commands = [
   {
@@ -106,9 +104,9 @@ const commands = [
         "db",
         "psql",
         "-U",
-        "bookshelf",
+        requiredEnv("POSTGRES_USER"),
         "-d",
-        "bookshelf",
+        requiredEnv("POSTGRES_DB"),
         ...args,
       ]),
   },
@@ -118,34 +116,7 @@ const commands = [
     summary:
       "Apply the local read-only Postgres role used by the DB MCP server.",
     usage: "bin/run mcp-db-role",
-    run: () =>
-      runAll([
-        [
-          "docker",
-          [
-            "compose",
-            "cp",
-            readonlyRoleSql,
-            "db:/tmp/create-readonly-role.sql",
-          ],
-        ],
-        [
-          "docker",
-          [
-            "compose",
-            "exec",
-            "-T",
-            "db",
-            "psql",
-            "-U",
-            "bookshelf",
-            "-d",
-            "bookshelf",
-            "-f",
-            "/tmp/create-readonly-role.sql",
-          ],
-        ],
-      ]),
+    run: applyMcpDbRole,
   },
   {
     name: "mcp-db",
@@ -244,6 +215,45 @@ async function main() {
 }
 
 /**
+ * Loads root .env values into this process so bin commands share one local configuration source.
+ */
+function loadRootEnv() {
+  if (!fs.existsSync(rootEnvPath)) {
+    return;
+  }
+
+  const content = fs.readFileSync(rootEnvPath, "utf8");
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+
+    if (separatorIndex < 1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1);
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+/**
  * Runs a child command from the repo root and returns its process exit status.
  */
 function run(command, args, options = {}) {
@@ -252,6 +262,30 @@ function run(command, args, options = {}) {
     env: process.env,
     stdio: "inherit",
     ...options,
+  });
+
+  if (result.error) {
+    console.error(`${command} failed: ${result.error.message}`);
+    return 1;
+  }
+
+  if (result.signal) {
+    console.error(`${command} stopped with signal ${result.signal}`);
+    return 1;
+  }
+
+  return result.status ?? 1;
+}
+
+/**
+ * Runs a child command with SQL or other stdin input while inheriting stdout/stderr.
+ */
+function runWithInput(command, args, input) {
+  const result = spawnSync(command, args, {
+    cwd: repoRoot,
+    env: process.env,
+    input,
+    stdio: ["pipe", "inherit", "inherit"],
   });
 
   if (result.error) {
@@ -283,6 +317,64 @@ function runAll(steps) {
 }
 
 /**
+ * Creates or updates the MCP read-only role using root .env credentials.
+ */
+function applyMcpDbRole() {
+  const appUser = requiredEnv("POSTGRES_USER");
+  const database = requiredEnv("POSTGRES_DB");
+  const schema = process.env.POSTGRES_SCHEMA || "public";
+  const readonlyUser = requiredEnv("BOOKSHELF_MCP_POSTGRES_USER");
+  const readonlyPassword = requiredEnv("BOOKSHELF_MCP_POSTGRES_PASSWORD");
+
+  const sql = `
+select format('create role %I login password %L', ${sqlLiteral(readonlyUser)}, ${sqlLiteral(readonlyPassword)})
+where not exists (select 1 from pg_roles where rolname = ${sqlLiteral(readonlyUser)})
+\\gexec
+
+select format('alter role %I with login password %L', ${sqlLiteral(readonlyUser)}, ${sqlLiteral(readonlyPassword)})
+\\gexec
+
+select format('grant connect on database %I to %I', ${sqlLiteral(database)}, ${sqlLiteral(readonlyUser)})
+\\gexec
+
+select format('grant usage on schema %I to %I', ${sqlLiteral(schema)}, ${sqlLiteral(readonlyUser)})
+\\gexec
+
+select format('grant select on all tables in schema %I to %I', ${sqlLiteral(schema)}, ${sqlLiteral(readonlyUser)})
+\\gexec
+
+select format('alter default privileges in schema %I grant select on tables to %I', ${sqlLiteral(schema)}, ${sqlLiteral(readonlyUser)})
+\\gexec
+`;
+
+  return runWithInput(
+    "docker",
+    ["compose", "exec", "-T", "db", "psql", "-U", appUser, "-d", database],
+    sql,
+  );
+}
+
+/**
+ * Reads a required environment variable and fails with an actionable message if it is missing.
+ */
+function requiredEnv(name) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} must be set in the root .env file.`);
+  }
+
+  return value;
+}
+
+/**
+ * Escapes a string for safe SQL literal use in generated local setup SQL.
+ */
+function sqlLiteral(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+/**
  * Delegates to npm scripts while preserving extra arguments after `--`.
  */
 function runNpmScript(scriptName, args) {
@@ -304,7 +396,13 @@ async function doctor() {
   checks.push(checkCommand("docker", ["--version"], "Docker"));
   checks.push(checkCommand("docker", ["compose", "version"], "Docker Compose"));
   checks.push(checkCommand("docker", ["compose", "ps"], "Compose project"));
-  checks.push(await checkTcp("127.0.0.1", 5433, "Postgres host port"));
+  checks.push(
+    await checkTcp(
+      process.env.POSTGRES_HOST || "127.0.0.1",
+      Number(process.env.POSTGRES_HOST_PORT || 5433),
+      "Postgres host port",
+    ),
+  );
   checks.push(
     await checkUrl("http://localhost:3000/api/health", "Backend health"),
   );
@@ -454,7 +552,7 @@ Useful local URLs:
   App/proxy:        http://localhost:8080
   Backend API:      http://localhost:3000/api
   Swagger UI:       http://localhost:3000/docs
-  Postgres host:    127.0.0.1:5433
+  Postgres host:    ${process.env.POSTGRES_HOST || "127.0.0.1"}:${process.env.POSTGRES_HOST_PORT || "5433"}
 
 MCP client command:
   node ${path.join(repoRoot, "bin", "run")} mcp-db
@@ -462,7 +560,8 @@ MCP client command:
 Notes:
   - \`bin/run up\` follows Docker logs in the foreground.
   - \`bin/run up -d\` starts the stack detached.
-  - \`bin/run mcp-db\` is for MCP clients and intentionally writes only protocol data to stdout.
+  - Root \`.env\` is the single runtime env source for Docker, backend, Prisma, seed, and MCP commands.
+  - \`bin/run mcp-db\` is for MCP clients, writes only protocol data to stdout, and sends startup status to stderr.
   - \`bin/run doctor\` checks Docker, Postgres, backend health, proxy health, and route fallback.
 `);
 }

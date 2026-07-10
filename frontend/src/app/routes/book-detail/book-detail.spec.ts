@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { convertToParamMap, ActivatedRoute, provideRouter } from '@angular/router';
+import { convertToParamMap, ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import type { LibraryItemResponse, ShelfResponse } from '../../core/api/api.types';
@@ -15,6 +15,74 @@ const timestamp = '2026-07-08T12:00:00.000Z';
 const readShelf = { id: 'read', name: 'Read', position: 0, slug: 'read' };
 const fantasyShelf = { id: 'fantasy', name: 'Fantasy', position: 1, slug: 'fantasy' };
 
+function testBook(title = 'The Test Book'): LibraryItemResponse['book'] {
+  return {
+    google: {
+      id: 'google-book-1',
+      volumeInfo: {
+        authors: ['Ada Author'],
+        categories: ['Fantasy'],
+        imageLinks: {
+          thumbnail: null,
+        },
+        title,
+      },
+    },
+    id: 'book-1',
+    openLibrary: {
+      coverUrl: null,
+      editionKey: null,
+      firstPublishDate: null,
+      raw: null,
+      sourceUrl: null,
+      subjects: ['Fantasy'],
+      workKey: null,
+    },
+    summary: {
+      authors: ['Ada Author'],
+      averageRating: null,
+      categories: ['Fantasy'],
+      coverImages: {
+        card: null,
+        detail: null,
+        theme: null,
+        thumbnail: null,
+      },
+      coverUrl: null,
+      dedupeKey: 'google:google-book-1',
+      description: null,
+      ebookAccess: null,
+      externalLinks: {
+        buy: null,
+        canonical: null,
+        info: null,
+        preview: null,
+        webReader: null,
+      },
+      genres: ['Fantasy'],
+      googleBooksVolumeId: 'google-book-1',
+      isbn10: null,
+      isbn13: '9780441478125',
+      isReadableOnline: false,
+      language: null,
+      pageCount: 304,
+      primaryAuthor: 'Ada Author',
+      printType: 'BOOK',
+      providerKey: 'google:google-book-1',
+      publishedDate: '2026',
+      publisher: 'Ace Books',
+      ratingsCount: null,
+      subtitle: null,
+      title,
+    },
+    sync: {
+      googleBooksError: null,
+      googleBooksStatus: 'PENDING',
+      googleBooksSyncedAt: null,
+    },
+  };
+}
+
 function shelf(summary: typeof readShelf, itemCount = 1): ShelfResponse {
   return {
     ...summary,
@@ -28,17 +96,7 @@ function shelf(summary: typeof readShelf, itemCount = 1): ShelfResponse {
 
 function libraryItem(overrides: Partial<LibraryItemResponse> = {}): LibraryItemResponse {
   return {
-    book: {
-      authors: ['Ada Author'],
-      genres: ['Fantasy'],
-      googleBooksSyncedAt: null,
-      googleBooksSyncStatus: 'PENDING',
-      googleBooksVolumeId: null,
-      id: 'book-1',
-      sourceId: 'sample:1',
-      sourceProvider: 'SAMPLE',
-      title: 'The Test Book',
-    },
+    book: testBook(),
     createdAt: timestamp,
     currentPage: 12,
     dateAdded: timestamp,
@@ -64,6 +122,7 @@ class MockLibrary {
     return this.currentItem;
   });
   public readonly get = vi.fn(async () => this.currentItem);
+  public readonly delete = vi.fn(async () => undefined);
   public readonly removeShelf = vi.fn(async (_id: string, shelfId: string) => {
     this.currentItem = {
       ...this.currentItem,
@@ -198,6 +257,9 @@ describe('BookDetail', () => {
     const authorLink = element.querySelector<HTMLAnchorElement>('.author-link');
 
     expect(element.textContent).toContain('The Test Book');
+    expect(element.textContent).toContain('Ace Books');
+    expect(element.textContent).toContain('9780441478125');
+    expect(element.textContent).toContain('Fantasy');
     expect(element.textContent).toContain('Test Cycle');
     expect(element.textContent).toContain('The Sequel');
     expect(books.series).toHaveBeenCalledWith('book-1');
@@ -265,8 +327,15 @@ describe('BookDetail', () => {
     library.setCurrentItem(
       libraryItem({
         book: {
-          ...libraryItem().book,
-          coverUrl: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+          ...testBook(),
+          summary: {
+            ...testBook().summary,
+            coverImages: {
+              ...testBook().summary.coverImages,
+              detail: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+            },
+            coverUrl: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+          },
         },
       }),
     );
@@ -282,5 +351,18 @@ describe('BookDetail', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Theme updated from this cover.',
     );
+  });
+
+  it('removes the book from the detail page and returns to the library', async () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(BookDetail);
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.danger-button')!.click();
+    await fixture.whenStable();
+
+    expect(library.delete).toHaveBeenCalledWith('item-1');
+    expect(navigate).toHaveBeenCalledWith(['/app/library']);
   });
 });

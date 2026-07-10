@@ -67,9 +67,19 @@ export const routes: Routes = [
         title: 'Search - Bookshelf',
       },
       {
+        path: 'book/:id',
+        loadComponent: () => import('./routes/book-detail/book-detail').then((m) => m.BookDetail),
+        title: 'Book - Bookshelf',
+      },
+      {
         path: 'books/:id',
         loadComponent: () => import('./routes/book-detail/book-detail').then((m) => m.BookDetail),
         title: 'Book - Bookshelf',
+      },
+      {
+        path: 'book-info/google/:id',
+        loadComponent: () => import('./routes/book-info/book-info').then((m) => m.BookInfo),
+        title: 'Book info - Bookshelf',
       },
       {
         path: 'goals',

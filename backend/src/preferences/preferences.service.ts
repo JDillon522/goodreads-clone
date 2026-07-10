@@ -1,6 +1,8 @@
 import { Injectable, Logger, UnprocessableEntityException } from '@nestjs/common';
 import { Prisma, ThemePaletteMode, ThemePreference, type UserPreference } from '@prisma/client';
 
+import { bookSummary, type BookMetadataRecord } from '../books/book-metadata.mapper';
+import { BookPersistenceService } from '../books/book-persistence.service';
 import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { ThemePreferenceResponseDto } from './dto/theme-preference-response.dto';
@@ -16,13 +18,9 @@ import {
  * Owns persisted owner theme preferences, including automatic and manually selected book-cover
  * palettes for authenticated users and guest sessions.
  */
-const themeLibraryItemInclude = {
-  book: true,
-} satisfies Prisma.LibraryItemInclude;
-
-type ThemeLibraryItem = Prisma.LibraryItemGetPayload<{
-  include: typeof themeLibraryItemInclude;
-}>;
+type ThemeLibraryItemBase = Prisma.LibraryItemGetPayload<Record<string, never>>;
+type ThemeBook = Awaited<ReturnType<BookPersistenceService['ensureBookForIdentity']>>;
+type ThemeLibraryItem = ThemeLibraryItemBase & { book: ThemeBook };
 
 @Injectable()
 export class PreferencesService {
@@ -31,6 +29,7 @@ export class PreferencesService {
    * Receives Prisma and the cover palette extractor from Nest.
    */
   public constructor(
+    private readonly bookPersistence: BookPersistenceService,
     private readonly paletteService: ThemePaletteService,
     private readonly prisma: PrismaService,
   ) {}
@@ -148,34 +147,32 @@ export class PreferencesService {
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<ThemeLibraryItem | null> {
-    return this.prisma.libraryItem.findFirst({
-      include: themeLibraryItemInclude,
+    const item = await this.prisma.libraryItem.findFirst({
       where: {
         ...ownerRecord(owner),
         id: libraryItemId,
       },
     });
+
+    return item ? this.withResolvedBook(item) : null;
   }
   /**
    * Finds the strongest covered book: highest rating first, then recent completion/update recency.
    */
   private async findTopThemeItem(owner: OwnerContext): Promise<ThemeLibraryItem | null> {
     const items = await this.prisma.libraryItem.findMany({
-      include: themeLibraryItemInclude,
       take: 100,
-      where: {
-        ...ownerRecord(owner),
-        book: {
-          coverUrl: {
-            not: null,
-          },
-        },
-      },
+      where: ownerRecord(owner),
     });
+    const resolvedItems = await Promise.all(items.map((item) => this.withResolvedBook(item)));
 
     return (
-      items
-        .filter((item) => item.book.coverUrl && isAllowedOpenLibraryCoverUrl(item.book.coverUrl))
+      resolvedItems
+        .filter((item) => {
+          const coverUrl = this.themeCoverUrl(item);
+
+          return Boolean(coverUrl && isAllowedOpenLibraryCoverUrl(coverUrl));
+        })
         .sort(compareThemeItems)[0] ?? null
     );
   }
@@ -203,15 +200,25 @@ export class PreferencesService {
     });
   }
   /**
+   * Resolves the shared metadata cache row for one theme candidate.
+   */
+  private async withResolvedBook(item: ThemeLibraryItemBase): Promise<ThemeLibraryItem> {
+    return {
+      ...item,
+      book: await this.bookPersistence.ensureBookForIdentity({
+        isbn10: item.isbn10,
+        isbn13: item.isbn13,
+      }),
+    };
+  }
+  /**
    * Validates that an item has a supported cover and generates its light/dark token sets.
    */
   private paletteFor(item: ThemeLibraryItem): Promise<ThemePalette> {
-    const coverUrl = item.book.coverUrl;
+    const coverUrl = this.themeCoverUrl(item);
 
     if (!coverUrl || !isAllowedOpenLibraryCoverUrl(coverUrl)) {
-      throw new UnprocessableEntityException(
-        'This book does not have a usable Open Library cover.',
-      );
+      throw new UnprocessableEntityException('This book does not have a usable cover.');
     }
 
     return this.paletteService.createFromCoverUrl(coverUrl);
@@ -224,13 +231,15 @@ export class PreferencesService {
     item: ThemeLibraryItem,
     palette: ThemePalette,
   ): Prisma.UserPreferenceUpdateInput {
+    const summary = this.bookSummary(item);
+
     return {
       themePalette: palette,
       themePaletteGeneratedAt: new Date(),
       themePaletteMode: mode,
-      themePaletteSourceCoverUrl: item.book.coverUrl,
+      themePaletteSourceCoverUrl: summary.coverImages.theme,
       themePaletteSourceLibraryItemId: item.id,
-      themePaletteSourceTitle: item.book.title,
+      themePaletteSourceTitle: summary.title,
     };
   }
   /**
@@ -327,6 +336,14 @@ export class PreferencesService {
           : null,
       theme: fromDatabaseTheme(preference.theme),
     };
+  }
+
+  private bookSummary(item: ThemeLibraryItem) {
+    return bookSummary(item.book as BookMetadataRecord);
+  }
+
+  private themeCoverUrl(item: ThemeLibraryItem): null | string {
+    return this.bookSummary(item).coverImages.theme;
   }
 }
 

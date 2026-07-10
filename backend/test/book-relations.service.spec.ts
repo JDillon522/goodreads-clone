@@ -7,11 +7,7 @@ import { OpenLibraryNormalizerService } from '../src/books/open-library/open-lib
 import { PrismaService } from '../src/database/prisma.service';
 
 const baseBook = {
-  authors: ['Ada Author'],
-  coverUrl: null,
   createdAt: new Date('2026-07-10T12:00:00.000Z'),
-  description: null,
-  genres: ['Fantasy'],
   googleBooksError: null,
   googleBooksRawPayload: null,
   googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
@@ -24,16 +20,12 @@ const baseBook = {
   normalizedTitle: 'the test book',
   openLibraryEditionKey: null,
   openLibraryWorkKey: '/works/OL111W',
-  pageCount: null,
   primaryAuthor: 'Ada Author',
-  publishedDate: '2026',
-  publisher: null,
   rawProviderPayload: null,
   seriesEntries: [],
   sourceId: 'works:OL111W',
   sourceProvider: BookProvider.OPEN_LIBRARY,
   sourceUrl: 'https://openlibrary.org/works/OL111W',
-  subtitle: null,
   title: 'The Test Book',
   updatedAt: new Date('2026-07-10T12:00:00.000Z'),
 };
@@ -163,10 +155,29 @@ describe('BookRelationsService', () => {
   });
 
   function book(overrides: Partial<typeof baseBook> = {}) {
+    const title = 'title' in overrides ? String(overrides.title) : 'The Test Book';
+    const primaryAuthor =
+      'primaryAuthor' in overrides ? String(overrides.primaryAuthor) : 'Ada Author';
+    const rawProviderPayload =
+      overrides.rawProviderPayload ??
+      ({
+        legacy: {
+          authors: [primaryAuthor],
+          genres: ['Fantasy'],
+          primaryAuthor,
+          publishedDate: '2026',
+          sourceUrl: overrides.sourceUrl ?? baseBook.sourceUrl,
+          title,
+        },
+      } as const);
+
     return {
       ...baseBook,
       ...overrides,
       createdAt: overrides.createdAt ?? timestamp,
+      primaryAuthor,
+      rawProviderPayload,
+      title,
       updatedAt: overrides.updatedAt ?? timestamp,
     };
   }

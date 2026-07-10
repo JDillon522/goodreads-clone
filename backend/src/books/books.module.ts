@@ -11,7 +11,7 @@ import { OpenLibraryClientService } from './open-library/open-library-client.ser
 import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
 
 /**
- * Wires Open Library search/detail endpoints, provider client, cache, and normalizer services.
+ * Wires Google-first search/detail endpoints plus Open Library enrichment collaborators.
  */
 @Module({
   controllers: [BooksController],

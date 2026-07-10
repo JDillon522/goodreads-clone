@@ -25,17 +25,70 @@ const unshelved: ShelfResponse = {
 };
 
 function normalizedBook(query: string, page: number): NormalizedBook {
+  const volumeId = `google-${query}-${page}`;
+
   return {
-    authors: [query],
-    dedupeKey: `query:${query}:${page}`,
-    ebookAccess: page === 1 ? 'public' : null,
-    genres: ['Fantasy'],
-    isReadableOnline: page === 1,
-    primaryAuthor: query,
-    provider: 'OPEN_LIBRARY',
-    providerKey: `works:${query}:${page}`,
-    sourceId: `works:${query}:${page}`,
-    title: `${query} Book ${page}`,
+    google: {
+      id: volumeId,
+      volumeInfo: {
+        authors: [query],
+        categories: ['Fantasy'],
+        industryIdentifiers: [{ identifier: '9780441478125', type: 'ISBN_13' }],
+        title: `${query} Book ${page}`,
+      },
+    },
+    id: `book-${volumeId}`,
+    openLibrary: {
+      coverUrl: null,
+      editionKey: null,
+      firstPublishDate: null,
+      raw: null,
+      sourceUrl: null,
+      subjects: ['Fantasy'],
+      workKey: null,
+    },
+    summary: {
+      authors: [query],
+      averageRating: null,
+      categories: ['Fantasy'],
+      coverImages: {
+        card: null,
+        detail: null,
+        theme: null,
+        thumbnail: null,
+      },
+      coverUrl: null,
+      dedupeKey: `isbn13:9780441478125`,
+      description: null,
+      ebookAccess: page === 1 ? 'public' : null,
+      externalLinks: {
+        buy: null,
+        canonical: null,
+        info: null,
+        preview: null,
+        webReader: null,
+      },
+      genres: ['Fantasy'],
+      googleBooksVolumeId: volumeId,
+      isbn10: null,
+      isbn13: '9780441478125',
+      isReadableOnline: page === 1,
+      language: null,
+      pageCount: 304,
+      primaryAuthor: query,
+      printType: 'BOOK',
+      providerKey: `google:${volumeId}`,
+      publishedDate: '1969',
+      publisher: 'Ace Books',
+      ratingsCount: null,
+      subtitle: null,
+      title: `${query} Book ${page}`,
+    },
+    sync: {
+      googleBooksError: null,
+      googleBooksStatus: 'SYNCED',
+      googleBooksSyncedAt: null,
+    },
   };
 }
 
@@ -47,17 +100,20 @@ function searchResponse(
   return {
     count: 1,
     facets: {
-      formats: [{ count: 1, label: 'Readable online / eBook', value: 'ebook' }],
-      publishedDecades: [
-        { count: 1, label: '2020s', value: '2020s', yearFrom: 2020, yearTo: 2029 },
+      availability: [
+        { count: 1, label: 'All availability', value: 'all' },
+        { count: 1, label: 'eBooks', value: 'ebooks' },
       ],
-      subjects: [{ count: 1, label: 'Fantasy', value: 'Fantasy' }],
+      printTypes: [{ count: 1, label: 'Books', value: 'books' }],
+      sortOptions: [
+        { count: 1, label: 'Relevance', value: 'relevance' },
+        { count: 1, label: 'Newest', value: 'newest' },
+      ],
     },
     filters: {
-      format: filters.format ?? null,
-      subject: filters.subject ?? null,
-      yearFrom: filters.yearFrom ?? null,
-      yearTo: filters.yearTo ?? null,
+      filter: filters.filter ?? null,
+      orderBy: filters.orderBy ?? 'relevance',
+      printType: filters.printType ?? 'books',
     },
     items: [normalizedBook(query, page)],
     limit: 10,
@@ -141,14 +197,16 @@ describe('Search', () => {
       'Ada Author',
     );
     expect(element.textContent).toContain('Ada Author Book');
+    expect(element.textContent).toContain('1969 | Ace Books | 304 pages | 9780441478125');
+    expect(element.textContent).toContain('View details');
     expect(element.textContent).toContain('Filters');
-    expect(element.textContent).toContain('2020s');
-    expect(element.textContent).toContain('Fantasy');
-    expect(element.textContent).toContain('Readable online / eBook');
+    expect(element.textContent).toContain('eBooks');
+    expect(element.textContent).toContain('Books');
+    expect(element.textContent).toContain('Newest');
     expect(element.textContent).toContain('Page 1 of 3');
   });
 
-  it('saves a clicked search result and navigates to its detail page', async () => {
+  it('opens clicked search results on the info-only detail page', async () => {
     const fixture = TestBed.createComponent(Search);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -159,10 +217,11 @@ describe('Search', () => {
       .click();
     await fixture.whenStable();
 
-    expect(library.add).toHaveBeenCalledWith({
-      book: normalizedBook('Ada Author', 1),
-    });
-    expect(router.navigate).toHaveBeenLastCalledWith(['/app/book', 'library-item-1']);
+    expect(library.add).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenLastCalledWith([
+      '/app/book-info/google',
+      'google-Ada Author-1',
+    ]);
   });
 
   it('runs a new search when the query string changes', async () => {
@@ -172,12 +231,11 @@ describe('Search', () => {
 
     queryParamMap.next(
       convertToParamMap({
-        format: 'ebook',
+        filter: 'ebooks',
+        orderBy: 'newest',
         page: '2',
+        printType: 'books',
         query: 'Octavia Butler',
-        subject: 'Fantasy',
-        yearFrom: '2020',
-        yearTo: '2029',
       }),
     );
     await waitForAsyncWork();
@@ -185,10 +243,9 @@ describe('Search', () => {
     fixture.detectChanges();
 
     expect(books.search).toHaveBeenLastCalledWith('Octavia Butler', 2, 10, {
-      format: 'ebook',
-      subject: 'Fantasy',
-      yearFrom: 2020,
-      yearTo: 2029,
+      filter: 'ebooks',
+      orderBy: 'newest',
+      printType: 'books',
     });
     expect(fixture.nativeElement.textContent).toContain('Octavia Butler Book 2');
     expect(fixture.nativeElement.textContent).toContain('Page 2 of 3');
@@ -208,8 +265,11 @@ describe('Search', () => {
       [],
       expect.objectContaining({
         queryParams: {
+          filter: null,
           format: null,
+          orderBy: null,
           page: 2,
+          printType: null,
           query: 'Ada Author',
           subject: null,
           yearFrom: null,
@@ -227,21 +287,24 @@ describe('Search', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    const subjectButton = Array.from(
+    const ebookButton = Array.from(
       element.querySelectorAll<HTMLButtonElement>('.facet-chip'),
-    ).find((button) => button.textContent?.includes('Fantasy'))!;
+    ).find((button) => button.textContent?.includes('eBooks'))!;
 
-    subjectButton.click();
+    ebookButton.click();
     await fixture.whenStable();
 
     expect(router.navigate).toHaveBeenCalledWith(
       [],
       expect.objectContaining({
         queryParams: {
+          filter: 'ebooks',
           format: null,
+          orderBy: null,
           page: null,
+          printType: null,
           query: 'Ada Author',
-          subject: 'Fantasy',
+          subject: null,
           yearFrom: null,
           yearTo: null,
         },
@@ -256,12 +319,10 @@ describe('Search', () => {
 
     queryParamMap.next(
       convertToParamMap({
-        format: 'ebook',
+        filter: 'ebooks',
+        orderBy: 'newest',
         page: '2',
         query: 'Ada Author',
-        subject: 'Fantasy',
-        yearFrom: '2020',
-        yearTo: '2029',
       }),
     );
     await waitForAsyncWork();
@@ -276,12 +337,15 @@ describe('Search', () => {
       [],
       expect.objectContaining({
         queryParams: {
-          format: 'ebook',
+          filter: 'ebooks',
+          format: null,
+          orderBy: 'newest',
           page: 3,
+          printType: null,
           query: 'Ada Author',
-          subject: 'Fantasy',
-          yearFrom: 2020,
-          yearTo: 2029,
+          subject: null,
+          yearFrom: null,
+          yearTo: null,
         },
       }),
     );
@@ -293,8 +357,11 @@ describe('Search', () => {
       [],
       expect.objectContaining({
         queryParams: {
+          filter: null,
           format: null,
+          orderBy: null,
           page: null,
+          printType: null,
           query: 'Ada Author',
           subject: null,
           yearFrom: null,

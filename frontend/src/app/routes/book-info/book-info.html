@@ -1,0 +1,143 @@
+<section class="page">
+  <a class="back-link" routerLink="/app/search">
+    <i class="ph ph-arrow-left" aria-hidden="true"></i>
+    <span>Search</span>
+  </a>
+
+  @if (isLoading()) {
+    <p class="muted">Loading book information...</p>
+  } @else if (error() && !book()) {
+    <p class="error-message" role="alert">{{ error() }}</p>
+  } @else if (book()) {
+    <article class="book-info">
+      <div class="cover-stack">
+        <div class="book-cover">
+          @if (coverUrl()) {
+            <img [src]="coverUrl()" [alt]="book()!.summary.title + ' cover'" />
+          } @else {
+            <i class="ph ph-book-open-text" aria-hidden="true"></i>
+          }
+        </div>
+      </div>
+
+      <div class="book-copy">
+        <p class="eyebrow">Google Books</p>
+        <h1>{{ book()!.summary.title }}</h1>
+        @if (primaryAuthor() !== 'Unknown author') {
+          <a
+            class="author author-link"
+            routerLink="/app/search"
+            [queryParams]="{ query: primaryAuthor() }"
+          >
+            {{ primaryAuthor() }}
+          </a>
+        } @else {
+          <p class="author">{{ primaryAuthor() }}</p>
+        }
+
+        @if (!canSaveBook()) {
+          <p class="warning-message" role="alert">
+            This result is missing an ISBN. You can review the details, but it cannot be saved to
+            your library.
+          </p>
+        }
+
+        <p class="description">{{ description() }}</p>
+
+        <dl class="metadata-grid">
+          <div>
+            <dt>Published</dt>
+            <dd>{{ book()!.summary.publishedDate || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>Publisher</dt>
+            <dd>{{ book()!.summary.publisher || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>Pages</dt>
+            <dd>{{ book()!.summary.pageCount || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>ISBN</dt>
+            <dd>{{ book()!.summary.isbn13 || book()!.summary.isbn10 || 'Missing' }}</dd>
+          </div>
+        </dl>
+
+        @if (book()!.summary.genres.length > 0) {
+          <ul class="chip-list" aria-label="Genres">
+            @for (genre of book()!.summary.genres; track genre) {
+              <li>{{ genre }}</li>
+            }
+          </ul>
+        }
+
+        <div class="actions">
+          <button class="primary-button" type="button" (click)="openAddDialog()" [disabled]="!canSaveBook()">
+            <i class="ph ph-plus" aria-hidden="true"></i>
+            <span>Add to library</span>
+          </button>
+          @if (book()!.summary.externalLinks.info) {
+            <a
+              class="secondary-button"
+              [href]="book()!.summary.externalLinks.info"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+              <span>Open source</span>
+            </a>
+          }
+        </div>
+
+        @if (status()) {
+          <p class="success-message">{{ status() }}</p>
+        }
+        @if (error()) {
+          <p class="error-message" role="alert">{{ error() }}</p>
+        }
+      </div>
+    </article>
+  }
+</section>
+
+<dialog #addBookDialog class="dialog">
+  <form class="dialog__body" (submit)="submitAddBook($event)">
+    <header class="dialog__header">
+      <div>
+        <p class="eyebrow">Add book</p>
+        <h2>{{ book()?.summary?.title ?? 'Choose shelf' }}</h2>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        (click)="closeAddDialog()"
+        aria-label="Close add book dialog"
+      >
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (isLoadingShelves()) {
+      <p class="muted">Loading shelves...</p>
+    } @else if (shelves().length === 0) {
+      <p class="error-message" role="alert">Create a shelf before adding books.</p>
+    } @else {
+      <app-form-control label="Shelf" kind="select" [control]="shelfPickerForm.shelfId">
+        @for (shelf of shelves(); track shelf.id) {
+          <option [value]="shelf.id">{{ shelf.name }}</option>
+        }
+      </app-form-control>
+    }
+
+    <footer class="dialog__actions">
+      <button class="secondary-button" type="button" (click)="closeAddDialog()">Cancel</button>
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="shelves().length === 0 || shelfPickerForm().submitting() || isAdding()"
+      >
+        {{ shelfPickerForm().submitting() || isAdding() ? 'Adding...' : 'Add book' }}
+      </button>
+    </footer>
+  </form>
+</dialog>

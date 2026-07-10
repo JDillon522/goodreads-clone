@@ -7,15 +7,16 @@ import {
 import { ActivityEventType, LibraryItemStatus, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
+import { bookSummary, type BookMetadataRecord } from '../books/book-metadata.mapper';
 import {
   BookPersistenceService,
+  type BookIdentity,
   type BookPersistenceExecutor,
 } from '../books/book-persistence.service';
 import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { AddLibraryItemShelfRequestDto } from './dto/add-library-item-shelf-request.dto';
 import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
-import { BookInputDto } from './dto/book-input.dto';
 import { LibraryBookResponseDto } from './dto/library-book-response.dto';
 import { LibraryItemResponseDto } from './dto/library-item-response.dto';
 import { LibraryQueryDto } from './dto/library-query.dto';
@@ -51,13 +52,15 @@ export class LibraryService {
     owner: OwnerContext,
     dto: AddLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
+    const identity = this.identityFromRequest(dto);
+    const dedupeKey = this.dedupeKeyForIdentity(identity);
+    const cachedBook = await this.bookPersistence.ensureBookForIdentity(identity);
     const item = await this.prisma.$transaction(async (transaction) => {
-      const book = await this.upsertBook(transaction, dto.book);
       const existingItem = await transaction.libraryItem.findFirst({
         include: libraryItemInclude,
         where: {
           ...this.ownerWhere(owner),
-          OR: [{ bookId: book.id }, { dedupeKey: dto.book.dedupeKey }],
+          dedupeKey,
         },
       });
 
@@ -85,8 +88,10 @@ export class LibraryService {
         await this.activityService.emitWithExecutor(transaction, {
           libraryItemId: existingItem.id,
           metadata: {
-            bookId: book.id,
-            dedupeKey: dto.book.dedupeKey,
+            dedupeKey,
+            googleBooksVolumeId: cachedBook.googleBooksVolumeId,
+            isbn10: identity.isbn10 ?? null,
+            isbn13: identity.isbn13 ?? null,
             shelfId: shelf.id,
           },
           owner,
@@ -101,9 +106,10 @@ export class LibraryService {
         : await this.getDefaultShelf(transaction, owner, 'unshelved');
       const createdItem = await transaction.libraryItem.create({
         data: {
-          bookId: book.id,
-          dedupeKey: dto.book.dedupeKey,
+          dedupeKey,
           dateFinished: shelf.slug === 'read' ? new Date() : null,
+          isbn10: identity.isbn10 ?? null,
+          isbn13: identity.isbn13 ?? null,
           shelves: {
             create: {
               shelfId: shelf.id,
@@ -118,8 +124,10 @@ export class LibraryService {
       await this.activityService.emitWithExecutor(transaction, {
         libraryItemId: createdItem.id,
         metadata: {
-          bookId: book.id,
-          dedupeKey: dto.book.dedupeKey,
+          dedupeKey,
+          googleBooksVolumeId: cachedBook.googleBooksVolumeId,
+          isbn10: identity.isbn10 ?? null,
+          isbn13: identity.isbn13 ?? null,
           shelfId: shelf.id,
         },
         owner,
@@ -128,8 +136,6 @@ export class LibraryService {
 
       return createdItem;
     });
-
-    await this.bookPersistence.syncGoogleBooksForBookId(item.bookId);
 
     return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, item.id));
   }
@@ -154,7 +160,7 @@ export class LibraryService {
   ): Promise<LibraryItemResponseDto> {
     const item = await this.getOwnedLibraryItem(owner, libraryItemId);
 
-    await this.bookPersistence.syncGoogleBooksForBookId(item.bookId);
+    await this.bookPersistence.ensureBookForIdentity(this.identityFromItem(item));
 
     return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, libraryItemId));
   }
@@ -397,10 +403,11 @@ export class LibraryService {
     dto: UpdateProgressRequestDto,
   ): Promise<LibraryItemResponseDto> {
     const item = await this.getOwnedLibraryItem(owner, libraryItemId);
+    const book = await this.bookPersistence.ensureBookForIdentity(this.identityFromItem(item));
     const progress = calculateProgress({
       currentPage: dto.currentPage,
       currentPercent: dto.currentPercent,
-      pageCount: item.book.pageCount,
+      pageCount: bookSummary(book as BookMetadataRecord).pageCount,
       trackingMode: dto.trackingMode,
     });
     const now = new Date();
@@ -586,30 +593,10 @@ export class LibraryService {
   /**
    * Maps the stored book record to the public library book DTO.
    */
-  private toBookResponse(book: LibraryItemWithRelations['book']): LibraryBookResponseDto {
-    return {
-      authors: book.authors,
-      coverUrl: book.coverUrl,
-      description: book.description,
-      genres: book.genres,
-      googleBooksSyncedAt: book.googleBooksSyncedAt?.toISOString() ?? null,
-      googleBooksSyncStatus: book.googleBooksSyncStatus,
-      googleBooksVolumeId: book.googleBooksVolumeId,
-      id: book.id,
-      isbn10: book.isbn10,
-      isbn13: book.isbn13,
-      openLibraryEditionKey: book.openLibraryEditionKey,
-      openLibraryWorkKey: book.openLibraryWorkKey,
-      pageCount: book.pageCount,
-      primaryAuthor: book.primaryAuthor,
-      publishedDate: book.publishedDate,
-      publisher: book.publisher,
-      sourceId: book.sourceId,
-      sourceProvider: book.sourceProvider,
-      sourceUrl: book.sourceUrl,
-      subtitle: book.subtitle,
-      title: book.title,
-    };
+  private toBookResponse(
+    book: Awaited<ReturnType<BookPersistenceService['ensureBookForIdentity']>>,
+  ): LibraryBookResponseDto {
+    return this.bookPersistence.toBookMetadata(book);
   }
   /**
    * Maps a single item through the same fallback path used by list responses.
@@ -637,7 +624,9 @@ export class LibraryService {
       ? await this.getUnshelvedShelfSummary(this.prisma, owner)
       : null;
 
-    return items.map((item) => this.toLibraryItemResponseWithFallback(item, unshelvedShelf));
+    return Promise.all(
+      items.map((item) => this.toLibraryItemResponseWithFallback(item, unshelvedShelf)),
+    );
   }
   /**
    * Maps one library item and hides inactive shelves, substituting Unshelved when no active
@@ -646,13 +635,13 @@ export class LibraryService {
   private toLibraryItemResponseWithFallback(
     item: LibraryItemWithRelations,
     unshelvedShelf: ShelfSummaryResponseDto | null,
-  ): LibraryItemResponseDto {
+  ): Promise<LibraryItemResponseDto> {
     const activeShelves = item.shelves
       .filter((membership) => membership.shelf.deactivatedAt === null)
       .map((membership) => this.toShelfSummary(membership.shelf));
 
-    return {
-      book: this.toBookResponse(item.book),
+    return this.bookPersistence.ensureBookForIdentity(this.identityFromItem(item)).then((book) => ({
+      book: this.toBookResponse(book),
       createdAt: item.createdAt.toISOString(),
       currentPage: item.currentPage,
       currentPercent: item.currentPercent ? item.currentPercent.toNumber() : null,
@@ -666,7 +655,7 @@ export class LibraryService {
       shelves: activeShelves.length > 0 ? activeShelves : unshelvedShelf ? [unshelvedShelf] : [],
       status: item.status,
       updatedAt: item.updatedAt.toISOString(),
-    };
+    }));
   }
   /**
    * Fetches the active Unshelved shelf summary required for effective fallback responses.
@@ -723,13 +712,52 @@ export class LibraryService {
     };
   }
   /**
-   * Upserts the shared Open Library book record that library items reference.
+   * Builds a stable duplicate key from the ISBN identity stored on the library item.
    */
-  private async upsertBook(
-    executor: BookPersistenceExecutor,
-    input: BookInputDto,
-  ): Promise<{ id: string }> {
-    return this.bookPersistence.upsertOpenLibraryBook(executor, input);
+  private dedupeKeyForIdentity(identity: BookIdentity): string {
+    if (identity.isbn13) {
+      return `isbn13:${identity.isbn13}`;
+    }
+
+    if (identity.isbn10) {
+      return `isbn10:${identity.isbn10}`;
+    }
+
+    throw new BadRequestException('A book must have an ISBN before it can be saved.');
+  }
+  /**
+   * Normalizes add-to-library requests and rejects Google results that cannot be saved safely.
+   */
+  private identityFromRequest(dto: AddLibraryItemRequestDto): BookIdentity {
+    const identity = {
+      googleBooksVolumeId: dto.googleBooksVolumeId?.trim() || null,
+      isbn10: this.cleanIsbn(dto.isbn10),
+      isbn13: this.cleanIsbn(dto.isbn13),
+    };
+
+    if (!identity.isbn13 && !identity.isbn10) {
+      throw new BadRequestException('A book must have an ISBN before it can be saved.');
+    }
+
+    return identity;
+  }
+  /**
+   * Reads the persisted ISBN identity from one owned library item.
+   */
+  private identityFromItem(
+    item: Pick<LibraryItemWithRelations, 'isbn10' | 'isbn13'>,
+  ): BookIdentity {
+    return {
+      isbn10: item.isbn10,
+      isbn13: item.isbn13,
+    };
+  }
+  /**
+   * Strips common ISBN formatting before storing or comparing identities.
+   */
+  private cleanIsbn(value: null | string | undefined): null | string {
+    const cleaned = value?.replace(/[-\s]/g, '').toUpperCase() ?? '';
+    return cleaned || null;
   }
   /**
    * Converts the current owner context into a Prisma ownership predicate.
@@ -740,7 +768,6 @@ export class LibraryService {
 }
 
 const libraryItemInclude = {
-  book: true,
   shelves: {
     include: {
       shelf: true,

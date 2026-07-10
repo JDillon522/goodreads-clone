@@ -2,6 +2,19 @@
 
 Read-only MCP server for inspecting the local Bookshelf Postgres database running through Docker Compose.
 
+## Config
+
+Add to your codex config:
+
+```txt
+[mcp_servers.bookshelf-db]
+command = "node"
+args = ["<absolute path to the project>/bin/run", "mcp-db"]
+startup_timeout_sec = 30
+```
+
+The MCP client does not need credentials in its config. `bin/run mcp-db` loads the repo root `.env`, and the MCP server builds its connection from the `Database` and `Read-only database MCP server` sections.
+
 ## Connection
 
 The Compose override exposes Postgres on the host at:
@@ -10,28 +23,24 @@ The Compose override exposes Postgres on the host at:
 127.0.0.1:5433
 ```
 
-Default development URL:
+Default development URL shape:
 
 ```txt
-postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf
+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_HOST_PORT}/${POSTGRES_DB}
 ```
 
-For MCP usage, prefer a read-only role:
+For MCP usage, prefer a read-only role. Configure the role name and password in root `.env`, then run:
 
-```sql
-CREATE USER bookshelf_readonly WITH PASSWORD 'readonly-password';
-GRANT CONNECT ON DATABASE bookshelf TO bookshelf_readonly;
-GRANT USAGE ON SCHEMA public TO bookshelf_readonly;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO bookshelf_readonly;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO bookshelf_readonly;
+```sh
+bin/run mcp-db-role
 ```
 
-The same setup is committed as `sql/create-readonly-role.sql` for local development.
+That command applies grants using `POSTGRES_DB`, `POSTGRES_SCHEMA`, `POSTGRES_USER`, `BOOKSHELF_MCP_POSTGRES_USER`, and `BOOKSHELF_MCP_POSTGRES_PASSWORD` from root `.env`. A variable-based SQL reference is committed at `sql/create-readonly-role.sql`.
 
-Then use:
+The MCP server connection URL shape is:
 
 ```txt
-postgresql://bookshelf_readonly:readonly-password@127.0.0.1:5433/bookshelf
+postgresql://${BOOKSHELF_MCP_POSTGRES_USER}:${BOOKSHELF_MCP_POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_HOST_PORT}/${POSTGRES_DB}
 ```
 
 ## Run
@@ -43,6 +52,8 @@ bin/run mcp-db
 ```
 
 The server uses stdio, so it is meant to be launched by an MCP client. It should not print application logs to stdout.
+Startup feedback is written to stderr, including the credential-free database target and a reminder that the process stays open while the MCP client is connected.
+Each MCP tool call also writes access, completion, and failure messages to stderr with the tool name and duration.
 
 ## MCP Client Example
 
@@ -53,19 +64,13 @@ Use an absolute repo path in your client config. A committable example lives at 
   "mcpServers": {
     "bookshelf-db": {
       "command": "node",
-      "args": ["/absolute/path/to/personal-reading-list/bin/run", "mcp-db"],
-      "env": {
-        "BOOKSHELF_MCP_DATABASE_URL": "postgresql://bookshelf_readonly:readonly-password@127.0.0.1:5433/bookshelf",
-        "BOOKSHELF_MCP_SCHEMA": "public",
-        "BOOKSHELF_MCP_MAX_ROWS": "200",
-        "BOOKSHELF_MCP_STATEMENT_TIMEOUT_MS": "5000"
-      }
+      "args": ["/absolute/path/to/personal-reading-list/bin/run", "mcp-db"]
     }
   }
 }
 ```
 
-Keep credentials in your local MCP client config or local environment. Do not commit real secrets.
+Keep credentials in root `.env`. Do not commit real secrets.
 
 ## Tools
 

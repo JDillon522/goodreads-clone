@@ -1,17 +1,32 @@
--- Local development helper for the Bookshelf DB MCP server.
--- Change this password before using the role outside a disposable local DB.
+-- Local development reference for the Bookshelf DB MCP server.
+-- `bin/run mcp-db-role` reads the actual values from the root .env and sends equivalent SQL
+-- through stdin, so usernames and passwords stay out of committed SQL.
+--
+-- Manual psql usage:
+--   \set app_database <database>
+--   \set app_schema <schema>
+--   \set readonly_user <readonly_user>
+--   \set readonly_password <readonly_password>
 
-do $$
-begin
-  if not exists (select 1 from pg_roles where rolname = 'bookshelf_readonly') then
-    create role bookshelf_readonly login password 'readonly-password';
-  else
-    alter role bookshelf_readonly with login password 'readonly-password';
-  end if;
-end
-$$;
+select format('create role %I login password %L', :'readonly_user', :'readonly_password')
+where not exists (select 1 from pg_roles where rolname = :'readonly_user')
+\gexec
 
-grant connect on database bookshelf to bookshelf_readonly;
-grant usage on schema public to bookshelf_readonly;
-grant select on all tables in schema public to bookshelf_readonly;
-alter default privileges in schema public grant select on tables to bookshelf_readonly;
+select format('alter role %I with login password %L', :'readonly_user', :'readonly_password')
+\gexec
+
+select format('grant connect on database %I to %I', :'app_database', :'readonly_user')
+\gexec
+
+select format('grant usage on schema %I to %I', :'app_schema', :'readonly_user')
+\gexec
+
+select format('grant select on all tables in schema %I to %I', :'app_schema', :'readonly_user')
+\gexec
+
+select format(
+  'alter default privileges in schema %I grant select on tables to %I',
+  :'app_schema',
+  :'readonly_user'
+)
+\gexec

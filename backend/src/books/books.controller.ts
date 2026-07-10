@@ -15,13 +15,12 @@ import { BookRelationsService } from './book-relations.service';
 import { BookSearchQueryDto } from './dto/book-search-query.dto';
 import { BookSearchResponseDto } from './dto/book-search-response.dto';
 import { BookSeriesResponseDto } from './dto/book-series-response.dto';
-import { NormalizedBookDto } from './dto/normalized-book.dto';
-import { OpenLibraryDetailParamsDto } from './dto/open-library-detail-params.dto';
+import { BookMetadataResponseDto } from './dto/book-metadata-response.dto';
 import { RelatedBooksQueryDto } from './dto/related-books-query.dto';
 import { RelatedBooksResponseDto } from './dto/related-books-response.dto';
 
 /**
- * Exposes Open Library search and detail endpoints with normalized Bookshelf response shapes.
+ * Exposes Google-first search/detail endpoints with normalized Bookshelf response shapes.
  */
 @ApiTags('Books')
 @Controller('books')
@@ -35,35 +34,32 @@ export class BooksController {
   ) {}
 
   /**
-   * Fetches and normalizes a single Open Library work or edition.
+   * Fetches and normalizes a single Google Books volume.
    */
-  @Get('open-library/:type/:id')
-  @ApiOperation({ summary: 'Fetch and normalize an Open Library work or edition.' })
-  @ApiParam({ enum: ['books', 'works'], name: 'type' })
-  @ApiParam({ example: 'OL262758W', name: 'id' })
-  @ApiOkResponse({ type: NormalizedBookDto })
-  @ApiBadRequestResponse({ description: 'The Open Library type/id pair is invalid.' })
-  @ApiNotFoundResponse({ description: 'Open Library did not find the requested book.' })
-  @ApiTooManyRequestsResponse({ description: 'Open Library rate limit was reached.' })
+  @Get('google/:id')
+  @ApiOperation({ summary: 'Fetch and normalize a Google Books volume.' })
+  @ApiParam({ example: 'zyTCAlFPjgYC', name: 'id' })
+  @ApiOkResponse({ type: BookMetadataResponseDto })
+  @ApiBadRequestResponse({ description: 'The Google Books volume id is invalid.' })
+  @ApiNotFoundResponse({ description: 'Google Books did not find the requested volume.' })
+  @ApiTooManyRequestsResponse({ description: 'Google Books rate limit was reached.' })
   @ApiServiceUnavailableResponse({
-    description: 'Open Library is unavailable or returned invalid data.',
+    description: 'Google Books is unavailable or returned invalid data.',
   })
-  public getOpenLibraryDetail(
-    @Param() params: OpenLibraryDetailParamsDto,
-  ): Promise<NormalizedBookDto> {
-    return this.booksService.getOpenLibraryDetail(params.type, params.id);
+  public getGoogleBookDetail(@Param('id') id: string): Promise<BookMetadataResponseDto> {
+    return this.booksService.getGoogleBookDetail(id);
   }
 
   /**
-   * Searches Open Library with optional filters and pagination.
+   * Searches Google Books with optional filters and pagination.
    */
   @Get('search')
-  @ApiOperation({ summary: 'Search Open Library and return frontend-friendly book results.' })
+  @ApiOperation({ summary: 'Search Google Books and return frontend-friendly book results.' })
   @ApiOkResponse({ type: BookSearchResponseDto })
   @ApiBadRequestResponse({ description: 'Search query, page, or limit is invalid.' })
-  @ApiTooManyRequestsResponse({ description: 'Open Library rate limit was reached.' })
+  @ApiTooManyRequestsResponse({ description: 'Google Books rate limit was reached.' })
   @ApiServiceUnavailableResponse({
-    description: 'Open Library is unavailable or returned invalid data.',
+    description: 'Google Books is unavailable or returned invalid data.',
   })
   public searchBooks(@Query() query: BookSearchQueryDto): Promise<BookSearchResponseDto> {
     return this.booksService.searchBooks(query);

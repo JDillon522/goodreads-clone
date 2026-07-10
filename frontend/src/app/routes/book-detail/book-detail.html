@@ -13,7 +13,7 @@
       <div class="cover-stack">
         <div class="book-cover">
           @if (coverUrl()) {
-            <img [src]="coverUrl()" [alt]="item()!.book.title + ' cover'" />
+            <img [src]="coverUrl()" [alt]="item()!.book.summary.title + ' cover'" />
           } @else {
             <i class="ph ph-book-open-text" aria-hidden="true"></i>
           }
@@ -33,7 +33,7 @@
 
       <div class="book-copy">
         <p class="eyebrow">{{ shelfListLabel() }}</p>
-        <h1>{{ item()!.book.title }}</h1>
+        <h1>{{ item()!.book.summary.title }}</h1>
         @if (authorSearchQuery(); as author) {
           <a class="author author-link" routerLink="/app/search" [queryParams]="{ query: author }">
             {{ author }}
@@ -42,6 +42,75 @@
           <p class="author">{{ primaryAuthor() }}</p>
         }
         <p class="description">{{ description() }}</p>
+
+        <dl class="metadata-grid">
+          <div>
+            <dt>Published</dt>
+            <dd>{{ item()!.book.summary.publishedDate || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>Publisher</dt>
+            <dd>{{ item()!.book.summary.publisher || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>Pages</dt>
+            <dd>{{ item()!.book.summary.pageCount || 'Unknown' }}</dd>
+          </div>
+          <div>
+            <dt>ISBN</dt>
+            <dd>{{ item()!.book.summary.isbn13 || item()!.book.summary.isbn10 || 'Missing' }}</dd>
+          </div>
+          <div>
+            <dt>Readable</dt>
+            <dd>{{ item()!.book.summary.isReadableOnline ? 'Online preview' : 'No preview' }}</dd>
+          </div>
+          <div>
+            <dt>Source</dt>
+            <dd>{{ item()!.book.sync.googleBooksStatus }}</dd>
+          </div>
+        </dl>
+
+        @if (item()!.book.summary.genres.length > 0) {
+          <ul class="chip-list" aria-label="Genres">
+            @for (genre of item()!.book.summary.genres; track genre) {
+              <li>{{ genre }}</li>
+            }
+          </ul>
+        }
+
+        <div class="actions">
+          @if (item()!.book.summary.externalLinks.preview) {
+            <a
+              class="secondary-button"
+              [href]="item()!.book.summary.externalLinks.preview"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+              <span>Preview</span>
+            </a>
+          }
+          @if (item()!.book.summary.externalLinks.info) {
+            <a
+              class="secondary-button"
+              [href]="item()!.book.summary.externalLinks.info"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+              <span>Google Books</span>
+            </a>
+          }
+          <button
+            class="danger-button"
+            type="button"
+            (click)="deleteBook()"
+            [disabled]="deletingBook()"
+          >
+            <i class="ph ph-trash" aria-hidden="true"></i>
+            <span>{{ deletingBook() ? 'Removing...' : 'Remove from library' }}</span>
+          </button>
+        </div>
 
         @if (isLoadingRelations()) {
           <p class="muted">Loading related books...</p>

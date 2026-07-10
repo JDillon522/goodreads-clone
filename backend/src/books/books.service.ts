@@ -1,201 +1,114 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createHash } from 'node:crypto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { BookPersistenceService } from './book-persistence.service';
+import { BookSearchFacetsDto } from './dto/book-search-facets.dto';
 import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
-import { BookSearchQueryDto } from './dto/book-search-query.dto';
+import {
+  BookSearchQueryDto,
+  GoogleBookFilter,
+  GoogleBookOrderBy,
+  GoogleBookPrintType,
+} from './dto/book-search-query.dto';
 import { BookSearchResponseDto } from './dto/book-search-response.dto';
-import { NormalizedBookDto } from './dto/normalized-book.dto';
-import type { OpenLibraryDetailKind } from './types/open-library-detail-kind';
-import { OpenLibraryCacheService } from './open-library/open-library-cache.service';
-import { OpenLibraryClientService } from './open-library/open-library-client.service';
-import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
+import { BookMetadataResponseDto } from './dto/book-metadata-response.dto';
+import { GoogleBooksClientService } from './google-books/google-books-client.service';
 
 /**
- * Orchestrates Open Library lookup calls, cache storage, filter query composition, and normalized
- * API responses for book search and detail endpoints.
+ * Orchestrates Google Books search/detail requests and stores returned metadata in the shared cache
+ * before responding to the frontend.
  */
 @Injectable()
 export class BooksService {
-  private readonly detailCacheTtlHours: number;
-  private readonly searchCacheTtlHours: number;
   /**
-   * Reads cache TTL settings and receives Open Library collaborators from Nest.
+   * Receives the primary Google client and shared book cache service from Nest.
    */
   public constructor(
-    configService: ConfigService,
     private readonly bookPersistence: BookPersistenceService,
-    private readonly cache: OpenLibraryCacheService,
-    private readonly openLibraryClient: OpenLibraryClientService,
-    private readonly openLibraryNormalizer: OpenLibraryNormalizerService,
-  ) {
-    this.detailCacheTtlHours =
-      configService.get<number>('OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS') ?? 168;
-    this.searchCacheTtlHours =
-      configService.get<number>('OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS') ?? 24;
-  }
+    private readonly googleBooksClient: GoogleBooksClientService,
+  ) {}
   /**
-   * Returns normalized work or edition detail, using the cached normalized record when available.
+   * Fetches one Google Books volume by id and returns the enriched cached book shape.
    */
-  public async getOpenLibraryDetail(
-    type: OpenLibraryDetailKind,
-    id: string,
-  ): Promise<NormalizedBookDto> {
-    this.validateOpenLibraryKeyPair(type, id);
+  public async getGoogleBookDetail(volumeId: string): Promise<BookMetadataResponseDto> {
+    const id = volumeId.trim();
 
-    const providerKey = this.detailCacheKey(type, id);
-    const cached = await this.cache.getBook(providerKey);
-
-    if (cached) {
-      await this.bookPersistence.persistOpenLibraryBooks([cached]);
-      return cached;
+    if (!id) {
+      throw new BadRequestException('Google Books volume id is required.');
     }
 
-    const raw = await this.openLibraryClient.getDetail(type, id);
-    const normalized = this.openLibraryNormalizer.normalizeDetail(raw, { id, type });
+    const book = await this.bookPersistence.getOrSyncGoogleVolume(id);
 
-    await this.cache.set(
-      providerKey,
-      raw,
-      normalized,
-      this.dateAfterHours(this.detailCacheTtlHours),
-    );
-    await this.bookPersistence.persistOpenLibraryBooks([normalized]);
+    if (!book) {
+      throw new NotFoundException('Google Books volume was not found.');
+    }
 
-    return normalized;
+    return this.bookPersistence.toBookMetadata(book);
   }
   /**
-   * Searches Open Library with Bookshelf filters, caches by normalized query/filter/page, and returns
-   * the user-facing query separately from provider-specific search clauses.
+   * Searches Google Books with native pagination/filter settings and persists returned volumes.
    */
   public async searchBooks(query: BookSearchQueryDto): Promise<BookSearchResponseDto> {
     const normalizedQuery = query.query.trim().replace(/\s+/g, ' ');
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const filters = normalizeSearchFilters(query);
-    const providerQuery = openLibraryQueryFromFilters(normalizedQuery, filters);
-    const providerKey = this.searchCacheKey(normalizedQuery, page, limit, filters);
-    const cached = await this.cache.getSearch(providerKey);
-
-    if (cached) {
-      await this.bookPersistence.persistOpenLibraryBooks(cached.items);
-      return cached;
-    }
-
-    const raw = await this.openLibraryClient.searchBooks({
-      limit,
-      page,
-      query: providerQuery,
+    const search = await this.googleBooksClient.searchVolumes({
+      filter: filters.filter,
+      maxResults: limit,
+      orderBy: filters.orderBy,
+      printType: filters.printType,
+      query: normalizedQuery,
+      startIndex: (page - 1) * limit,
     });
-    const normalized = this.openLibraryNormalizer.normalizeSearch(raw, {
+    const cachedBooks = await this.bookPersistence.persistGoogleBooksVolumes(search.items);
+
+    return {
+      count: cachedBooks.length,
+      facets: googleSearchFacets(search.totalItems),
       filters,
+      items: cachedBooks.map((book) => this.bookPersistence.toBookMetadata(book)),
       limit,
       page,
       query: normalizedQuery,
-    });
-
-    await this.cache.set(
-      providerKey,
-      raw,
-      normalized,
-      this.dateAfterHours(this.searchCacheTtlHours),
-      normalizedQuery,
-    );
-    await this.bookPersistence.persistOpenLibraryBooks(normalized.items);
-
-    return normalized;
-  }
-  /**
-   * Calculates cache expiration dates from hour-based settings.
-   */
-  private dateAfterHours(hours: number): Date {
-    return new Date(Date.now() + hours * 60 * 60 * 1000);
-  }
-  /**
-   * Builds the stable cache key for one Open Library detail resource.
-   */
-  private detailCacheKey(type: OpenLibraryDetailKind, id: string): string {
-    return `detail:${type}:${id}`;
-  }
-  /**
-   * Hashes search state so filters, pagination, and normalized query text do not collide.
-   */
-  private searchCacheKey(
-    query: string,
-    page: number,
-    limit: number,
-    filters: BookSearchFiltersDto,
-  ): string {
-    const hash = createHash('sha256')
-      .update(JSON.stringify({ filters, limit, page, query: query.toLowerCase() }))
-      .digest('hex');
-
-    return `search:${hash}`;
-  }
-  /**
-   * Ensures callers do not request work details through edition ids or edition details through work
-   * ids.
-   */
-  private validateOpenLibraryKeyPair(type: OpenLibraryDetailKind, id: string): void {
-    if (type === 'works' && !id.endsWith('W')) {
-      throw new BadRequestException(
-        'Work detail requests require an Open Library work id ending in W.',
-      );
-    }
-
-    if (type === 'books' && !id.endsWith('M')) {
-      throw new BadRequestException(
-        'Book detail requests require an Open Library edition id ending in M.',
-      );
-    }
+      total: search.totalItems,
+    };
   }
 }
+
 /**
- * Normalizes optional search filters and rejects impossible year ranges before provider calls.
+ * Normalizes optional Google Books query controls to stable response defaults.
  */
 function normalizeSearchFilters(query: BookSearchQueryDto): BookSearchFiltersDto {
-  const filters: BookSearchFiltersDto = {
-    format: query.format ?? null,
-    subject: query.subject?.trim().replace(/\s+/g, ' ') || null,
-    yearFrom: query.yearFrom ?? null,
-    yearTo: query.yearTo ?? null,
+  return {
+    filter: query.filter ?? null,
+    orderBy: query.orderBy ?? 'relevance',
+    printType: query.printType ?? 'books',
   };
-
-  if (
-    typeof filters.yearFrom === 'number' &&
-    typeof filters.yearTo === 'number' &&
-    filters.yearFrom > filters.yearTo
-  ) {
-    throw new BadRequestException('yearFrom must be less than or equal to yearTo.');
-  }
-
-  return filters;
 }
+
 /**
- * Converts Bookshelf filter state into documented Open Library search clauses while preserving the
- * original user query for the response payload.
+ * Returns provider-native control options. Counts reflect the current provider result total because
+ * Google Books does not expose per-filter facet counts in the volume list response.
  */
-function openLibraryQueryFromFilters(query: string, filters: BookSearchFiltersDto): string {
-  const clauses = [query];
+function googleSearchFacets(total: number): BookSearchFacetsDto {
+  const count = Math.max(0, total);
 
-  if (typeof filters.yearFrom === 'number' || typeof filters.yearTo === 'number') {
-    clauses.push(`first_publish_year:[${filters.yearFrom ?? '*'} TO ${filters.yearTo ?? '*'}]`);
-  }
-
-  if (filters.subject) {
-    clauses.push(`subject:${quoteOpenLibraryPhrase(filters.subject)}`);
-  }
-
-  if (filters.format === 'ebook') {
-    clauses.push('has_fulltext:true');
-  }
-
-  return clauses.join(' ');
-}
-/**
- * Quotes user-entered phrase filters for Open Library search syntax.
- */
-function quoteOpenLibraryPhrase(value: string): string {
-  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  return {
+    availability: [
+      { count, label: 'All availability', value: 'all' },
+      { count, label: 'eBooks', value: 'ebooks' satisfies GoogleBookFilter },
+      { count, label: 'Free eBooks', value: 'free-ebooks' satisfies GoogleBookFilter },
+      { count, label: 'Full view', value: 'full' satisfies GoogleBookFilter },
+      { count, label: 'Paid eBooks', value: 'paid-ebooks' satisfies GoogleBookFilter },
+    ],
+    printTypes: [
+      { count, label: 'Books', value: 'books' satisfies GoogleBookPrintType },
+      { count, label: 'Magazines', value: 'magazines' satisfies GoogleBookPrintType },
+      { count, label: 'All print types', value: 'all' satisfies GoogleBookPrintType },
+    ],
+    sortOptions: [
+      { count, label: 'Relevance', value: 'relevance' satisfies GoogleBookOrderBy },
+      { count, label: 'Newest', value: 'newest' satisfies GoogleBookOrderBy },
+    ],
+  };
 }

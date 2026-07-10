@@ -44,10 +44,10 @@ export class LibraryController {
    */
   public constructor(private readonly libraryService: LibraryService) {}
   /**
-   * Adds a normalized book to the current owner's library.
+   * Adds an ISBN-backed book to the current owner's library.
    */
   @Post()
-  @ApiOperation({ summary: 'Add a normalized book to the current owner library.' })
+  @ApiOperation({ summary: 'Add an ISBN-backed book to the current owner library.' })
   @ApiCreatedResponse({ type: LibraryItemResponseDto })
   public addLibraryItem(
     @CurrentOwner() owner: OwnerContext,

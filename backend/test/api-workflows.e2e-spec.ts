@@ -1,5 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { BookProvider, PrismaClient } from '@prisma/client';
+import { BookProvider, GoogleBooksSyncStatus, PrismaClient } from '@prisma/client';
+import { config as loadEnv } from 'dotenv';
+import path from 'node:path';
+
+loadEnv({ path: path.resolve(__dirname, '../../.env') });
 
 type JsonBody = Record<string, unknown>;
 
@@ -20,7 +24,9 @@ type ShelfResponse = {
 
 type LibraryItemResponse = {
   book: {
-    pageCount: null | number;
+    summary: {
+      pageCount: null | number;
+    };
   };
   currentPage: null | number;
   currentPercent: null | number;
@@ -87,10 +93,35 @@ type SessionStatusResponse = {
   ownerType: 'GUEST' | 'USER';
 };
 
+/**
+ * Builds the default e2e cleanup database URL from the root .env database section.
+ */
+function databaseUrlFromParts(): string {
+  const database = requiredEnv('POSTGRES_DB');
+  const schema = process.env.POSTGRES_SCHEMA ?? 'public';
+  const user = requiredEnv('POSTGRES_USER');
+  const password = requiredEnv('POSTGRES_PASSWORD');
+  const host = process.env.POSTGRES_HOST ?? 'localhost';
+  const port = process.env.POSTGRES_HOST_PORT ?? '5432';
+
+  return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}?schema=${encodeURIComponent(schema)}`;
+}
+
+/**
+ * Reads a required root .env value for e2e cleanup setup.
+ */
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} must be set in the root .env file.`);
+  }
+
+  return value;
+}
+
 const apiBaseUrl = process.env.E2E_API_BASE_URL ?? 'http://localhost:3000/api';
-const cleanupDatabaseUrl =
-  process.env.E2E_CLEANUP_DATABASE_URL ??
-  'postgresql://bookshelf:bookshelf@localhost:5433/bookshelf?schema=public';
+const cleanupDatabaseUrl = process.env.E2E_CLEANUP_DATABASE_URL ?? databaseUrlFromParts();
 const createdEmails: string[] = [];
 const createdGuestSessionIds: string[] = [];
 const createdSourceIds: string[] = [];
@@ -109,7 +140,9 @@ describe('Bookshelf API workflows', () => {
   it('supports signup, shelf listing, idempotent add book, progress, and goals', async () => {
     const runId = Date.now();
     const email = `e2e-stage8-${runId}@example.com`;
-    const sourceId = `e2e:${runId}`;
+    const isbn13 = `978000${String(runId).slice(-7).padStart(7, '0')}`;
+    const isbn10 = `0${String(runId).slice(-9).padStart(9, '0')}`;
+    const sourceId = `isbn13:${isbn13}`;
     const accessToken = (
       await request<AuthResponse>('/auth/signup', {
         body: {
@@ -123,6 +156,11 @@ describe('Bookshelf API workflows', () => {
 
     createdEmails.push(email);
     createdSourceIds.push(sourceId);
+    await seedE2eBookCache({
+      isbn10,
+      isbn13,
+      sourceId,
+    });
 
     const shelves = await request<ShelfResponse[]>('/shelves', { token: accessToken });
     const sessionStatus = await request<SessionStatusResponse>('/session/status', {
@@ -158,29 +196,8 @@ describe('Bookshelf API workflows', () => {
 
     expect(deleteWantToRead.deletedShelfName).toBe('Want to Read');
 
-    const book = {
-      authors: ['Ursula K. Le Guin'],
-      coverUrl: null,
-      dedupeKey: sourceId,
-      description: null,
-      genres: ['Science fiction'],
-      isbn10: null,
-      isbn13: null,
-      openLibraryEditionKey: null,
-      openLibraryWorkKey: '/works/OL262758W',
-      pageCount: 304,
-      primaryAuthor: 'Ursula K. Le Guin',
-      provider: 'OPEN_LIBRARY',
-      providerKey: sourceId,
-      publishedDate: '1969',
-      publisher: 'Ace Books',
-      sourceId,
-      sourceUrl: 'https://openlibrary.org/works/OL262758W',
-      subtitle: null,
-      title: 'The Left Hand of Darkness',
-    };
     const added = await request<LibraryItemResponse>('/library', {
-      body: { book },
+      body: { isbn10, isbn13, googleBooksVolumeId: `e2e-google-${runId}` },
       method: 'POST',
       token: accessToken,
     });
@@ -189,7 +206,7 @@ describe('Bookshelf API workflows', () => {
     expect(added.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
 
     const duplicateAdd = await request<LibraryItemResponse>('/library', {
-      body: { book },
+      body: { isbn10, isbn13, googleBooksVolumeId: `e2e-google-${runId}` },
       method: 'POST',
       token: accessToken,
     });
@@ -342,7 +359,7 @@ describe('Bookshelf API workflows', () => {
     ]);
     expect(library.length).toBeGreaterThanOrEqual(12);
 
-    const itemWithPages = library.find((item) => item.book.pageCount);
+    const itemWithPages = library.find((item) => item.book.summary.pageCount);
 
     expect(itemWithPages).toBeDefined();
 
@@ -425,10 +442,79 @@ async function cleanupE2eData(): Promise<void> {
           sourceId: {
             in: createdSourceIds,
           },
-          sourceProvider: BookProvider.OPEN_LIBRARY,
         },
       });
     }
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+async function seedE2eBookCache(input: {
+  isbn10: string;
+  isbn13: string;
+  sourceId: string;
+}): Promise<void> {
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg(cleanupDatabaseUrl),
+  });
+
+  try {
+    await prisma.book.upsert({
+      create: {
+        googleBooksRawPayload: {
+          accessInfo: { viewability: 'NO_PAGES' },
+          id: `e2e-google-${input.isbn13}`,
+          volumeInfo: {
+            authors: ['Ursula K. Le Guin'],
+            categories: ['Science fiction'],
+            industryIdentifiers: [
+              { identifier: input.isbn10, type: 'ISBN_10' },
+              { identifier: input.isbn13, type: 'ISBN_13' },
+            ],
+            pageCount: 304,
+            publishedDate: '1969',
+            publisher: 'Ace Books',
+            title: 'The Left Hand of Darkness',
+          },
+        },
+        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+        googleBooksVolumeId: `e2e-google-${input.isbn13}`,
+        isbn10: input.isbn10,
+        isbn13: input.isbn13,
+        normalizedPrimaryAuthor: 'ursula k le guin',
+        normalizedTitle: 'the left hand of darkness',
+        rawProviderPayload: {
+          google: {
+            accessInfo: { viewability: 'NO_PAGES' },
+            id: `e2e-google-${input.isbn13}`,
+            volumeInfo: {
+              authors: ['Ursula K. Le Guin'],
+              categories: ['Science fiction'],
+              industryIdentifiers: [
+                { identifier: input.isbn10, type: 'ISBN_10' },
+                { identifier: input.isbn13, type: 'ISBN_13' },
+              ],
+              pageCount: 304,
+              publishedDate: '1969',
+              publisher: 'Ace Books',
+              title: 'The Left Hand of Darkness',
+            },
+          },
+        },
+        sourceId: input.sourceId,
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
+      },
+      update: {
+        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+      },
+      where: {
+        sourceProvider_sourceId: {
+          sourceId: input.sourceId,
+          sourceProvider: BookProvider.GOOGLE_BOOKS,
+        },
+      },
+    });
   } finally {
     await prisma.$disconnect();
   }

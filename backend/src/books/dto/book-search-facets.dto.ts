@@ -32,12 +32,12 @@ export class BookSearchValueFacetDto {
 }
 
 export class BookSearchFacetsDto {
-  @ApiProperty({ type: BookSearchDecadeFacetDto, isArray: true })
-  publishedDecades!: BookSearchDecadeFacetDto[];
+  @ApiProperty({ type: BookSearchValueFacetDto, isArray: true })
+  availability!: BookSearchValueFacetDto[];
 
   @ApiProperty({ type: BookSearchValueFacetDto, isArray: true })
-  subjects!: BookSearchValueFacetDto[];
+  printTypes!: BookSearchValueFacetDto[];
 
   @ApiProperty({ type: BookSearchValueFacetDto, isArray: true })
-  formats!: BookSearchValueFacetDto[];
+  sortOptions!: BookSearchValueFacetDto[];
 }

@@ -5,6 +5,14 @@ import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } fro
 /**
  * Overview: Defines the Book Search Query DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
  */
+export const googleBookFilters = ['ebooks', 'free-ebooks', 'full', 'paid-ebooks'] as const;
+export const googleBookOrderOptions = ['newest', 'relevance'] as const;
+export const googleBookPrintTypes = ['all', 'books', 'magazines'] as const;
+
+export type GoogleBookFilter = (typeof googleBookFilters)[number];
+export type GoogleBookOrderBy = (typeof googleBookOrderOptions)[number];
+export type GoogleBookPrintType = (typeof googleBookPrintTypes)[number];
+
 export class BookSearchQueryDto {
   @ApiProperty({
     description: 'Search terms for title, author, ISBN, or subject.',
@@ -31,28 +39,32 @@ export class BookSearchQueryDto {
   @Max(25)
   limit: number = 10;
 
-  @ApiPropertyOptional({ example: 1960, minimum: 0 })
+  @ApiPropertyOptional({
+    description: 'Google Books availability filter.',
+    enum: googleBookFilters,
+    example: 'ebooks',
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  yearFrom?: number;
+  @IsIn(googleBookFilters)
+  filter?: GoogleBookFilter;
 
-  @ApiPropertyOptional({ example: 1969, minimum: 0 })
+  @ApiPropertyOptional({
+    default: 'books',
+    description: 'Google Books print type.',
+    enum: googleBookPrintTypes,
+    example: 'books',
+  })
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  yearTo?: number;
+  @IsIn(googleBookPrintTypes)
+  printType?: GoogleBookPrintType;
 
-  @ApiPropertyOptional({ example: 'Science fiction', maxLength: 80 })
+  @ApiPropertyOptional({
+    default: 'relevance',
+    description: 'Google Books result ordering.',
+    enum: googleBookOrderOptions,
+    example: 'relevance',
+  })
   @IsOptional()
-  @IsString()
-  @MaxLength(80)
-  subject?: string;
-
-  @ApiPropertyOptional({ enum: ['ebook'], example: 'ebook' })
-  @IsOptional()
-  @IsIn(['ebook'])
-  format?: 'ebook';
+  @IsIn(googleBookOrderOptions)
+  orderBy?: GoogleBookOrderBy;
 }

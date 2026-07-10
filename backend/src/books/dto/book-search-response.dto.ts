@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { BookMetadataResponseDto } from './book-metadata-response.dto';
 import { BookSearchFacetsDto } from './book-search-facets.dto';
 import { BookSearchFiltersDto } from './book-search-filters.dto';
-import { NormalizedBookDto } from './normalized-book.dto';
 
 /**
  * Overview: Defines the Book Search Response DTO contract so validation and Swagger metadata stay readable around annotation-heavy fields.
@@ -29,6 +29,6 @@ export class BookSearchResponseDto {
   @ApiProperty({ type: BookSearchFacetsDto })
   facets!: BookSearchFacetsDto;
 
-  @ApiProperty({ type: NormalizedBookDto, isArray: true })
-  items!: NormalizedBookDto[];
+  @ApiProperty({ type: BookMetadataResponseDto, isArray: true })
+  items!: BookMetadataResponseDto[];
 }

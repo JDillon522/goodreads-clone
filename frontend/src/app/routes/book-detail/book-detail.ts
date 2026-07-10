@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { form, max, maxLength, min, required, submit } from '@angular/forms/signals';
 
 import type {
@@ -49,6 +49,7 @@ export class BookDetail {
   private readonly destroyRef = inject(DestroyRef);
   private readonly library = inject(LibraryService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly shelvesService = inject(Shelves);
   private readonly theme = inject(Theme);
   private readonly progressModel = signal({
@@ -68,6 +69,7 @@ export class BookDetail {
   protected readonly addingShelf = signal(false);
   protected readonly removingShelfId = signal<string | null>(null);
   protected readonly applyingTheme = signal(false);
+  protected readonly deletingBook = signal(false);
   protected readonly series = signal<BookSeriesResponse | null>(null);
   protected readonly relatedBooks = signal<RelatedBookResponse[]>([]);
   protected readonly isLoadingRelations = signal(false);
@@ -123,16 +125,24 @@ export class BookDetail {
    */
   protected coverUrl(): string | null {
     const item = this.item();
-    return item && typeof item.book.coverUrl === 'string' ? item.book.coverUrl : null;
+    if (!item) {
+      return null;
+    }
+    const summary = item.book.summary;
+    return (
+      summary.coverImages.detail ??
+      summary.coverImages.card ??
+      summary.coverImages.thumbnail ??
+      summary.coverUrl ??
+      null
+    );
   }
   /**
    * Chooses the normalized primary author, falling back to the first author in the book snapshot.
    */
   protected primaryAuthor(): string {
     const item = this.item();
-    return item && typeof item.book.primaryAuthor === 'string'
-      ? item.book.primaryAuthor
-      : (item?.book.authors[0] ?? 'Unknown author');
+    return item?.book.summary.primaryAuthor ?? item?.book.summary.authors[0] ?? 'Unknown author';
   }
   /**
    * Returns a search query only for real author names so the template can hide the link fallback.
@@ -160,8 +170,8 @@ export class BookDetail {
    */
   protected description(): string {
     const item = this.item();
-    return item && typeof item.book.description === 'string'
-      ? item.book.description
+    return item && typeof item.book.summary.description === 'string'
+      ? item.book.summary.description
       : 'No description is available for this edition.';
   }
   /**
@@ -289,6 +299,29 @@ export class BookDetail {
       this.error.set('This cover could not be used as a theme.');
     } finally {
       this.applyingTheme.set(false);
+    }
+  }
+  /**
+   * Removes this saved item from the current owner's library and returns to the library grid.
+   */
+  protected async deleteBook(): Promise<void> {
+    const item = this.item();
+
+    if (!item) {
+      return;
+    }
+
+    this.error.set(null);
+    this.status.set(null);
+    this.deletingBook.set(true);
+
+    try {
+      await this.library.delete(item.id);
+      await this.router.navigate(['/app/library']);
+    } catch {
+      this.error.set('Book could not be removed from your library.');
+    } finally {
+      this.deletingBook.set(false);
     }
   }
   /**

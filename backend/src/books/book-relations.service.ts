@@ -3,6 +3,11 @@ import { BookRelationType, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../database/prisma.service';
 import { normalizeText } from '../library/library-rules';
+import {
+  bookSummary,
+  toBookCardResponse as toMetadataBookCardResponse,
+  type BookMetadataRecord,
+} from './book-metadata.mapper';
 import { BookPersistenceService } from './book-persistence.service';
 import { BookCardResponseDto } from './dto/book-card-response.dto';
 import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
@@ -42,10 +47,9 @@ type SeriesDetection = {
 };
 
 const emptyFilters: BookSearchFiltersDto = {
-  format: null,
-  subject: null,
-  yearFrom: null,
-  yearTo: null,
+  filter: null,
+  orderBy: 'relevance',
+  printType: 'books',
 };
 
 @Injectable()
@@ -87,7 +91,7 @@ export class BookRelationsService {
       entries: entries
         .sort((left, right) => compareSeriesEntries(left, right))
         .map((entry) => ({
-          book: toBookCardResponse(entry.book),
+          book: toMetadataBookCardResponse(entry.book as BookMetadataRecord),
           confidence: entry.confidence,
           position: entry.position,
           positionLabel: entry.positionLabel,
@@ -202,14 +206,6 @@ export class BookRelationsService {
       whereClauses.push({ normalizedPrimaryAuthor: sourceAuthor });
     }
 
-    if (book.genres.length > 0) {
-      whereClauses.push({ genres: { hasSome: book.genres.slice(0, 8) } });
-    }
-
-    if (book.publisher) {
-      whereClauses.push({ publisher: book.publisher });
-    }
-
     if (whereClauses.length === 0) {
       return [];
     }
@@ -238,7 +234,9 @@ export class BookRelationsService {
         return right.score - left.score;
       }
 
-      return left.book.title.localeCompare(right.book.title);
+      return bookSummary(left.book as BookMetadataRecord).title.localeCompare(
+        bookSummary(right.book as BookMetadataRecord).title,
+      );
     });
   }
   /**
@@ -269,12 +267,22 @@ export class BookRelationsService {
       reasons.push(`Shared genre: ${genre}`);
     }
 
-    if (source.publisher && candidate.publisher && source.publisher === candidate.publisher) {
+    const sourceSummary = bookSummary(source as BookMetadataRecord);
+    const candidateSummary = bookSummary(candidate as BookMetadataRecord);
+
+    if (
+      sourceSummary.publisher &&
+      candidateSummary.publisher &&
+      sourceSummary.publisher === candidateSummary.publisher
+    ) {
       score += 6;
       reasons.push('Same publisher');
     }
 
-    const yearScore = publicationYearScore(source.publishedDate, candidate.publishedDate);
+    const yearScore = publicationYearScore(
+      sourceSummary.publishedDate,
+      candidateSummary.publishedDate,
+    );
 
     if (yearScore > 0) {
       score += yearScore;
@@ -289,11 +297,12 @@ export class BookRelationsService {
    */
   private async seedProviderCandidates(book: BookWithSeries, limit: number): Promise<void> {
     const series = await this.ensureSeriesMetadata(book);
+    const summary = bookSummary(book as BookMetadataRecord);
     const queries = uniqueStrings(
       [
         series?.name,
-        book.primaryAuthor ?? undefined,
-        book.genres[0] ? `subject:${quoteOpenLibraryPhrase(book.genres[0])}` : undefined,
+        summary.primaryAuthor ?? undefined,
+        summary.genres[0] ? `subject:${quoteOpenLibraryPhrase(summary.genres[0])}` : undefined,
       ].filter(isString),
     ).slice(0, 3);
 
@@ -312,8 +321,16 @@ export class BookRelationsService {
           query,
         });
 
-        await this.bookPersistence.persistOpenLibraryBooks(
-          normalized.items.filter((item) => item.sourceId !== book.sourceId),
+        await Promise.all(
+          normalized.items
+            .filter((item) => item.isbn13 || item.isbn10)
+            .filter((item) => item.isbn13 !== book.isbn13 && item.isbn10 !== book.isbn10)
+            .map((item) =>
+              this.bookPersistence.ensureBookForIdentity({
+                isbn10: item.isbn10,
+                isbn13: item.isbn13,
+              }),
+            ),
         );
       } catch (error) {
         this.logger.warn(
@@ -372,26 +389,29 @@ function compareSeriesEntries(
     return 1;
   }
 
-  const leftYear = yearFromPublishedDate(left.book.publishedDate);
-  const rightYear = yearFromPublishedDate(right.book.publishedDate);
+  const leftSummary = bookSummary(left.book as BookMetadataRecord);
+  const rightSummary = bookSummary(right.book as BookMetadataRecord);
+  const leftYear = yearFromPublishedDate(leftSummary.publishedDate);
+  const rightYear = yearFromPublishedDate(rightSummary.publishedDate);
 
   if (leftYear !== null && rightYear !== null && leftYear !== rightYear) {
     return leftYear - rightYear;
   }
 
-  return left.book.title.localeCompare(right.book.title);
+  return leftSummary.title.localeCompare(rightSummary.title);
 }
 
 /**
  * Detects a single best series candidate from provider payloads and common title patterns.
  */
 function detectSeries(book: BookRecord): SeriesDetection | null {
+  const summary = bookSummary(book as BookMetadataRecord);
   const candidates = [
     ...seriesDetectionsFromJson(book.googleBooksRawPayload, 82),
     ...seriesDetectionsFromJson(book.rawProviderPayload, 70),
-    ...seriesDetectionsFromText(book.title, book.subtitle),
+    ...seriesDetectionsFromText(summary.title, summary.subtitle),
   ]
-    .map((candidate) => normalizeSeriesDetection(candidate, book.title))
+    .map((candidate) => normalizeSeriesDetection(candidate, summary.title))
     .filter(isSeriesDetection);
 
   return (
@@ -624,7 +644,7 @@ function normalizedAuthor(book: BookRecord): null | string {
     return book.normalizedPrimaryAuthor;
   }
 
-  const author = book.primaryAuthor ?? book.authors[0];
+  const author = bookSummary(book as BookMetadataRecord).primaryAuthor;
 
   return author ? normalizeText(author) : null;
 }
@@ -633,9 +653,12 @@ function normalizedAuthor(book: BookRecord): null | string {
  * Finds shared genres by normalized label while keeping the source book's display casing.
  */
 function sharedGenres(source: BookRecord, candidate: BookRecord): string[] {
-  const candidateGenres = new Set(candidate.genres.map(normalizeText));
+  const sourceGenres = bookSummary(source as BookMetadataRecord).genres;
+  const candidateGenres = new Set(
+    bookSummary(candidate as BookMetadataRecord).genres.map(normalizeText),
+  );
 
-  return uniqueStrings(source.genres.filter((genre) => candidateGenres.has(normalizeText(genre))));
+  return uniqueStrings(sourceGenres.filter((genre) => candidateGenres.has(normalizeText(genre))));
 }
 
 /**
@@ -663,30 +686,11 @@ function publicationYearScore(left: null | string, right: null | string): number
 }
 
 /**
- * Maps persisted Book rows to the compact frontend card shape.
- */
-function toBookCardResponse(book: BookRecord): BookCardResponseDto {
-  return {
-    authors: book.authors,
-    coverUrl: book.coverUrl,
-    genres: book.genres,
-    id: book.id,
-    primaryAuthor: book.primaryAuthor,
-    publishedDate: book.publishedDate,
-    sourceId: book.sourceId,
-    sourceProvider: book.sourceProvider,
-    sourceUrl: book.sourceUrl,
-    subtitle: book.subtitle,
-    title: book.title,
-  };
-}
-
-/**
  * Maps scored internal candidates to the public related-book response contract.
  */
 function toRelatedBookResponse(scored: ScoredBook): RelatedBookResponseDto {
   return {
-    book: toBookCardResponse(scored.book),
+    book: toMetadataBookCardResponse(scored.book as BookMetadataRecord),
     reasons: scored.reasons,
     score: scored.score,
   };

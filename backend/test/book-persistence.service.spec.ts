@@ -2,242 +2,273 @@ import { BookProvider, GoogleBooksSyncStatus } from '@prisma/client';
 
 import { BookPersistenceService } from '../src/books/book-persistence.service';
 import { GoogleBooksClientService } from '../src/books/google-books/google-books-client.service';
-import { NormalizedBookDto } from '../src/books/dto/normalized-book.dto';
+import { OpenLibraryClientService } from '../src/books/open-library/open-library-client.service';
+import { OpenLibraryNormalizerService } from '../src/books/open-library/open-library-normalizer.service';
 import { PrismaService } from '../src/database/prisma.service';
 
 describe('BookPersistenceService', () => {
-  const normalizedBook: NormalizedBookDto = {
+  const googleVolume = {
     authors: ['Ursula K. Le Guin'],
-    coverUrl: null,
-    dedupeKey: 'isbn13:9780441478125',
-    description: null,
+    categories: ['Science Fiction'],
+    description: 'Google description.',
     ebookAccess: null,
-    genres: ['Science fiction'],
+    id: 'google-volume-id',
+    infoLink: 'https://books.google.com/books?id=google-volume-id',
     isbn10: '0441478123',
     isbn13: '9780441478125',
     isReadableOnline: false,
-    openLibraryEditionKey: '/books/OL24631830M',
-    openLibraryWorkKey: '/works/OL262758W',
-    pageCount: null,
-    primaryAuthor: 'Ursula K. Le Guin',
-    provider: 'OPEN_LIBRARY',
-    providerKey: 'works:OL262758W',
+    pageCount: 304,
     publishedDate: '1969',
-    publisher: null,
-    sourceId: 'works:OL262758W',
-    sourceUrl: 'https://openlibrary.org/works/OL262758W',
+    publisher: 'Ace',
+    rawPayload: {
+      accessInfo: { viewability: 'NO_PAGES' },
+      id: 'google-volume-id',
+      volumeInfo: {
+        authors: ['Ursula K. Le Guin'],
+        categories: ['Science Fiction'],
+        description: 'Google description.',
+        imageLinks: { thumbnail: 'https://books.google.com/cover.jpg' },
+        industryIdentifiers: [
+          { identifier: '0441478123', type: 'ISBN_10' },
+          { identifier: '9780441478125', type: 'ISBN_13' },
+        ],
+        pageCount: 304,
+        publishedDate: '1969',
+        publisher: 'Ace',
+        title: 'The Left Hand of Darkness',
+      },
+    },
     subtitle: null,
+    thumbnailUrl: 'https://books.google.com/cover.jpg',
     title: 'The Left Hand of Darkness',
   };
-  const createdBook = {
+  const cachedBook = {
     ...bookDefaults(),
     authors: ['Ursula K. Le Guin'],
-    genres: ['Science fiction'],
-    googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
+    coverUrl: 'https://books.google.com/cover.jpg',
+    description: 'Google description.',
+    genres: ['Science Fiction'],
+    googleBooksRawPayload: googleVolume.rawPayload,
+    googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+    googleBooksVolumeId: 'google-volume-id',
     id: 'book-id',
     isbn10: '0441478123',
     isbn13: '9780441478125',
     normalizedPrimaryAuthor: 'ursula k le guin',
     normalizedTitle: 'the left hand of darkness',
-    openLibraryEditionKey: '/books/OL24631830M',
-    openLibraryWorkKey: '/works/OL262758W',
+    pageCount: 304,
     primaryAuthor: 'Ursula K. Le Guin',
     publishedDate: '1969',
-    sourceId: 'works:OL262758W',
-    sourceProvider: BookProvider.OPEN_LIBRARY,
-    sourceUrl: 'https://openlibrary.org/works/OL262758W',
+    publisher: 'Ace',
+    rawProviderPayload: googleVolume.rawPayload,
+    sourceId: 'isbn13:9780441478125',
+    sourceProvider: BookProvider.GOOGLE_BOOKS,
+    sourceUrl: 'https://books.google.com/books?id=google-volume-id',
+    title: 'The Left Hand of Darkness',
+  };
+  const openLibraryBook = {
+    authors: ['Ursula K. Le Guin'],
+    coverUrl: 'https://covers.openlibrary.org/b/id/1-L.jpg',
+    dedupeKey: 'isbn13:9780441478125',
+    description: 'Open Library description.',
+    ebookAccess: null,
+    genres: ['Fiction', 'Classics'],
+    googleBooksVolumeId: null,
+    isbn10: '0441478123',
+    isbn13: '9780441478125',
+    isReadableOnline: false,
+    openLibraryEditionKey: '/books/OL1M',
+    openLibraryWorkKey: '/works/OL1W',
+    pageCount: 300,
+    primaryAuthor: 'Ursula K. Le Guin',
+    provider: 'OPEN_LIBRARY' as const,
+    providerKey: 'works:OL1W',
+    publishedDate: '1969',
+    publisher: 'Open Library Publisher',
+    sourceId: 'works:OL1W',
+    sourceUrl: 'https://openlibrary.org/works/OL1W',
+    subtitle: null,
     title: 'The Left Hand of Darkness',
   };
   const bookFindUnique = jest.fn();
+  const bookFindFirst = jest.fn();
   const bookFindMany = jest.fn();
   const bookCreate = jest.fn();
   const bookUpdate = jest.fn();
-  const findBestVolume = jest.fn();
+  const bookUpsert = jest.fn();
+  const libraryItemFindMany = jest.fn();
+  const getVolume = jest.fn();
+  const searchVolumes = jest.fn();
+  const openLibrarySearchBooks = jest.fn();
+  const normalizeSearch = jest.fn();
   const prisma = {
     book: {
       create: bookCreate,
+      findFirst: bookFindFirst,
       findMany: bookFindMany,
       findUnique: bookFindUnique,
       update: bookUpdate,
+      upsert: bookUpsert,
+    },
+    libraryItem: {
+      findMany: libraryItemFindMany,
     },
   } as unknown as PrismaService;
   const googleBooksClient = {
-    findBestVolume,
+    getVolume,
+    searchVolumes,
   } as unknown as GoogleBooksClientService;
+  const openLibraryClient = {
+    searchBooks: openLibrarySearchBooks,
+  } as unknown as OpenLibraryClientService;
+  const openLibraryNormalizer = {
+    normalizeSearch,
+  } as unknown as OpenLibraryNormalizerService;
 
   let service: BookPersistenceService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new BookPersistenceService(googleBooksClient, prisma);
+    service = new BookPersistenceService(
+      googleBooksClient,
+      openLibraryClient,
+      openLibraryNormalizer,
+      prisma,
+    );
   });
 
-  it('persists Open Library search books and merges Google Books metadata into missing fields', async () => {
+  it('persists Google volumes and fills missing Open Library metadata', async () => {
     bookFindUnique.mockResolvedValueOnce(null);
-    bookCreate.mockResolvedValueOnce(createdBook);
-    findBestVolume.mockResolvedValueOnce({
-      authors: ['Ursula K. Le Guin'],
-      categories: ['Fiction'],
-      description: 'A novel of winter and politics.',
-      id: 'google-volume-id',
-      isbn10: '0441478123',
-      isbn13: '9780441478125',
-      pageCount: 304,
-      publishedDate: '1969-03',
-      publisher: 'Ace',
-      rawPayload: { id: 'google-volume-id', volumeInfo: {} },
-      thumbnailUrl: 'https://books.google.com/cover.jpg',
-      title: 'The Left Hand of Darkness',
+    bookFindFirst.mockResolvedValueOnce(null);
+    bookCreate.mockResolvedValueOnce({ ...cachedBook, openLibraryWorkKey: null });
+    openLibrarySearchBooks.mockResolvedValueOnce({ docs: [], numFound: 1 });
+    normalizeSearch.mockReturnValueOnce({
+      count: 1,
+      facets: { availability: [], printTypes: [], sortOptions: [] },
+      filters: { filter: null, orderBy: 'relevance', printType: 'books' },
+      items: [openLibraryBook],
+      limit: 1,
+      page: 1,
+      query: 'isbn:9780441478125',
+      total: 1,
     });
-    bookUpdate.mockResolvedValueOnce({ ...createdBook, googleBooksSyncStatus: 'SYNCED' });
+    bookUpdate.mockResolvedValueOnce({
+      ...cachedBook,
+      openLibraryEditionKey: '/books/OL1M',
+      openLibraryWorkKey: '/works/OL1W',
+      rawProviderPayload: {
+        google: googleVolume.rawPayload,
+        openLibrary: openLibraryBook,
+      },
+    });
 
-    await service.persistOpenLibraryBooks([normalizedBook]);
+    await expect(service.persistGoogleBooksVolumes([googleVolume])).resolves.toEqual([
+      expect.objectContaining({
+        openLibraryWorkKey: '/works/OL1W',
+      }),
+    ]);
 
     expect(bookCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
-        sourceId: 'works:OL262758W',
-        sourceProvider: BookProvider.OPEN_LIBRARY,
-      }),
-    });
-    expect(findBestVolume).toHaveBeenCalledWith({
-      isbn10: '0441478123',
-      isbn13: '9780441478125',
-      primaryAuthor: 'Ursula K. Le Guin',
-      title: 'The Left Hand of Darkness',
-    });
-    expect(bookUpdate).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        description: 'A novel of winter and politics.',
-        genres: ['Science fiction', 'Fiction'],
-        googleBooksError: null,
-        googleBooksRawPayload: { id: 'google-volume-id', volumeInfo: {} },
         googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
         googleBooksVolumeId: 'google-volume-id',
-        pageCount: 304,
-        publisher: 'Ace',
+        sourceId: 'isbn13:9780441478125',
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
       }),
-      where: { id: 'book-id' },
     });
-  });
-
-  it('preserves richer existing fields when saving another provider result', async () => {
-    bookFindUnique.mockResolvedValueOnce({
-      ...createdBook,
-      coverUrl: 'https://existing.example/cover.jpg',
-      description: 'Already curated.',
-      genres: ['Classic'],
-      googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
-      pageCount: 304,
-      publisher: 'Existing publisher',
-    });
-    bookUpdate.mockResolvedValueOnce(createdBook);
-
-    await service.upsertOpenLibraryBook(prisma, normalizedBook);
-
     expect(bookUpdate).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        coverUrl: 'https://existing.example/cover.jpg',
-        description: 'Already curated.',
-        genres: ['Classic', 'Science fiction'],
-        pageCount: 304,
-        publisher: 'Existing publisher',
+        openLibraryEditionKey: '/books/OL1M',
+        openLibraryWorkKey: '/works/OL1W',
+        rawProviderPayload: expect.objectContaining({ openLibrary: openLibraryBook }),
       }),
       where: { id: 'book-id' },
     });
   });
 
-  it('syncs pending and failed books during the startup sweep', async () => {
-    const pending = {
-      ...createdBook,
-      googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
-      id: 'pending-book-id',
-    };
-    const failed = {
-      ...createdBook,
-      googleBooksSyncStatus: GoogleBooksSyncStatus.FAILED,
-      googleBooksSyncedAt: new Date('2026-07-09T00:00:00.000Z'),
-      id: 'failed-book-id',
-    };
-    bookFindMany.mockResolvedValueOnce([pending, failed]);
-    findBestVolume.mockResolvedValue({
-      authors: ['Ursula K. Le Guin'],
-      categories: ['Fiction'],
-      description: 'A novel of winter and politics.',
-      id: 'google-volume-id',
-      isbn10: '0441478123',
-      isbn13: '9780441478125',
-      pageCount: 304,
-      publishedDate: '1969-03',
-      publisher: 'Ace',
-      rawPayload: { id: 'google-volume-id', volumeInfo: {} },
-      thumbnailUrl: 'https://books.google.com/cover.jpg',
-      title: 'The Left Hand of Darkness',
+  it('returns an existing synced cache row for an ISBN identity', async () => {
+    bookFindFirst.mockResolvedValueOnce(cachedBook);
+
+    await expect(service.ensureBookForIdentity({ isbn13: '978-0-441-47812-5' })).resolves.toEqual(
+      cachedBook,
+    );
+
+    expect(searchVolumes).not.toHaveBeenCalled();
+  });
+
+  it('fetches Google metadata when a saved ISBN has no cache row', async () => {
+    bookFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    searchVolumes.mockResolvedValueOnce({
+      items: [googleVolume],
+      rawPayload: { items: [googleVolume.rawPayload], totalItems: 1 },
+      totalItems: 1,
     });
-    bookUpdate.mockResolvedValue(createdBook);
+    bookFindUnique.mockResolvedValueOnce(null);
+    bookCreate.mockResolvedValueOnce(cachedBook);
+    openLibrarySearchBooks.mockResolvedValueOnce({ docs: [], numFound: 0 });
+    normalizeSearch.mockReturnValueOnce({
+      count: 0,
+      facets: { availability: [], printTypes: [], sortOptions: [] },
+      filters: { filter: null, orderBy: 'relevance', printType: 'books' },
+      items: [],
+      limit: 1,
+      page: 1,
+      query: 'isbn:9780441478125',
+      total: 0,
+    });
 
-    await expect(service.syncPendingGoogleBooks()).resolves.toBe(2);
+    await expect(service.ensureBookForIdentity({ isbn13: '9780441478125' })).resolves.toEqual(
+      cachedBook,
+    );
 
-    expect(bookFindMany).toHaveBeenCalledWith({
-      orderBy: [{ updatedAt: 'asc' }, { createdAt: 'asc' }],
-      where: {
-        googleBooksSyncStatus: {
-          in: [GoogleBooksSyncStatus.PENDING, GoogleBooksSyncStatus.FAILED],
+    expect(searchVolumes).toHaveBeenCalledWith({
+      maxResults: 5,
+      orderBy: 'relevance',
+      printType: 'books',
+      query: 'isbn:9780441478125',
+      startIndex: 0,
+    });
+  });
+
+  it('maps cached books back to raw Google metadata detail DTOs', () => {
+    expect(
+      service.toBookMetadata({
+        ...cachedBook,
+        rawProviderPayload: {
+          google: googleVolume.rawPayload,
+          openLibrary: openLibraryBook,
         },
-      },
-    });
-    expect(findBestVolume).toHaveBeenCalledTimes(2);
-    expect(bookUpdate).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+      }).summary,
+    ).toEqual(
+      expect.objectContaining({
+        coverImages: expect.objectContaining({
+          card: 'https://books.google.com/cover.jpg',
+          detail: 'https://covers.openlibrary.org/b/id/1-L.jpg',
+        }),
+        dedupeKey: 'isbn13:9780441478125',
         googleBooksVolumeId: 'google-volume-id',
+        providerKey: 'google:google-volume-id',
+        title: 'The Left Hand of Darkness',
       }),
-      where: { id: 'pending-book-id' },
-    });
-    expect(bookUpdate).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
-        googleBooksVolumeId: 'google-volume-id',
-      }),
-      where: { id: 'failed-book-id' },
-    });
-  });
-
-  it('syncs one persisted book by id when a user opens or adds it', async () => {
-    bookFindUnique.mockResolvedValueOnce(createdBook);
-    findBestVolume.mockResolvedValueOnce(null);
-    bookUpdate.mockResolvedValueOnce(createdBook);
-
-    await service.syncGoogleBooksForBookId('book-id');
-
-    expect(bookFindUnique).toHaveBeenCalledWith({
-      where: { id: 'book-id' },
-    });
-    expect(bookUpdate).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        googleBooksError: null,
-        googleBooksSyncStatus: GoogleBooksSyncStatus.NOT_FOUND,
-      }),
-      where: { id: 'book-id' },
-    });
+    );
   });
 });
 
 function bookDefaults() {
   return {
-    coverUrl: null,
     createdAt: new Date('2026-07-09T00:00:00.000Z'),
-    description: null,
     googleBooksError: null,
     googleBooksRawPayload: null,
     googleBooksSyncedAt: null,
     googleBooksVolumeId: null,
     isbn10: null,
     isbn13: null,
-    pageCount: null,
-    publisher: null,
+    openLibraryEditionKey: null,
+    openLibraryWorkKey: null,
     rawProviderPayload: null,
-    subtitle: null,
     updatedAt: new Date('2026-07-09T00:00:00.000Z'),
   };
 }

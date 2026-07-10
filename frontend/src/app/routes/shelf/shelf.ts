@@ -38,18 +38,16 @@ export class Shelf {
     });
   }
   /**
-   * Returns a cover URL only when the stored book snapshot has one.
+   * Returns the best card-sized cover URL from the shared provider metadata.
    */
   protected coverUrl(item: LibraryItemResponse): string | null {
-    return typeof item.book.coverUrl === 'string' ? item.book.coverUrl : null;
+    return item.book.summary.coverImages.card ?? item.book.summary.coverUrl ?? null;
   }
   /**
-   * Chooses the normalized primary author, falling back to the first stored author.
+   * Chooses the computed primary author, falling back to the first provider author label.
    */
   protected primaryAuthor(item: LibraryItemResponse): string {
-    return typeof item.book.primaryAuthor === 'string'
-      ? item.book.primaryAuthor
-      : (item.book.authors[0] ?? 'Unknown author');
+    return item.book.summary.primaryAuthor ?? item.book.summary.authors[0] ?? 'Unknown author';
   }
   /**
    * Loads all shelves to find the current label and all books for the shelf id.

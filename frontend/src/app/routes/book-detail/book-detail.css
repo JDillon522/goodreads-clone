@@ -87,6 +87,59 @@
   line-height: var(--leading-prose);
 }
 
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.metadata-grid div {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  padding: var(--space-3);
+}
+
+.metadata-grid dt {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+
+.metadata-grid dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.chip-list li {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-hover);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
 .detail-panel {
   display: grid;
   gap: var(--space-4);
@@ -165,7 +218,12 @@
 }
 
 .primary-button,
-.secondary-button {
+.secondary-button,
+.danger-button {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
   min-block-size: 2.75rem;
   border-radius: var(--radius-md);
   padding-inline: var(--space-4);
@@ -182,6 +240,23 @@
   border: 1px solid var(--color-border);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
+}
+
+.danger-button {
+  border: 1px solid var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, var(--color-bg-primary) 88%);
+  color: var(--color-error);
+}
+
+.danger-button:hover:not(:disabled),
+.danger-button:focus-visible:not(:disabled) {
+  background: var(--color-error);
+  color: var(--color-on-accent);
+}
+
+.danger-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .cover-theme-button {
@@ -206,7 +281,8 @@
 }
 
 @media (max-width: 760px) {
-  .book-detail {
+  .book-detail,
+  .metadata-grid {
     grid-template-columns: 1fr;
   }
 

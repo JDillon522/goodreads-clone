@@ -1,6 +1,6 @@
 <section class="page">
   <header class="page__header">
-    <p class="eyebrow">Open Library</p>
+    <p class="eyebrow">Google Books</p>
     <h1>Find a book</h1>
   </header>
 
@@ -45,78 +45,57 @@
           }
         </header>
 
-        <form class="year-filter" (submit)="submitFilters($event)">
-          <app-form-control
-            label="From year"
-            type="number"
-            size="compact"
-            [control]="filtersForm.yearFrom"
-          />
-          <app-form-control
-            label="To year"
-            type="number"
-            size="compact"
-            [control]="filtersForm.yearTo"
-          />
-          <button class="secondary-button" type="submit" [disabled]="isSearching()">
-            Apply years
-          </button>
-        </form>
-
-        @if (facets().publishedDecades.length > 0) {
-          <section class="facet-group" aria-label="Published decade">
-            <h3>Published decade</h3>
+        @if (facets().availability.length > 0) {
+          <section class="facet-group" aria-label="Availability">
+            <h3>Availability</h3>
             <div class="facet-list">
-              @for (decade of facets().publishedDecades; track decade.value) {
+              @for (availability of facets().availability; track availability.value) {
                 <button
                   class="facet-chip"
                   type="button"
-                  (click)="applyDecadeFilter(decade)"
-                  [class.is-active]="isDecadeActive(decade)"
+                  (click)="applyAvailabilityFilter(availability)"
+                  [class.is-active]="isAvailabilityActive(availability)"
                   [disabled]="isSearching()"
                 >
-                  <span>{{ decade.label }}</span>
-                  <span>{{ decade.count }}</span>
+                  <span>{{ availability.label }}</span>
                 </button>
               }
             </div>
           </section>
         }
 
-        @if (facets().subjects.length > 0) {
-          <section class="facet-group" aria-label="Subject">
-            <h3>Subject</h3>
+        @if (facets().printTypes.length > 0) {
+          <section class="facet-group" aria-label="Print type">
+            <h3>Print type</h3>
             <div class="facet-list">
-              @for (subject of facets().subjects; track subject.value) {
+              @for (printType of facets().printTypes; track printType.value) {
                 <button
                   class="facet-chip"
                   type="button"
-                  (click)="applySubjectFilter(subject)"
-                  [class.is-active]="isSubjectActive(subject)"
+                  (click)="applyPrintTypeFilter(printType)"
+                  [class.is-active]="isPrintTypeActive(printType)"
                   [disabled]="isSearching()"
                 >
-                  <span>{{ subject.label }}</span>
-                  <span>{{ subject.count }}</span>
+                  <span>{{ printType.label }}</span>
                 </button>
               }
             </div>
           </section>
         }
 
-        @if (facets().formats.length > 0) {
-          <section class="facet-group" aria-label="Format">
-            <h3>Format</h3>
+        @if (facets().sortOptions.length > 0) {
+          <section class="facet-group" aria-label="Sort">
+            <h3>Sort</h3>
             <div class="facet-list">
-              @for (format of facets().formats; track format.value) {
+              @for (sort of facets().sortOptions; track sort.value) {
                 <button
                   class="facet-chip"
                   type="button"
-                  (click)="applyFormatFilter(format)"
-                  [class.is-active]="isFormatActive(format)"
-                  [disabled]="isSearching() || (format.count === 0 && !isFormatActive(format))"
+                  (click)="applySortOption(sort)"
+                  [class.is-active]="isSortActive(sort)"
+                  [disabled]="isSearching()"
                 >
-                  <span>{{ format.label }}</span>
-                  <span>{{ format.count }}</span>
+                  <span>{{ sort.label }}</span>
                 </button>
               }
             </div>
@@ -129,38 +108,56 @@
       {{ total() }} results found. Showing {{ resultRangeStart() }}-{{ resultRangeEnd() }}.
     </p>
     <div class="results-list">
-      @for (book of results(); track book.providerKey) {
+      @for (book of results(); track bookKey(book)) {
         <article class="result-card">
           <button
             class="result-card__detail"
             type="button"
             (click)="openBookDetail(book)"
-            [disabled]="openingKey() === book.providerKey"
-            [attr.aria-label]="'Open details for ' + book.title"
+            [disabled]="openingKey() === bookKey(book)"
+            [attr.aria-label]="'Open details for ' + book.summary.title"
           >
             <span class="result-card__cover">
               @if (coverUrl(book)) {
-                <img [src]="coverUrl(book)" [alt]="book.title + ' cover'" loading="lazy" />
+                <img [src]="coverUrl(book)" [alt]="book.summary.title + ' cover'" loading="lazy" />
               } @else {
                 <i class="ph ph-book-open-text" aria-hidden="true"></i>
               }
             </span>
             <span class="result-card__body">
-              <span class="result-card__title">{{ book.title }}</span>
+              <span class="result-card__title">{{ book.summary.title }}</span>
+              @if (book.summary.subtitle) {
+                <span class="result-card__subtitle">{{ book.summary.subtitle }}</span>
+              }
               <span>{{ primaryAuthor(book) }}</span>
-              <span class="muted">{{ publishedDate(book) }}</span>
+              <span class="muted">{{ resultMetadata(book) }}</span>
+              @if (book.summary.genres.length > 0) {
+                <span class="result-card__genres">
+                  @for (genre of previewGenres(book); track genre) {
+                    <span>{{ genre }}</span>
+                  }
+                </span>
+              }
+              <span class="result-card__cta">View details</span>
+              @if (!canSaveBook(book)) {
+                <span class="result-card__warning">Missing ISBN. You can view details, but cannot save it.</span>
+              }
             </span>
           </button>
           <button
             class="secondary-button"
             type="button"
             (click)="openAddBookDialog(book)"
-            [disabled]="addingKey() === book.providerKey || openingKey() === book.providerKey"
+            [disabled]="
+              !canSaveBook(book) ||
+              addingKey() === bookKey(book) ||
+              openingKey() === bookKey(book)
+            "
           >
             {{
-              addingKey() === book.providerKey
+              addingKey() === bookKey(book)
                 ? 'Adding...'
-                : openingKey() === book.providerKey
+                : openingKey() === bookKey(book)
                   ? 'Opening...'
                   : 'Add'
             }}
@@ -201,7 +198,7 @@
     <header class="dialog__header">
       <div>
         <p class="eyebrow">Add book</p>
-        <h2>{{ selectedBook()?.title ?? 'Choose shelf' }}</h2>
+        <h2>{{ selectedBook()?.summary?.title ?? 'Choose shelf' }}</h2>
       </div>
       <button
         class="icon-button"

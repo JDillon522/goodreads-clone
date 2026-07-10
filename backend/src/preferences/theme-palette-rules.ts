@@ -76,7 +76,7 @@ export const themeCssVariables: readonly ThemeCssVariable[] = [
 ];
 
 /**
- * Restricts palette extraction to the normalized Open Library cover URL shape used by Bookshelf.
+ * Restricts palette extraction to normalized provider cover URL shapes used by Bookshelf.
  */
 export function isAllowedOpenLibraryCoverUrl(value: string): boolean {
   let url: URL;
@@ -87,10 +87,18 @@ export function isAllowedOpenLibraryCoverUrl(value: string): boolean {
     return false;
   }
 
+  if (url.protocol !== 'https:') {
+    return false;
+  }
+
+  if (url.hostname === 'covers.openlibrary.org') {
+    return /^\/b\/id\/\d+-[SML]\.jpg$/i.test(url.pathname);
+  }
+
   return (
-    url.protocol === 'https:' &&
-    url.hostname === 'covers.openlibrary.org' &&
-    /^\/b\/id\/\d+-[SML]\.jpg$/i.test(url.pathname)
+    url.hostname === 'books.google.com' ||
+    url.hostname === 'books.googleusercontent.com' ||
+    url.hostname.endsWith('.googleusercontent.com')
   );
 }
 

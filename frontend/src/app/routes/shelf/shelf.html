@@ -26,16 +26,20 @@
   } @else {
     <div class="book-grid">
       @for (item of items(); track item.id) {
-        <a class="book-card" [routerLink]="['/app/books', item.id]">
+        <a class="book-card" [routerLink]="['/app/book', item.id]">
           <div class="book-card__cover">
             @if (coverUrl(item)) {
-              <img [src]="coverUrl(item)" [alt]="item.book.title + ' cover'" loading="lazy" />
+              <img
+                [src]="coverUrl(item)"
+                [alt]="item.book.summary.title + ' cover'"
+                loading="lazy"
+              />
             } @else {
               <i class="ph ph-book-open-text" aria-hidden="true"></i>
             }
           </div>
           <div>
-            <p class="book-card__title">{{ item.book.title }}</p>
+            <p class="book-card__title">{{ item.book.summary.title }}</p>
             <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
           </div>
         </a>

@@ -165,7 +165,7 @@
         <ul class="book-membership-list">
           @for (item of deletePreviewItems(); track item.id) {
             <li>
-              <strong>{{ item.book.title }}</strong>
+              <strong>{{ item.book.summary.title }}</strong>
               <span>{{ shelfNames(item) }}</span>
             </li>
           }

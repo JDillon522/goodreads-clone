@@ -2,68 +2,70 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { BookProvider, GoogleBooksSyncStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../database/prisma.service';
-import { BookInputDto } from '../library/dto/book-input.dto';
 import { normalizeText } from '../library/library-rules';
+import {
+  bookSummary,
+  toBookMetadataResponse,
+  type BookMetadataRecord,
+} from './book-metadata.mapper';
+import { BookMetadataResponseDto } from './dto/book-metadata-response.dto';
+import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
 import { NormalizedBookDto } from './dto/normalized-book.dto';
 import {
   GoogleBooksClientService,
   type GoogleBooksVolumeCandidate,
 } from './google-books/google-books-client.service';
+import { OpenLibraryClientService } from './open-library/open-library-client.service';
+import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
 
 /**
- * Persists normalized provider books into the shared Book table and enriches Open Library records
- * with Google Books metadata without creating owner-specific library items.
+ * Persists Google Books metadata as the shared book cache and enriches cached rows with Open
+ * Library fields only when Google did not provide equivalent data.
  */
 export type BookPersistenceExecutor = Prisma.TransactionClient | PrismaService;
 
-type OpenLibraryBookInput = Pick<
-  BookInputDto | NormalizedBookDto,
-  | 'authors'
-  | 'coverUrl'
-  | 'description'
-  | 'genres'
-  | 'isbn10'
-  | 'isbn13'
-  | 'openLibraryEditionKey'
-  | 'openLibraryWorkKey'
-  | 'pageCount'
-  | 'primaryAuthor'
-  | 'publishedDate'
-  | 'publisher'
-  | 'sourceId'
-  | 'sourceUrl'
-  | 'subtitle'
-  | 'title'
->;
+export type BookIdentity = {
+  googleBooksVolumeId?: null | string;
+  isbn10?: null | string;
+  isbn13?: null | string;
+};
 
 type PersistedBook = Prisma.BookGetPayload<Record<string, never>>;
 
-type GoogleBooksSyncSource = Pick<
-  PersistedBook | OpenLibraryBookInput,
-  'isbn10' | 'isbn13' | 'primaryAuthor' | 'title'
->;
+const openLibraryEnrichmentFilters: BookSearchFiltersDto = {
+  filter: null,
+  orderBy: 'relevance',
+  printType: 'books',
+};
 
 @Injectable()
 export class BookPersistenceService implements OnApplicationBootstrap {
   private readonly logger = new Logger(BookPersistenceService.name);
   /**
-   * Receives persistence and Google Books lookup dependencies.
+   * Receives provider clients and Prisma dependencies.
    */
   public constructor(
     private readonly googleBooksClient: GoogleBooksClientService,
+    private readonly openLibraryClient: OpenLibraryClientService,
+    private readonly openLibraryNormalizer: OpenLibraryNormalizerService,
     private readonly prisma: PrismaService,
   ) {}
   /**
-   * Saves Open Library search/detail results as permanent shared Book rows.
+   * Caches a page of Google Books volumes and returns enriched shared book rows.
    */
-  public async persistOpenLibraryBooks(books: NormalizedBookDto[]): Promise<void> {
-    for (const book of books) {
-      const persisted = await this.upsertOpenLibraryBook(this.prisma, book);
-      await this.syncGoogleBooks(persisted, book);
+  public async persistGoogleBooksVolumes(
+    volumes: GoogleBooksVolumeCandidate[],
+  ): Promise<PersistedBook[]> {
+    const books: PersistedBook[] = [];
+
+    for (const volume of volumes) {
+      books.push(await this.upsertAndEnrichGoogleVolume(volume));
     }
+
+    return books;
   }
   /**
-   * Starts a non-blocking sweep for books that still need Google Books enrichment after Nest boots.
+   * Starts a non-blocking repair pass for stale cache rows and library ISBNs that need metadata.
    */
   public onApplicationBootstrap(): void {
     if (process.env['NODE_ENV'] === 'test') {
@@ -75,109 +77,230 @@ export class BookPersistenceService implements OnApplicationBootstrap {
     });
   }
   /**
-   * Syncs every book that is still pending or previously failed. This intentionally retries failed
-   * books on startup because provider failures can be transient or caused by missing local API keys.
+   * Syncs pending/failed cache rows and creates cache rows for saved library ISBNs without one.
    */
   public async syncPendingGoogleBooks(): Promise<number> {
+    let synced = 0;
     const books = await this.prisma.book.findMany({
       orderBy: [{ updatedAt: 'asc' }, { createdAt: 'asc' }],
       where: {
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
         googleBooksSyncStatus: {
           in: [GoogleBooksSyncStatus.PENDING, GoogleBooksSyncStatus.FAILED],
         },
       },
     });
 
-    if (books.length === 0) {
-      return 0;
-    }
-
-    this.logger.log(`Google Books startup sync found ${books.length} book(s).`);
-
     for (const book of books) {
       try {
         await this.syncGoogleBooks(book, book);
+        synced += 1;
       } catch (error) {
         this.logger.warn(`Google Books startup sync skipped ${book.id}: ${describeError(error)}`);
       }
     }
 
-    return books.length;
-  }
-  /**
-   * Refreshes Google metadata for one persisted book when a user touches that book directly.
-   */
-  public async syncGoogleBooksForBookId(bookId: string): Promise<void> {
-    const book = await this.prisma.book.findUnique({
-      where: { id: bookId },
+    const identities = await this.prisma.libraryItem.findMany({
+      distinct: ['dedupeKey'],
+      orderBy: [{ updatedAt: 'asc' }, { createdAt: 'asc' }],
+      select: { isbn10: true, isbn13: true },
     });
 
-    if (!book) {
-      return;
+    for (const identity of identities) {
+      try {
+        await this.ensureBookForIdentity(identity);
+        synced += 1;
+      } catch (error) {
+        this.logger.warn(`Google Books library ISBN sync skipped: ${describeError(error)}`);
+      }
     }
 
-    await this.syncGoogleBooks(book, book);
+    return synced;
   }
   /**
-   * Upserts one Open Library book while preserving richer fields already merged from other sources.
+   * Loads a Google volume by id, stores it in the shared cache, and enriches it from Open Library.
    */
-  public async upsertOpenLibraryBook(
-    executor: BookPersistenceExecutor,
-    input: OpenLibraryBookInput,
-  ): Promise<PersistedBook> {
-    return this.upsertOpenLibraryBookRecord(executor, input);
-  }
-  /**
-   * Stores or refreshes one Open Library-backed shared Book row.
-   */
-  private async upsertOpenLibraryBookRecord(
-    executor: BookPersistenceExecutor,
-    input: OpenLibraryBookInput,
-  ): Promise<PersistedBook> {
-    const existing = await executor.book.findUnique({
-      where: {
-        sourceProvider_sourceId: {
-          sourceId: input.sourceId,
-          sourceProvider: BookProvider.OPEN_LIBRARY,
-        },
-      },
+  public async getOrSyncGoogleVolume(volumeId: string): Promise<PersistedBook | null> {
+    const existing = await this.findGoogleBookByIdentity(this.prisma, {
+      googleBooksVolumeId: volumeId,
     });
-    const incoming = openLibraryData(input);
+
+    if (existing && !shouldSyncGoogle(existing)) {
+      return existing;
+    }
+
+    const volume = await this.googleBooksClient.getVolume(volumeId);
+
+    return volume ? this.upsertAndEnrichGoogleVolume(volume) : existing;
+  }
+  /**
+   * Resolves the metadata cache row for a saved library item identity, fetching it when missing.
+   */
+  public async ensureBookForIdentity(identity: BookIdentity): Promise<PersistedBook> {
+    const normalizedIdentity = normalizeIdentity(identity);
+    const googleBook = await this.findGoogleBookByIdentity(this.prisma, normalizedIdentity);
+    const fallbackBook = await this.findAnyBookByIdentity(normalizedIdentity);
+    const existing =
+      googleBook && googleBook.googleBooksSyncStatus !== GoogleBooksSyncStatus.NOT_FOUND
+        ? googleBook
+        : (fallbackBook ?? googleBook);
+
+    if (existing && !shouldSyncGoogle(existing)) {
+      return existing;
+    }
+
+    if (existing) {
+      return this.syncGoogleBooks(existing, normalizedIdentity);
+    }
+
+    const volume = await this.fetchVolumeForIdentity(normalizedIdentity);
+
+    if (volume) {
+      return this.upsertAndEnrichGoogleVolume(volume);
+    }
+
+    return this.createPlaceholderBook(normalizedIdentity, GoogleBooksSyncStatus.NOT_FOUND);
+  }
+  /**
+   * Converts a cached book row into the public normalized detail/search DTO.
+   */
+  public toBookMetadata(book: PersistedBook): BookMetadataResponseDto {
+    return toBookMetadataResponse(book as BookMetadataRecord);
+  }
+  /**
+   * Upserts one Google Books volume, then applies Open Library enrichment.
+   */
+  private async upsertAndEnrichGoogleVolume(
+    volume: GoogleBooksVolumeCandidate,
+  ): Promise<PersistedBook> {
+    const book = await this.upsertGoogleBooksVolume(this.prisma, volume);
+    return this.enrichFromOpenLibrary(book);
+  }
+  /**
+   * Stores or refreshes one Google Books cache row.
+   */
+  private async upsertGoogleBooksVolume(
+    executor: BookPersistenceExecutor,
+    volume: GoogleBooksVolumeCandidate,
+  ): Promise<PersistedBook> {
+    const incoming = googleBooksData(volume);
+    const sourceId = cacheSourceId({
+      googleBooksVolumeId: volume.id,
+      isbn10: volume.isbn10,
+      isbn13: volume.isbn13,
+    });
+    const existing =
+      (await executor.book.findUnique({
+        where: {
+          sourceProvider_sourceId: {
+            sourceId,
+            sourceProvider: BookProvider.GOOGLE_BOOKS,
+          },
+        },
+      })) ??
+      (await this.findGoogleBookByIdentity(executor, {
+        googleBooksVolumeId: volume.id,
+        isbn10: volume.isbn10,
+        isbn13: volume.isbn13,
+      }));
 
     if (!existing) {
       return executor.book.create({
-        data: {
-          ...incoming,
-          googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
-        },
+        data: incoming,
       });
     }
 
-    const merged = mergeBookData(existing, incoming);
-
     return executor.book.update({
-      data: merged,
+      data: mergeGoogleBooksData(existing, incoming),
       where: { id: existing.id },
     });
   }
   /**
-   * Merges Google Books data into missing app-owned fields and records sync state.
+   * Looks up a Google cache row by ISBN first, then volume id.
    */
-  private async syncGoogleBooks(book: PersistedBook, source: GoogleBooksSyncSource): Promise<void> {
+  private async findGoogleBookByIdentity(
+    executor: BookPersistenceExecutor,
+    identity: BookIdentity,
+  ): Promise<PersistedBook | null> {
+    const clauses = identityWhereClauses(identity);
+
+    if (clauses.length === 0) {
+      return null;
+    }
+
+    return executor.book.findFirst({
+      orderBy: [{ updatedAt: 'desc' }],
+      where: {
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
+        OR: clauses,
+      },
+    });
+  }
+  /**
+   * Falls back to any cached provider row with matching ISBN so older sample/demo data can still
+   * render while Google metadata is being rebuilt.
+   */
+  private async findAnyBookByIdentity(identity: BookIdentity): Promise<PersistedBook | null> {
+    const clauses = identityWhereClauses(identity).filter(
+      (clause) => 'isbn10' in clause || 'isbn13' in clause,
+    );
+
+    if (clauses.length === 0) {
+      return null;
+    }
+
+    return this.prisma.book.findFirst({
+      orderBy: [{ updatedAt: 'desc' }],
+      where: { OR: clauses },
+    });
+  }
+  /**
+   * Fetches the best Google volume by volume id or ISBN.
+   */
+  private async fetchVolumeForIdentity(
+    identity: BookIdentity,
+  ): Promise<GoogleBooksVolumeCandidate | null> {
+    if (identity.googleBooksVolumeId) {
+      const volume = await this.googleBooksClient.getVolume(identity.googleBooksVolumeId);
+
+      if (volume) {
+        return volume;
+      }
+    }
+
+    const isbn = identity.isbn13 ?? identity.isbn10;
+
+    if (!isbn) {
+      return null;
+    }
+
+    const result = await this.googleBooksClient.searchVolumes({
+      maxResults: 5,
+      orderBy: 'relevance',
+      printType: 'books',
+      query: `isbn:${isbn}`,
+      startIndex: 0,
+    });
+
+    return result.items[0] ?? null;
+  }
+  /**
+   * Refreshes a cache row from Google using the strongest identity currently available.
+   */
+  private async syncGoogleBooks(book: PersistedBook, source: BookIdentity): Promise<PersistedBook> {
     if (!shouldSyncGoogle(book)) {
-      return;
+      return book;
     }
 
     try {
-      const volume = await this.googleBooksClient.findBestVolume({
-        isbn10: source.isbn10 ?? null,
-        isbn13: source.isbn13 ?? null,
-        primaryAuthor: source.primaryAuthor ?? null,
-        title: source.title,
+      const volume = await this.fetchVolumeForIdentity({
+        googleBooksVolumeId: source.googleBooksVolumeId ?? book.googleBooksVolumeId,
+        isbn10: source.isbn10 ?? book.isbn10,
+        isbn13: source.isbn13 ?? book.isbn13,
       });
 
       if (!volume) {
-        await this.prisma.book.update({
+        return this.prisma.book.update({
           data: {
             googleBooksError: null,
             googleBooksSyncedAt: new Date(),
@@ -185,16 +308,12 @@ export class BookPersistenceService implements OnApplicationBootstrap {
           },
           where: { id: book.id },
         });
-        return;
       }
 
-      await this.prisma.book.update({
-        data: mergeGoogleBooksData(book, volume),
-        where: { id: book.id },
-      });
+      return this.upsertAndEnrichGoogleVolume(volume);
     } catch (error) {
       this.logger.warn(`Google Books sync failed for ${book.sourceId}: ${describeError(error)}`);
-      await this.prisma.book.update({
+      return this.prisma.book.update({
         data: {
           googleBooksError: describeError(error).slice(0, 1000),
           googleBooksSyncedAt: new Date(),
@@ -204,171 +323,253 @@ export class BookPersistenceService implements OnApplicationBootstrap {
       });
     }
   }
-}
+  /**
+   * Adds Open Library keys/subjects and other missing metadata after Google cache writes.
+   */
+  private async enrichFromOpenLibrary(book: PersistedBook): Promise<PersistedBook> {
+    const isbn = book.isbn13 ?? book.isbn10;
 
-/**
- * Converts Open Library DTOs into the shared Book table shape.
- */
-function openLibraryData(input: OpenLibraryBookInput): Prisma.BookUncheckedCreateInput {
-  return {
-    authors: cleanStrings(input.authors),
-    coverUrl: input.coverUrl ?? null,
-    description: input.description ?? null,
-    genres: cleanStrings(input.genres),
-    isbn10: input.isbn10 ?? null,
-    isbn13: input.isbn13 ?? null,
-    normalizedPrimaryAuthor: input.primaryAuthor ? normalizeText(input.primaryAuthor) : null,
-    normalizedTitle: normalizeText(input.title),
-    openLibraryEditionKey: input.openLibraryEditionKey ?? null,
-    openLibraryWorkKey: input.openLibraryWorkKey ?? null,
-    pageCount: input.pageCount ?? null,
-    primaryAuthor: input.primaryAuthor ?? null,
-    publishedDate: input.publishedDate ?? null,
-    publisher: input.publisher ?? null,
-    rawProviderPayload: openLibraryRawPayload(input),
-    sourceId: input.sourceId,
-    sourceProvider: BookProvider.OPEN_LIBRARY,
-    sourceUrl: input.sourceUrl ?? null,
-    subtitle: input.subtitle ?? null,
-    title: input.title,
-  };
-}
+    if (!isbn || book.openLibraryWorkKey || book.openLibraryEditionKey) {
+      return book;
+    }
 
-/**
- * Keeps existing richer values, fills missing fields from the latest provider result, and unions
- * list fields.
- */
-function mergeBookData(
-  existing: PersistedBook,
-  incoming: Prisma.BookUncheckedCreateInput,
-): Prisma.BookUncheckedUpdateInput {
-  const title = existing.title || String(incoming.title);
-  const primaryAuthor =
-    existing.primaryAuthor ?? (incoming.primaryAuthor as null | string | undefined) ?? null;
+    try {
+      const raw = await this.openLibraryClient.searchBooks({
+        limit: 1,
+        page: 1,
+        query: `isbn:${isbn}`,
+      });
+      const normalized = this.openLibraryNormalizer.normalizeSearch(raw, {
+        filters: openLibraryEnrichmentFilters,
+        limit: 1,
+        page: 1,
+        query: `isbn:${isbn}`,
+      });
+      const match = normalized.items[0];
 
-  const merged: Prisma.BookUncheckedUpdateInput = {
-    authors: mergeUnique(existing.authors, (incoming.authors as string[] | undefined) ?? []),
-    coverUrl: existing.coverUrl ?? (incoming.coverUrl as null | string | undefined) ?? null,
-    description:
-      existing.description ?? (incoming.description as null | string | undefined) ?? null,
-    genres: mergeUnique(existing.genres, (incoming.genres as string[] | undefined) ?? []),
-    isbn10: existing.isbn10 ?? (incoming.isbn10 as null | string | undefined) ?? null,
-    isbn13: existing.isbn13 ?? (incoming.isbn13 as null | string | undefined) ?? null,
-    normalizedPrimaryAuthor: primaryAuthor ? normalizeText(primaryAuthor) : null,
-    normalizedTitle: normalizeText(title),
-    openLibraryEditionKey:
-      existing.openLibraryEditionKey ??
-      (incoming.openLibraryEditionKey as null | string | undefined) ??
-      null,
-    openLibraryWorkKey:
-      existing.openLibraryWorkKey ??
-      (incoming.openLibraryWorkKey as null | string | undefined) ??
-      null,
-    pageCount: existing.pageCount ?? (incoming.pageCount as null | number | undefined) ?? null,
-    primaryAuthor,
-    publishedDate:
-      existing.publishedDate ?? (incoming.publishedDate as null | string | undefined) ?? null,
-    publisher: existing.publisher ?? (incoming.publisher as null | string | undefined) ?? null,
-    sourceUrl: existing.sourceUrl ?? (incoming.sourceUrl as null | string | undefined) ?? null,
-    subtitle: existing.subtitle ?? (incoming.subtitle as null | string | undefined) ?? null,
-    title,
-  };
+      if (!match) {
+        return book;
+      }
 
-  if (existing.rawProviderPayload === null && incoming.rawProviderPayload !== undefined) {
-    merged.rawProviderPayload = incoming.rawProviderPayload as Prisma.InputJsonValue;
+      return this.prisma.book.update({
+        data: mergeOpenLibraryData(book, match),
+        where: { id: book.id },
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Open Library enrichment skipped for ${book.sourceId}: ${describeError(error)}`,
+      );
+      return book;
+    }
   }
+  /**
+   * Creates a minimal ISBN cache row when provider data is temporarily unavailable.
+   */
+  private async createPlaceholderBook(
+    identity: BookIdentity,
+    status: GoogleBooksSyncStatus,
+  ): Promise<PersistedBook> {
+    const isbn = identity.isbn13 ?? identity.isbn10 ?? identity.googleBooksVolumeId ?? 'unknown';
+    const title = identity.isbn13 || identity.isbn10 ? `ISBN ${isbn}` : 'Unknown book';
+    const sourceId = cacheSourceId(identity);
 
-  return merged;
+    return this.prisma.book.upsert({
+      create: {
+        googleBooksError: null,
+        googleBooksSyncedAt: new Date(),
+        googleBooksSyncStatus: status,
+        googleBooksVolumeId: identity.googleBooksVolumeId ?? null,
+        isbn10: identity.isbn10 ?? null,
+        isbn13: identity.isbn13 ?? null,
+        normalizedPrimaryAuthor: null,
+        normalizedTitle: normalizeText(title),
+        rawProviderPayload: {
+          legacy: { title },
+        } as unknown as Prisma.InputJsonValue,
+        sourceId,
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
+      },
+      update: {
+        googleBooksSyncedAt: new Date(),
+        googleBooksSyncStatus: status,
+      },
+      where: {
+        sourceProvider_sourceId: {
+          sourceId,
+          sourceProvider: BookProvider.GOOGLE_BOOKS,
+        },
+      },
+    });
+  }
 }
 
 /**
- * Builds a Prisma update that fills missing fields from Google Books and records raw sync payload.
+ * Builds the Book create shape from one Google Books volume. Google values are authoritative.
  */
-function mergeGoogleBooksData(
-  existing: PersistedBook,
-  volume: GoogleBooksVolumeCandidate,
-): Prisma.BookUncheckedUpdateInput {
-  const title = existing.title || volume.title || existing.title;
-  const authors = mergeUnique(existing.authors, volume.authors);
-  const primaryAuthor = existing.primaryAuthor ?? authors[0] ?? null;
+function googleBooksData(volume: GoogleBooksVolumeCandidate): Prisma.BookUncheckedCreateInput {
+  const title = volume.title ?? 'Untitled book';
+  const authors = volume.authors.map((author) => author.trim()).filter(Boolean);
+  const primaryAuthor = authors[0] ?? null;
 
   return {
-    authors,
-    coverUrl: existing.coverUrl ?? volume.thumbnailUrl,
-    description: existing.description ?? volume.description,
-    genres: mergeUnique(existing.genres, volume.categories),
     googleBooksError: null,
-    googleBooksRawPayload: volume.rawPayload as Prisma.InputJsonValue,
+    googleBooksRawPayload: volume.rawPayload as unknown as Prisma.InputJsonValue,
     googleBooksSyncedAt: new Date(),
     googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
     googleBooksVolumeId: volume.id,
-    isbn10: existing.isbn10 ?? volume.isbn10,
-    isbn13: existing.isbn13 ?? volume.isbn13,
+    isbn10: volume.isbn10,
+    isbn13: volume.isbn13,
     normalizedPrimaryAuthor: primaryAuthor ? normalizeText(primaryAuthor) : null,
     normalizedTitle: normalizeText(title),
-    pageCount: existing.pageCount ?? volume.pageCount,
-    primaryAuthor,
-    publishedDate: existing.publishedDate ?? volume.publishedDate,
-    publisher: existing.publisher ?? volume.publisher,
-    title,
+    rawProviderPayload: {
+      google: volume.rawPayload,
+    } as unknown as Prisma.InputJsonValue,
+    sourceId: cacheSourceId({
+      googleBooksVolumeId: volume.id,
+      isbn10: volume.isbn10,
+      isbn13: volume.isbn13,
+    }),
+    sourceProvider: BookProvider.GOOGLE_BOOKS,
+    sourceUrl: volume.infoLink,
   };
 }
 
-function cleanStrings(values: readonly string[]): string[] {
-  return values.map((value) => value.trim()).filter(Boolean);
-}
-
-function openLibraryRawPayload(input: OpenLibraryBookInput): Prisma.InputJsonObject {
+/**
+ * Applies a fresh Google payload over an existing cache row.
+ */
+function mergeGoogleBooksData(
+  existing: PersistedBook,
+  incoming: Prisma.BookUncheckedCreateInput,
+): Prisma.BookUncheckedUpdateInput {
   return {
-    authors: cleanStrings(input.authors),
-    coverUrl: input.coverUrl ?? null,
-    description: input.description ?? null,
-    genres: cleanStrings(input.genres),
-    isbn10: input.isbn10 ?? null,
-    isbn13: input.isbn13 ?? null,
-    openLibraryEditionKey: input.openLibraryEditionKey ?? null,
-    openLibraryWorkKey: input.openLibraryWorkKey ?? null,
-    pageCount: input.pageCount ?? null,
-    primaryAuthor: input.primaryAuthor ?? null,
-    publishedDate: input.publishedDate ?? null,
-    publisher: input.publisher ?? null,
-    sourceId: input.sourceId,
-    sourceProvider: BookProvider.OPEN_LIBRARY,
-    sourceUrl: input.sourceUrl ?? null,
-    subtitle: input.subtitle ?? null,
-    title: input.title,
+    googleBooksError: null,
+    googleBooksRawPayload: incoming.googleBooksRawPayload,
+    googleBooksSyncedAt: new Date(),
+    googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+    googleBooksVolumeId:
+      (incoming.googleBooksVolumeId as null | string | undefined) ?? existing.googleBooksVolumeId,
+    isbn10: (incoming.isbn10 as null | string | undefined) ?? existing.isbn10,
+    isbn13: (incoming.isbn13 as null | string | undefined) ?? existing.isbn13,
+    normalizedPrimaryAuthor:
+      (incoming.normalizedPrimaryAuthor as null | string | undefined) ??
+      existing.normalizedPrimaryAuthor,
+    normalizedTitle: String(incoming.normalizedTitle ?? existing.normalizedTitle),
+    rawProviderPayload: incoming.rawProviderPayload,
+    sourceId: String(incoming.sourceId ?? existing.sourceId),
+    sourceProvider: BookProvider.GOOGLE_BOOKS,
+    sourceUrl: (incoming.sourceUrl as null | string | undefined) ?? existing.sourceUrl,
   };
+}
+
+/**
+ * Fills only missing Google cache fields with Open Library enrichment data.
+ */
+function mergeOpenLibraryData(
+  existing: PersistedBook,
+  openLibrary: NormalizedBookDto,
+): Prisma.BookUncheckedUpdateInput {
+  const summary = bookSummary(existing as BookMetadataRecord);
+  const title = summary.title || openLibrary.title;
+  const primaryAuthor = summary.primaryAuthor ?? openLibrary.primaryAuthor;
+
+  return {
+    isbn10: existing.isbn10 ?? openLibrary.isbn10,
+    isbn13: existing.isbn13 ?? openLibrary.isbn13,
+    normalizedPrimaryAuthor: primaryAuthor ? normalizeText(primaryAuthor) : null,
+    normalizedTitle: normalizeText(title),
+    openLibraryEditionKey: existing.openLibraryEditionKey ?? openLibrary.openLibraryEditionKey,
+    openLibraryWorkKey: existing.openLibraryWorkKey ?? openLibrary.openLibraryWorkKey,
+    rawProviderPayload: providerPayloadWithOpenLibrary(existing, openLibrary),
+  };
+}
+
+function cacheSourceId(identity: BookIdentity): string {
+  const normalized = normalizeIdentity(identity);
+
+  if (normalized.isbn13) {
+    return `isbn13:${normalized.isbn13}`;
+  }
+
+  if (normalized.isbn10) {
+    return `isbn10:${normalized.isbn10}`;
+  }
+
+  return `volume:${normalized.googleBooksVolumeId ?? 'unknown'}`;
+}
+
+function cleanIsbn(value: null | string | undefined): null | string {
+  const cleaned = value?.replace(/[-\s]/g, '').toUpperCase() ?? '';
+  return cleaned || null;
+}
+
+function dedupeKeyForIdentity(identity: BookIdentity): string {
+  const normalized = normalizeIdentity(identity);
+
+  if (normalized.isbn13) {
+    return `isbn13:${normalized.isbn13}`;
+  }
+
+  if (normalized.isbn10) {
+    return `isbn10:${normalized.isbn10}`;
+  }
+
+  return `google:${normalized.googleBooksVolumeId ?? 'unknown'}`;
 }
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown failure';
 }
 
-function mergeUnique(left: readonly string[], right: readonly string[]): string[] {
-  const seen = new Set<string>();
-  const merged: string[] = [];
+function identityWhereClauses(identity: BookIdentity): Prisma.BookWhereInput[] {
+  const normalized = normalizeIdentity(identity);
+  const clauses: Prisma.BookWhereInput[] = [];
 
-  for (const value of [...left, ...right]) {
-    const normalized = normalizeText(value);
-
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    merged.push(value);
+  if (normalized.isbn13) {
+    clauses.push({ isbn13: normalized.isbn13 });
   }
 
-  return merged;
+  if (normalized.isbn10) {
+    clauses.push({ isbn10: normalized.isbn10 });
+  }
+
+  if (normalized.googleBooksVolumeId) {
+    clauses.push({ googleBooksVolumeId: normalized.googleBooksVolumeId });
+    clauses.push({ sourceId: `volume:${normalized.googleBooksVolumeId}` });
+    clauses.push({ sourceId: `google:${normalized.googleBooksVolumeId}` });
+  }
+
+  return clauses;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeIdentity(identity: BookIdentity): BookIdentity {
+  return {
+    googleBooksVolumeId: identity.googleBooksVolumeId?.trim() || null,
+    isbn10: cleanIsbn(identity.isbn10),
+    isbn13: cleanIsbn(identity.isbn13),
+  };
+}
+
+function providerPayloadWithOpenLibrary(
+  existing: PersistedBook,
+  openLibrary: NormalizedBookDto,
+): Prisma.InputJsonValue {
+  const current = isRecord(existing.rawProviderPayload) ? existing.rawProviderPayload : {};
+
+  return {
+    ...current,
+    google: existing.googleBooksRawPayload ?? current['google'] ?? null,
+    openLibrary,
+  } as unknown as Prisma.InputJsonValue;
 }
 
 function shouldSyncGoogle(book: PersistedBook): boolean {
-  if (
-    book.googleBooksSyncStatus === GoogleBooksSyncStatus.SYNCED ||
-    book.googleBooksSyncStatus === GoogleBooksSyncStatus.NOT_FOUND
-  ) {
-    return false;
-  }
-
-  return true;
+  return (
+    book.sourceProvider === BookProvider.GOOGLE_BOOKS &&
+    (book.googleBooksSyncStatus === GoogleBooksSyncStatus.PENDING ||
+      book.googleBooksSyncStatus === GoogleBooksSyncStatus.FAILED)
+  );
 }

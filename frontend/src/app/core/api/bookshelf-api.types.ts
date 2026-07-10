@@ -336,15 +336,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/books/open-library/{type}/{id}": {
+    "/api/books/google/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Fetch and normalize an Open Library work or edition. */
-        get: operations["getOpenLibraryDetail"];
+        /** Fetch and normalize a Google Books volume. */
+        get: operations["getGoogleBookDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -360,7 +360,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Open Library and return frontend-friendly book results. */
+        /** Search Google Books and return frontend-friendly book results. */
         get: operations["searchBooks"];
         put?: never;
         post?: never;
@@ -500,7 +500,7 @@ export interface paths {
         /** List library items, optionally filtered by shelf. */
         get: operations["listLibraryItems"];
         put?: never;
-        /** Add a normalized book to the current owner library. */
+        /** Add an ISBN-backed book to the current owner library. */
         post: operations["addLibraryItem"];
         delete?: never;
         options?: never;
@@ -921,19 +921,26 @@ export interface components {
             /** @example correct-horse-battery-staple */
             password: string;
         };
-        NormalizedBookDto: {
-            /** @example OPEN_LIBRARY */
-            provider: string;
-            /** @example works:OL262758W */
+        BookCoverImagesDto: {
+            thumbnail?: string | null;
+            card?: string | null;
+            detail?: string | null;
+            theme?: string | null;
+        };
+        BookExternalLinksDto: {
+            preview?: string | null;
+            info?: string | null;
+            canonical?: string | null;
+            webReader?: string | null;
+            buy?: string | null;
+        };
+        BookSummaryDto: {
+            /** @example google:zyTCAlFPjgYC */
             providerKey: string;
-            /** @example works:OL262758W */
-            sourceId: string;
-            /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: string | null;
-            /** @example /works/OL262758W */
-            openLibraryWorkKey?: string | null;
-            /** @example /books/OL24631830M */
-            openLibraryEditionKey?: string | null;
+            /** @example isbn13:9780441478125 */
+            dedupeKey: string;
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId?: string | null;
             /** @example The Left Hand of Darkness */
             title: string;
             /** @example A Novel */
@@ -952,18 +959,27 @@ export interface components {
             publisher?: string | null;
             /** @example 1969 */
             publishedDate?: string | null;
-            /** @example public */
-            ebookAccess?: string | null;
-            /** @example true */
-            isReadableOnline: boolean;
             /** @example 304 */
             pageCount?: number | null;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: string | null;
-            /** @example 0441478123 */
-            isbn10?: string | null;
+            /** @example BOOK */
+            printType?: string | null;
+            /** @example en */
+            language?: string | null;
+            /** @example 4.1 */
+            averageRating?: number | null;
+            /** @example 120 */
+            ratingsCount?: number | null;
             /** @example 9780441478125 */
             isbn13?: string | null;
+            /** @example 0441478123 */
+            isbn10?: string | null;
+            /**
+             * @example [
+             *       "Science fiction",
+             *       "Fiction"
+             *     ]
+             */
+            categories: string[];
             /**
              * @example [
              *       "Science fiction",
@@ -971,33 +987,79 @@ export interface components {
              *     ]
              */
             genres: string[];
-            /** @example isbn13:9780441478125 */
-            dedupeKey: string;
+            /** @example SAMPLE */
+            ebookAccess?: string | null;
+            /** @example true */
+            isReadableOnline: boolean;
+            /** @example https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1 */
+            coverUrl?: string | null;
+            coverImages: components["schemas"]["BookCoverImagesDto"];
+            externalLinks: components["schemas"]["BookExternalLinksDto"];
+        };
+        BookOpenLibraryMetadataDto: {
+            /** @example /works/OL262758W */
+            workKey?: string | null;
+            /** @example /books/OL24631830M */
+            editionKey?: string | null;
+            /** @example https://openlibrary.org/works/OL262758W */
+            sourceUrl?: string | null;
+            /**
+             * @example [
+             *       "Science fiction",
+             *       "Fiction"
+             *     ]
+             */
+            subjects: string[];
+            /** @example 1969 */
+            firstPublishDate?: string | null;
+            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            coverUrl?: string | null;
+            raw?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        BookSyncDto: {
+            /**
+             * @example SYNCED
+             * @enum {string}
+             */
+            googleBooksStatus: "FAILED" | "NOT_FOUND" | "PENDING" | "SYNCED";
+            /**
+             * Format: date-time
+             * @example 2026-07-10T12:00:00.000Z
+             */
+            googleBooksSyncedAt?: string | null;
+            googleBooksError?: string | null;
+        };
+        BookMetadataResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            google?: {
+                [key: string]: unknown;
+            } | null;
+            summary: components["schemas"]["BookSummaryDto"];
+            openLibrary: components["schemas"]["BookOpenLibraryMetadataDto"];
+            sync: components["schemas"]["BookSyncDto"];
         };
         BookSearchFiltersDto: {
-            /** @example 1960 */
-            yearFrom?: number | null;
-            /** @example 1969 */
-            yearTo?: number | null;
-            /** @example Science fiction */
-            subject?: string | null;
             /**
-             * @example ebook
+             * @example ebooks
              * @enum {string|null}
              */
-            format?: "ebook" | null;
-        };
-        BookSearchDecadeFacetDto: {
-            /** @example 1960s */
-            label: string;
-            /** @example 1960s */
-            value: string;
-            /** @example 1960 */
-            yearFrom: number;
-            /** @example 1969 */
-            yearTo: number;
-            /** @example 4 */
-            count: number;
+            filter?: "ebooks" | "free-ebooks" | "full" | "paid-ebooks" | null;
+            /**
+             * @example books
+             * @enum {string}
+             */
+            printType?: "all" | "books" | "magazines";
+            /**
+             * @example relevance
+             * @enum {string}
+             */
+            orderBy?: "newest" | "relevance";
         };
         BookSearchValueFacetDto: {
             /** @example Science fiction */
@@ -1008,9 +1070,9 @@ export interface components {
             count: number;
         };
         BookSearchFacetsDto: {
-            publishedDecades: components["schemas"]["BookSearchDecadeFacetDto"][];
-            subjects: components["schemas"]["BookSearchValueFacetDto"][];
-            formats: components["schemas"]["BookSearchValueFacetDto"][];
+            availability: components["schemas"]["BookSearchValueFacetDto"][];
+            printTypes: components["schemas"]["BookSearchValueFacetDto"][];
+            sortOptions: components["schemas"]["BookSearchValueFacetDto"][];
         };
         BookSearchResponseDto: {
             /** @example the left hand of darkness */
@@ -1025,7 +1087,7 @@ export interface components {
             count: number;
             filters: components["schemas"]["BookSearchFiltersDto"];
             facets: components["schemas"]["BookSearchFacetsDto"];
-            items: components["schemas"]["NormalizedBookDto"][];
+            items: components["schemas"]["BookMetadataResponseDto"][];
         };
         BookCardResponseDto: {
             /**
@@ -1234,61 +1296,16 @@ export interface components {
             /** @example Service Unavailable */
             error: string;
         };
-        BookInputDto: {
-            /** @example OPEN_LIBRARY */
-            provider: string;
-            /** @example works:OL262758W */
-            providerKey: string;
-            /** @example works:OL262758W */
-            sourceId: string;
-            /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: string | null;
-            /** @example /works/OL262758W */
-            openLibraryWorkKey?: string | null;
-            /** @example /books/OL24631830M */
-            openLibraryEditionKey?: string | null;
-            /** @example The Left Hand of Darkness */
-            title: string;
-            /** @example A Novel */
-            subtitle?: string | null;
-            /**
-             * @example [
-             *       "Ursula K. Le Guin"
-             *     ]
-             */
-            authors: string[];
-            /** @example Ursula K. Le Guin */
-            primaryAuthor?: string | null;
-            /** @example A science fiction novel. */
-            description?: string | null;
-            /** @example Ace Books */
-            publisher?: string | null;
-            /** @example 1969 */
-            publishedDate?: string | null;
-            /** @example public */
-            ebookAccess?: string | null;
-            /** @example true */
-            isReadableOnline?: boolean;
-            /** @example 304 */
-            pageCount?: number | null;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: string | null;
+        AddLibraryItemRequestDto: {
             /** @example 0441478123 */
             isbn10?: string | null;
             /** @example 9780441478125 */
             isbn13?: string | null;
             /**
-             * @example [
-             *       "Science fiction",
-             *       "Fiction"
-             *     ]
+             * @description Google Books volume id from search/detail, used to warm the shared metadata cache.
+             * @example zyTCAlFPjgYC
              */
-            genres: string[];
-            /** @example isbn13:9780441478125 */
-            dedupeKey: string;
-        };
-        AddLibraryItemRequestDto: {
-            book: components["schemas"]["BookInputDto"];
+            googleBooksVolumeId?: string | null;
             /**
              * Format: uuid
              * @description Initial target shelf membership. Defaults to the owner Unshelved shelf.
@@ -1302,58 +1319,12 @@ export interface components {
              * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
              */
             id: string;
-            /** @example OPEN_LIBRARY */
-            sourceProvider: string;
-            /** @example works:OL262758W */
-            sourceId: string;
-            /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: string | null;
-            /** @example /works/OL262758W */
-            openLibraryWorkKey?: string | null;
-            /** @example /books/OL24631830M */
-            openLibraryEditionKey?: string | null;
-            /** @example The Left Hand of Darkness */
-            title: string;
-            /** @example A Novel */
-            subtitle?: string | null;
-            /**
-             * @example [
-             *       "Ursula K. Le Guin"
-             *     ]
-             */
-            authors: string[];
-            /** @example Ursula K. Le Guin */
-            primaryAuthor?: string | null;
-            /** @example A science fiction novel. */
-            description?: string | null;
-            /** @example Ace Books */
-            publisher?: string | null;
-            /** @example 1969 */
-            publishedDate?: string | null;
-            /** @example 304 */
-            pageCount?: number | null;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: string | null;
-            /** @example 0441478123 */
-            isbn10?: string | null;
-            /** @example 9780441478125 */
-            isbn13?: string | null;
-            /**
-             * @example [
-             *       "Science fiction",
-             *       "Fiction"
-             *     ]
-             */
-            genres: string[];
-            /** @example zyTCAlFPjgYC */
-            googleBooksVolumeId?: string | null;
-            /** @example SYNCED */
-            googleBooksSyncStatus: string;
-            /**
-             * Format: date-time
-             * @example 2026-07-09T12:00:00.000Z
-             */
-            googleBooksSyncedAt?: string | null;
+            google?: {
+                [key: string]: unknown;
+            } | null;
+            summary: components["schemas"]["BookSummaryDto"];
+            openLibrary: components["schemas"]["BookOpenLibraryMetadataDto"];
+            sync: components["schemas"]["BookSyncDto"];
         };
         LibraryItemResponseDto: {
             /**
@@ -2292,13 +2263,11 @@ export interface operations {
             };
         };
     };
-    getOpenLibraryDetail: {
+    getGoogleBookDetail: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                type: "books" | "works";
-                /** @description Open Library identifier without the leading path. */
                 id: string;
             };
             cookie?: never;
@@ -2310,31 +2279,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NormalizedBookDto"];
+                    "application/json": components["schemas"]["BookMetadataResponseDto"];
                 };
             };
-            /** @description The Open Library type/id pair is invalid. */
+            /** @description The Google Books volume id is invalid. */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Open Library did not find the requested book. */
+            /** @description Google Books did not find the requested volume. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Open Library rate limit was reached. */
+            /** @description Google Books rate limit was reached. */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Open Library is unavailable or returned invalid data. */
+            /** @description Google Books is unavailable or returned invalid data. */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -2350,10 +2319,12 @@ export interface operations {
                 query: string;
                 page?: number;
                 limit?: number;
-                yearFrom?: number;
-                yearTo?: number;
-                subject?: string;
-                format?: "ebook";
+                /** @description Google Books availability filter. */
+                filter?: "ebooks" | "free-ebooks" | "full" | "paid-ebooks";
+                /** @description Google Books print type. */
+                printType?: "all" | "books" | "magazines";
+                /** @description Google Books result ordering. */
+                orderBy?: "newest" | "relevance";
             };
             header?: never;
             path?: never;
@@ -2376,14 +2347,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Open Library rate limit was reached. */
+            /** @description Google Books rate limit was reached. */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Open Library is unavailable or returned invalid data. */
+            /** @description Google Books is unavailable or returned invalid data. */
             503: {
                 headers: {
                     [name: string]: unknown;

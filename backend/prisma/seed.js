@@ -8,15 +8,52 @@ const {
   UserRole,
 } = require('@prisma/client');
 const argon2 = require('argon2');
+const dotenv = require('dotenv');
 const fs = require('node:fs');
 const path = require('node:path');
 
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
 const databaseUrl =
   process.env.DATABASE_URL ??
-  'postgresql://bookshelf:bookshelf@localhost:5432/bookshelf?schema=public';
+  databaseUrlFromParts({
+    database: process.env.POSTGRES_DB,
+    schema: process.env.POSTGRES_SCHEMA,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD,
+    host: process.env.POSTGRES_HOST,
+    port: process.env.POSTGRES_HOST_PORT,
+  });
 const prisma = new PrismaClient({
   adapter: new PrismaPg(databaseUrl),
 });
+
+function databaseUrlFromParts({
+  database,
+  schema = 'public',
+  user,
+  password,
+  host = 'localhost',
+  port = '5432',
+}) {
+  if (!database || !user || !password) {
+    throw new Error(
+      'DATABASE_URL or POSTGRES_DB/POSTGRES_USER/POSTGRES_PASSWORD must be set in .env.',
+    );
+  }
+
+  return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}?schema=${encodeURIComponent(schema)}`;
+}
+
+function requiredEnv(name) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} must be set in the root .env file.`);
+  }
+
+  return value;
+}
 
 const standardShelves = [
   { name: 'Unshelved', slug: 'unshelved', position: 0, isDefault: true },
@@ -94,23 +131,26 @@ async function main() {
   const sampleBooksPath = path.resolve(__dirname, '../../data/sample-books.json');
   const books = JSON.parse(fs.readFileSync(sampleBooksPath, 'utf8'));
   const year = new Date().getUTCFullYear();
-  const adminPasswordHash = await argon2.hash('Password123!', {
+  const adminEmail = requiredEnv('ADMIN_EMAIL');
+  const adminUsername = requiredEnv('ADMIN_USERNAME');
+  const adminPasswordHash = await argon2.hash(requiredEnv('ADMIN_PASSWORD'), {
     type: argon2.argon2id,
   });
+  const adminDisplayName = process.env.ADMIN_DISPLAY_NAME || 'Bookshelf Admin';
 
   const adminUser = await prisma.user.upsert({
-    where: { username: 'admin' },
+    where: { username: adminUsername },
     create: {
-      email: 'admin@bookshelf.local',
-      username: 'admin',
-      displayName: 'Bookshelf Admin',
+      email: adminEmail,
+      username: adminUsername,
+      displayName: adminDisplayName,
       passwordHash: adminPasswordHash,
       role: UserRole.ADMIN,
     },
     update: {
       deactivatedAt: null,
-      displayName: 'Bookshelf Admin',
-      email: 'admin@bookshelf.local',
+      displayName: adminDisplayName,
+      email: adminEmail,
       passwordHash: adminPasswordHash,
       role: UserRole.ADMIN,
     },
@@ -213,6 +253,10 @@ async function main() {
   });
 
   for (const [index, sampleBook] of books.entries()) {
+    if (!sampleBook.isbn13 && !sampleBook.isbn10) {
+      continue;
+    }
+
     const normalizedTitle = normalizeText(sampleBook.title);
     const normalizedPrimaryAuthor = sampleBook.author ? normalizeText(sampleBook.author) : null;
     const sourceId = sourceIdForBook(sampleBook);
@@ -221,7 +265,7 @@ async function main() {
     const isRead = shelfSlug === 'read' || shelfSlug === 'favorites';
     const isCurrentlyReading = shelfSlug === 'currently-reading';
 
-    const book = await prisma.book.upsert({
+    await prisma.book.upsert({
       where: {
         sourceProvider_sourceId: {
           sourceProvider: BookProvider.SAMPLE,
@@ -231,36 +275,18 @@ async function main() {
       create: {
         sourceProvider: BookProvider.SAMPLE,
         sourceId,
-        title: sampleBook.title,
-        primaryAuthor: sampleBook.author ?? null,
-        authors: sampleBook.author ? [sampleBook.author] : [],
-        description: sampleBook.description ?? null,
-        publisher: sampleBook.publisher ?? null,
-        publishedDate: sampleBook.publishedDate ?? null,
-        pageCount: sampleBook.pageCount ?? null,
-        coverUrl: sampleBook.coverUrl ?? null,
         isbn10: sampleBook.isbn10 ?? null,
         isbn13: sampleBook.isbn13 ?? null,
-        genres: sampleBook.genres ?? [],
         normalizedTitle,
         normalizedPrimaryAuthor,
-        rawProviderPayload: sampleBook,
+        rawProviderPayload: { legacy: sampleBook },
       },
       update: {
-        title: sampleBook.title,
-        primaryAuthor: sampleBook.author ?? null,
-        authors: sampleBook.author ? [sampleBook.author] : [],
-        description: sampleBook.description ?? null,
-        publisher: sampleBook.publisher ?? null,
-        publishedDate: sampleBook.publishedDate ?? null,
-        pageCount: sampleBook.pageCount ?? null,
-        coverUrl: sampleBook.coverUrl ?? null,
         isbn10: sampleBook.isbn10 ?? null,
         isbn13: sampleBook.isbn13 ?? null,
-        genres: sampleBook.genres ?? [],
         normalizedTitle,
         normalizedPrimaryAuthor,
-        rawProviderPayload: sampleBook,
+        rawProviderPayload: { legacy: sampleBook },
       },
     });
 
@@ -279,8 +305,9 @@ async function main() {
       },
       create: {
         guestSessionId: guestSession.id,
-        bookId: book.id,
         dedupeKey: dedupeKeyForBook(sampleBook),
+        isbn10: sampleBook.isbn10 ?? null,
+        isbn13: sampleBook.isbn13 ?? null,
         rating: isRead ? 3 + (index % 3) : null,
         notes: isRead ? `Seed note for ${sampleBook.title}.` : null,
         currentPage,
@@ -300,7 +327,8 @@ async function main() {
         },
       },
       update: {
-        bookId: book.id,
+        isbn10: sampleBook.isbn10 ?? null,
+        isbn13: sampleBook.isbn13 ?? null,
         rating: isRead ? 3 + (index % 3) : null,
         notes: isRead ? `Seed note for ${sampleBook.title}.` : null,
         currentPage,

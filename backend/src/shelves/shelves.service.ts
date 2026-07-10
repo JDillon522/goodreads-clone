@@ -99,7 +99,6 @@ export class ShelvesService {
         include: {
           libraryItem: {
             include: {
-              book: true,
               shelves: {
                 include: { shelf: true },
                 orderBy: [{ shelf: { position: 'asc' } }, { createdAt: 'asc' }],
@@ -135,7 +134,7 @@ export class ShelvesService {
         return {
           libraryItemId: membership.libraryItem.id,
           shelves,
-          title: membership.libraryItem.book.title,
+          title: membership.libraryItem.dedupeKey,
         };
       });
 

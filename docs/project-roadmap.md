@@ -12,6 +12,8 @@ Authoritative v1 defaults:
 - Use Nest-owned database auth with bearer tokens unless later changed.
 - Use Prisma with the Postgres driver adapter for schema, migrations, generated types, and DB access.
 - Use `data/sample-books.json` for guest/demo data.
+- Use Google Books as the primary book search/detail provider; use Open Library as enrichment for missing metadata, subjects, work keys, covers, related-book signals, and first-publish context.
+- Keep reusable book metadata in the `Book` cache table. Library items own ISBNs and personal reading state, not required copied book metadata.
 - Do not rely on `starter/tailwind.css` or `data/sample-books.csv`; both were intentionally removed.
 - Defer stretch goals and differentiators until the core backend/data foundation is stable.
 
@@ -21,7 +23,7 @@ Authoritative v1 defaults:
 
 - Update `AGENTS.md` to point to this roadmap.
 - Record intentional deletions: no `starter/tailwind.css`, no `data/sample-books.csv`.
-- Lock defaults: npm workspaces, Prisma, Open Library first, stretch goals later.
+- Lock defaults: npm workspaces, Prisma, provider-first book lookup, stretch goals later.
 
 ### 2. Workspace + Docker Foundation - DONE
 
@@ -44,7 +46,7 @@ Authoritative v1 defaults:
 
 ### 5. Book API Boundary - DONE
 
-- Integrate Open Library behind Nest.
+- Integrate external book providers behind Nest.
 - Normalize external results into app-shaped book DTOs.
 - Handle missing covers, missing ISBNs, missing page counts, sparse authors, duplicate editions, rate limits, and API failures.
 - Cache provider responses where useful.
@@ -97,7 +99,7 @@ Authoritative v1 defaults:
 
 - Auth endpoints: signup, signin, refresh/session, signout, password reset request/confirm.
 - Guest endpoint: create guest session.
-- Book provider endpoints: search books, fetch/normalize book detail.
+- Book provider endpoints: Google-first search, info-only Google detail, saved library detail with cached metadata enrichment.
 - Library endpoints: shelves, library items, progress, ratings, notes, goals.
 - Shared response DTOs must be frontend-friendly and hide provider-specific weirdness.
 
@@ -116,17 +118,17 @@ Authoritative v1 defaults:
 | 2026-06-29 | Use Nest-owned database auth by default                    | Email/password auth with bearer tokens is the starting assumption.                                                                                                                                                                                     |
 | 2026-06-29 | Use `sample-books.json` only                               | `starter/tailwind.css` and `data/sample-books.csv` were intentionally removed.                                                                                                                                                                         |
 | 2026-06-29 | Defer stretch goals                                        | Differentiators wait until the core product foundation is stable.                                                                                                                                                                                      |
-| 2026-06-29 | Recommended defaults: npm workspaces, Prisma, Open Library | These stand unless explicitly changed later.                                                                                                                                                                                                           |
+| 2026-06-29 | Recommended defaults: npm workspaces, Prisma, Open Library | Superseded on 2026-07-10 by Google-first lookup with Open Library enrichment.                                                                                                                                                                          |
 | 2026-06-29 | Add Swagger before frontend work                           | Backend contracts should be testable at `/docs` before UI implementation starts.                                                                                                                                                                       |
 | 2026-06-29 | Keep Postgres internal to Docker network                   | Do not bind DB to host `5432`; backend reaches it by Compose service name `db`.                                                                                                                                                                        |
 | 2026-06-29 | Split Docker Compose base and override                     | Base Compose uses the production backend target; override uses the development target, bind mounts, and Nest watch mode.                                                                                                                               |
-| 2026-06-29 | Approved Stage 3 defaults                                  | Use Prisma, Postgres-backed guest sessions with expiration, Open Library first, and short-lived access tokens plus stored refresh sessions.                                                                                                            |
+| 2026-06-29 | Approved Stage 3 defaults                                  | Superseded on 2026-07-10 for provider ordering; Prisma, Postgres-backed guest sessions with expiration, and short-lived access tokens plus stored refresh sessions still stand.                                                                        |
 | 2026-06-29 | Duplicate detection priority                               | Detect user-library duplicates by ISBN-13, ISBN-10, provider key, then normalized title plus primary author. Store a dedupe key on library items and enforce owner-scoped uniqueness.                                                                  |
 | 2026-06-29 | Prisma 7 driver adapter                                    | Use `@prisma/adapter-pg` and `pg`; PrismaClient requires an explicit adapter.                                                                                                                                                                          |
 | 2026-06-29 | Stage 4 auth defaults                                      | Use `argon2id` password hashing, 15-minute JWT access tokens, 30-day opaque refresh tokens stored as SHA-256 hashes, and JSON token responses for Swagger testing.                                                                                     |
 | 2026-06-29 | Password reset testing path                                | Development/test password reset requests return the reset token in JSON; production must hide it until email delivery is implemented.                                                                                                                  |
-| 2026-06-29 | Stage 5 book provider defaults                             | Book search is public; Open Library is hidden behind Nest-owned DTOs; missing covers stay `null`; search cache TTL is 24 hours and detail cache TTL is 7 days.                                                                                         |
-| 2026-06-29 | Open Library detail route shape                            | Use `GET /api/books/open-library/:type/:id` with `type` as `works` or `books` and `id` as the bare Open Library id.                                                                                                                                    |
+| 2026-06-29 | Stage 5 book provider defaults                             | Superseded on 2026-07-10 by Google-first search/detail, permanent `Book` metadata caching, and Open Library enrichment.                                                                                                                                |
+| 2026-06-29 | Open Library detail route shape                            | Superseded on 2026-07-10; info-only detail now uses `GET /api/books/google/:id`, and Open Library detail is an internal enrichment concern.                                                                                                            |
 | 2026-06-29 | Open Library request timeout                               | Outbound Open Library calls use an 8-second default timeout so provider slowness fails as a mapped API error.                                                                                                                                          |
 | 2026-06-29 | Runtime TLS stance                                         | Do not disable TLS verification by default for external book API calls; local self-signed certificate interception should be handled with a trusted CA via `NODE_EXTRA_CA_CERTS`.                                                                      |
 | 2026-06-29 | Local CA startup helper                                    | `npm run dev:backend` and `npm run docker:up` auto-detect `certs/local-ca.pem`; direct `docker compose up` also points the dev backend at `/app/certs/local-ca.pem`.                                                                                   |
@@ -150,7 +152,7 @@ Authoritative v1 defaults:
 | 2026-06-30 | Stage 10 shelf reordering                                  | Superseded on 2026-07-08: shelf reordering is active for normal users and admins.                                                                                                                                                                      |
 | 2026-07-08 | Unshelved default shelf                                    | Every user and guest owner gets a persisted `Unshelved` shelf first; new books default there unless a target shelf is chosen.                                                                                                                          |
 | 2026-07-08 | Shelf deactivation behavior                                | Deactivated shelves remain in the database for admin/reactivation but are hidden from normal shelf and add-book flows; books with no active shelves appear through `Unshelved`.                                                                        |
-| 2026-07-08 | Admin access model                                         | Seed an ADMIN user with username `admin` and password `Password123!`; normal sign-in accepts email or username, and deactivated users are blocked from auth/API use.                                                                                   |
+| 2026-07-08 | Admin access model                                         | Seed an ADMIN user from the root `.env` admin section; normal sign-in accepts email or username, and deactivated users are blocked from auth/API use.                                                                                                  |
 | 2026-07-08 | Admin management scope                                     | Admin v1 manages authenticated users and their shelves only; guest-session shelf admin and global default-template editing are out of scope.                                                                                                           |
 | 2026-07-08 | Stage 10 shelf reorder UX                                  | Normal users can reorder any active shelf from the app shell through `/api/shelves/order`; `Unshelved` is protected from deletion only.                                                                                                                |
 | 2026-07-08 | Stage 10 book detail review UX                             | Rating and notes editing lives on the book detail page only; library filters, sorting, and card indicators remain out of Stage 10 scope.                                                                                                               |
@@ -161,12 +163,15 @@ Authoritative v1 defaults:
 | 2026-07-09 | Source documentation standard                              | Runtime TS/JS files should carry a useful top-of-file overview after imports and JSDoc for meaningful functions/methods; generated files, specs, and routine HTML/CSS stay comment-light.                                                              |
 | 2026-07-09 | Flow Ninja-inspired visual direction                       | Borrow Flow Ninja's sharper product polish: stronger contrast, deliberate hover/focus motion, raised panels, tactile navigation, and metric-forward stats without copying agency-site structure.                                                       |
 | 2026-07-09 | Book-cover palette theming                                 | Theme preferences now support default, automatic top-book, and custom-book cover palettes; generated palettes store both light and dark CSS token sets and only override accent/highlight-style variables.                                             |
+| 2026-07-10 | Google-first book lookup                                   | Google Books is the primary search/detail provider using Google-native pagination, filters, sort, and print type controls; Open Library fills missing fields and provider-specific metadata after Google cache writes.                                  |
+| 2026-07-10 | ISBN-owned library items                                   | `LibraryItem` stores `isbn13`, `isbn10`, and personal state; reusable metadata lives in `Book`, keyed by ISBN where possible and Google volume id for info-only cache rows.                                                                             |
+| 2026-07-10 | Info-only versus saved detail routes                       | Search results route to `/app/book-info/google/:volumeId`; saved library entries keep `/app/book/:libraryItemId`. ISBN-less Google results can be viewed but cannot be saved.                                                                          |
 
 ## Open Questions
 
 - Decide deployment target details after local Docker and backend contracts are stable.
 - Decide when to add real email delivery for password reset tokens.
-- Decide how to normalize/cache Open Library series or relation data for expanded book detail pages.
+- Decide whether to add richer global series/import jobs after the Google-first cache model stabilizes.
 
 ## Session Notes
 
@@ -241,3 +246,13 @@ Authoritative v1 defaults:
 - Applied a Flow Ninja-inspired product polish pass across the frontend: higher-contrast tokens, stronger shared button/form/dialog styling, tactile sidebar hover/active states, a more action-led landing hero, raised book/filter/shelf panels, and metric-forward stats cards.
 - Added persisted book-cover theming: owner preferences can keep default colors, auto-generate from the user's top rated covered book, or manually use a selected book detail cover as the custom palette source.
 - Added backend palette extraction with Open Library cover URL allowlisting, JPEG decoding, light/dark token generation, preference DTOs/endpoints, regenerated OpenAPI frontend types, Settings color-source controls, and a book-detail `Use cover as theme` action.
+
+### 2026-07-10
+
+- Refactored book lookup to Google-first search/detail with Open Library enrichment after cache writes, replacing Open Library dynamic search facets with Google-native availability, sort, and print-type controls.
+- Repurposed `Book` as the permanent metadata cache and migrated `LibraryItem` to own ISBNs plus user state instead of a required `bookId` relation.
+- Added a one-time migration that backfills library ISBNs, fails loudly when legacy saved items lack an ISBN, drops the old required library-to-book relation, and clears legacy metadata cache rows for rebuild.
+- Added `/api/books/google/:id` for info-only book detail, disabled save actions for ISBN-less Google results, and updated add-to-library APIs to require at least one ISBN.
+- Updated search UX so result clicks open `/app/book-info/google/:volumeId`, pagination and filters stay URL-driven, and saved-book detail still uses `/app/book/:libraryItemId`.
+- Regenerated frontend OpenAPI types and added/updated focused backend and frontend tests for Google query composition, cache/enrichment precedence, ISBN-required saves, search navigation, filters, and disabled ISBN-less save warnings.
+- Verified with backend typecheck, backend Jest, backend Docker e2e, Prisma validate, OpenAPI type regeneration, frontend app typecheck, frontend unit tests, format check, and Docker frontend production build. Host `npm run build:frontend` still aborts with exit 134 before diagnostics, while the same Angular production build passes inside Docker.

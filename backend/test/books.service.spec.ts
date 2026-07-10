@@ -1,235 +1,199 @@
-import { BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BookProvider, GoogleBooksSyncStatus } from '@prisma/client';
 
 import { BookPersistenceService } from '../src/books/book-persistence.service';
 import { BooksService } from '../src/books/books.service';
-import { BookSearchResponseDto } from '../src/books/dto/book-search-response.dto';
-import { NormalizedBookDto } from '../src/books/dto/normalized-book.dto';
-import { OpenLibraryCacheService } from '../src/books/open-library/open-library-cache.service';
-import { OpenLibraryClientService } from '../src/books/open-library/open-library-client.service';
-import { OpenLibraryNormalizerService } from '../src/books/open-library/open-library-normalizer.service';
+import { GoogleBooksClientService } from '../src/books/google-books/google-books-client.service';
 
 describe('BooksService', () => {
-  const emptyFilters = {
-    format: null,
-    subject: null,
-    yearFrom: null,
-    yearTo: null,
-  };
-  const emptyFacets = {
-    formats: [{ count: 0, label: 'Readable online / eBook', value: 'ebook' }],
-    publishedDecades: [],
-    subjects: [],
-  };
-  const normalizedSearch: BookSearchResponseDto = {
-    count: 1,
-    facets: emptyFacets,
-    filters: emptyFilters,
-    items: [],
-    limit: 10,
-    page: 1,
-    query: 'kindred',
-    total: 1,
-  };
-  const normalizedBook: NormalizedBookDto = {
+  const volume = {
     authors: ['Octavia E. Butler'],
-    coverUrl: null,
-    dedupeKey: 'open-library:works:OL123W',
-    description: null,
-    genres: [],
+    categories: ['Fiction'],
+    description: 'A time-travel novel.',
     ebookAccess: null,
-    isbn10: null,
-    isbn13: null,
+    id: 'google-volume-id',
+    infoLink: 'https://books.google.com/books?id=google-volume-id',
+    isbn10: '0807083690',
+    isbn13: '9780807083697',
     isReadableOnline: false,
-    openLibraryEditionKey: null,
-    openLibraryWorkKey: '/works/OL123W',
-    pageCount: null,
-    primaryAuthor: 'Octavia E. Butler',
-    provider: 'OPEN_LIBRARY',
-    providerKey: 'works:OL123W',
+    pageCount: 288,
     publishedDate: '1979',
-    publisher: null,
-    sourceId: 'works:OL123W',
-    sourceUrl: 'https://openlibrary.org/works/OL123W',
+    publisher: 'Beacon Press',
+    rawPayload: { id: 'google-volume-id', volumeInfo: {} },
     subtitle: null,
+    thumbnailUrl: 'https://books.google.com/cover.jpg',
     title: 'Kindred',
   };
-  const cacheGetBook = jest.fn();
-  const cacheGetSearch = jest.fn();
-  const cacheSet = jest.fn().mockResolvedValue(undefined);
-  const clientGetDetail = jest.fn();
-  const clientSearchBooks = jest.fn();
-  const persistOpenLibraryBooks = jest.fn().mockResolvedValue(undefined);
-  const normalizeDetail = jest.fn();
-  const normalizeSearch = jest.fn();
-  const configGet = jest.fn((key: string) => {
-    if (key === 'OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS') {
-      return 168;
-    }
-
-    if (key === 'OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS') {
-      return 24;
-    }
-
-    return undefined;
-  });
-  const configService = {
-    get: configGet,
-  } as unknown as ConfigService;
-  const cacheService = {
-    getBook: cacheGetBook,
-    getSearch: cacheGetSearch,
-    set: cacheSet,
-  } as unknown as OpenLibraryCacheService;
-  const bookPersistenceService = {
-    persistOpenLibraryBooks,
+  const cachedBook = {
+    createdAt: new Date('2026-07-09T00:00:00.000Z'),
+    googleBooksError: null,
+    googleBooksRawPayload: volume.rawPayload,
+    googleBooksSyncedAt: new Date('2026-07-09T00:00:00.000Z'),
+    googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+    googleBooksVolumeId: 'google-volume-id',
+    id: 'book-id',
+    isbn10: '0807083690',
+    isbn13: '9780807083697',
+    normalizedPrimaryAuthor: 'octavia e butler',
+    normalizedTitle: 'kindred',
+    openLibraryEditionKey: null,
+    openLibraryWorkKey: null,
+    rawProviderPayload: { google: volume.rawPayload },
+    sourceId: 'isbn13:9780807083697',
+    sourceProvider: BookProvider.GOOGLE_BOOKS,
+    sourceUrl: 'https://books.google.com/books?id=google-volume-id',
+    updatedAt: new Date('2026-07-09T00:00:00.000Z'),
+  };
+  const metadataBook = {
+    google: volume.rawPayload,
+    id: 'book-id',
+    openLibrary: {
+      coverUrl: null,
+      editionKey: null,
+      firstPublishDate: null,
+      raw: null,
+      sourceUrl: null,
+      subjects: [],
+      workKey: null,
+    },
+    summary: {
+      authors: ['Octavia E. Butler'],
+      averageRating: null,
+      categories: ['Fiction'],
+      coverImages: {
+        card: 'https://books.google.com/cover.jpg',
+        detail: 'https://books.google.com/cover.jpg',
+        theme: 'https://books.google.com/cover.jpg',
+        thumbnail: 'https://books.google.com/cover.jpg',
+      },
+      coverUrl: 'https://books.google.com/cover.jpg',
+      dedupeKey: 'isbn13:9780807083697',
+      description: 'A time-travel novel.',
+      ebookAccess: null,
+      externalLinks: {
+        buy: null,
+        canonical: null,
+        info: 'https://books.google.com/books?id=google-volume-id',
+        preview: null,
+        webReader: null,
+      },
+      genres: ['Fiction'],
+      googleBooksVolumeId: 'google-volume-id',
+      isbn10: '0807083690',
+      isbn13: '9780807083697',
+      isReadableOnline: false,
+      language: null,
+      pageCount: 288,
+      primaryAuthor: 'Octavia E. Butler',
+      printType: null,
+      providerKey: 'google:google-volume-id',
+      publishedDate: '1979',
+      publisher: 'Beacon Press',
+      ratingsCount: null,
+      subtitle: null,
+      title: 'Kindred',
+    },
+    sync: {
+      googleBooksError: null,
+      googleBooksStatus: GoogleBooksSyncStatus.SYNCED,
+      googleBooksSyncedAt: '2026-07-09T00:00:00.000Z',
+    },
+  };
+  const searchVolumes = jest.fn();
+  const persistGoogleBooksVolumes = jest.fn();
+  const getOrSyncGoogleVolume = jest.fn();
+  const toBookMetadata = jest.fn();
+  const bookPersistence = {
+    getOrSyncGoogleVolume,
+    persistGoogleBooksVolumes,
+    toBookMetadata,
   } as unknown as BookPersistenceService;
-  const clientService = {
-    getDetail: clientGetDetail,
-    searchBooks: clientSearchBooks,
-  } as unknown as OpenLibraryClientService;
-  const normalizerService = {
-    normalizeDetail,
-    normalizeSearch,
-  } as unknown as OpenLibraryNormalizerService;
+  const googleBooksClient = {
+    searchVolumes,
+  } as unknown as GoogleBooksClientService;
 
   let service: BooksService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new BooksService(
-      configService,
-      bookPersistenceService,
-      cacheService,
-      clientService,
-      normalizerService,
-    );
-  });
-
-  it('returns cached search results without calling Open Library', async () => {
-    cacheGetSearch.mockResolvedValueOnce(normalizedSearch);
-
-    await expect(service.searchBooks({ limit: 10, page: 1, query: ' kindred ' })).resolves.toEqual(
-      normalizedSearch,
-    );
-    expect(clientSearchBooks).not.toHaveBeenCalled();
-    expect(cacheSet).not.toHaveBeenCalled();
-    expect(persistOpenLibraryBooks).toHaveBeenCalledWith(normalizedSearch.items);
-  });
-
-  it('fetches, normalizes, and caches search results on cache miss', async () => {
-    const raw = { docs: [], numFound: 1 };
-    cacheGetSearch.mockResolvedValueOnce(null);
-    clientSearchBooks.mockResolvedValueOnce(raw);
-    normalizeSearch.mockReturnValueOnce(normalizedSearch);
-
-    await expect(
-      service.searchBooks({ limit: 10, page: 1, query: '  KINDRED  ' }),
-    ).resolves.toEqual(normalizedSearch);
-
-    expect(clientSearchBooks).toHaveBeenCalledWith({
-      limit: 10,
-      page: 1,
-      query: 'KINDRED',
+    service = new BooksService(bookPersistence, googleBooksClient);
+    searchVolumes.mockResolvedValue({
+      items: [volume],
+      rawPayload: { items: [volume.rawPayload], totalItems: 1 },
+      totalItems: 1,
     });
-    expect(normalizeSearch).toHaveBeenCalledWith(raw, {
-      filters: emptyFilters,
-      limit: 10,
-      page: 1,
-      query: 'KINDRED',
-    });
-    expect(cacheSet).toHaveBeenCalledWith(
-      expect.stringMatching(/^search:/),
-      raw,
-      normalizedSearch,
-      expect.any(Date),
-      'KINDRED',
-    );
-    expect(persistOpenLibraryBooks).toHaveBeenCalledWith(normalizedSearch.items);
+    persistGoogleBooksVolumes.mockResolvedValue([cachedBook]);
+    getOrSyncGoogleVolume.mockResolvedValue(cachedBook);
+    toBookMetadata.mockReturnValue(metadataBook);
   });
 
-  it('composes supported filters into the provider query and keeps filters out of the display query', async () => {
-    const raw = { docs: [], numFound: 1 };
-    const filteredSearch: BookSearchResponseDto = {
-      ...normalizedSearch,
-      filters: {
-        format: 'ebook',
-        subject: 'Science fiction',
-        yearFrom: 1960,
-        yearTo: 1969,
-      },
-    };
-    cacheGetSearch.mockResolvedValueOnce(null);
-    clientSearchBooks.mockResolvedValueOnce(raw);
-    normalizeSearch.mockReturnValueOnce(filteredSearch);
-
+  it('searches Google Books with native pagination and filters', async () => {
     await expect(
       service.searchBooks({
-        format: 'ebook',
+        filter: 'ebooks',
         limit: 10,
-        page: 2,
-        query: '  le guin  ',
-        subject: ' Science   fiction ',
-        yearFrom: 1960,
-        yearTo: 1969,
+        orderBy: 'newest',
+        page: 3,
+        printType: 'books',
+        query: '  KINDRED  ',
       }),
-    ).resolves.toEqual(filteredSearch);
-
-    expect(clientSearchBooks).toHaveBeenCalledWith({
-      limit: 10,
-      page: 2,
-      query:
-        'le guin first_publish_year:[1960 TO 1969] subject:"Science fiction" has_fulltext:true',
-    });
-    expect(normalizeSearch).toHaveBeenCalledWith(raw, {
+    ).resolves.toEqual({
+      count: 1,
+      facets: expect.objectContaining({
+        availability: expect.any(Array),
+        printTypes: expect.any(Array),
+        sortOptions: expect.any(Array),
+      }),
       filters: {
-        format: 'ebook',
-        subject: 'Science fiction',
-        yearFrom: 1960,
-        yearTo: 1969,
+        filter: 'ebooks',
+        orderBy: 'newest',
+        printType: 'books',
       },
+      items: [metadataBook],
       limit: 10,
-      page: 2,
-      query: 'le guin',
+      page: 3,
+      query: 'KINDRED',
+      total: 1,
     });
+
+    expect(searchVolumes).toHaveBeenCalledWith({
+      filter: 'ebooks',
+      maxResults: 10,
+      orderBy: 'newest',
+      printType: 'books',
+      query: 'KINDRED',
+      startIndex: 20,
+    });
+    expect(persistGoogleBooksVolumes).toHaveBeenCalledWith([volume]);
   });
 
-  it('includes filters in search cache keys', async () => {
-    cacheGetSearch.mockResolvedValue(normalizedSearch);
+  it('defaults Google search controls when omitted', async () => {
+    await service.searchBooks({ limit: 5, page: 1, query: 'kindred' });
 
-    await service.searchBooks({ limit: 10, page: 1, query: 'kindred', subject: 'Fiction' });
-    await service.searchBooks({
-      format: 'ebook',
-      limit: 10,
-      page: 1,
+    expect(searchVolumes).toHaveBeenCalledWith({
+      filter: null,
+      maxResults: 5,
+      orderBy: 'relevance',
+      printType: 'books',
       query: 'kindred',
-      subject: 'Fiction',
+      startIndex: 0,
     });
-
-    expect(cacheGetSearch.mock.calls[0][0]).not.toBe(cacheGetSearch.mock.calls[1][0]);
   });
 
-  it('rejects inverted year filters', async () => {
-    await expect(
-      service.searchBooks({ limit: 10, page: 1, query: 'kindred', yearFrom: 2020, yearTo: 1900 }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+  it('loads Google detail through the shared cache', async () => {
+    await expect(service.getGoogleBookDetail(' google-volume-id ')).resolves.toEqual(metadataBook);
 
-    expect(cacheGetSearch).not.toHaveBeenCalled();
-    expect(clientSearchBooks).not.toHaveBeenCalled();
+    expect(getOrSyncGoogleVolume).toHaveBeenCalledWith('google-volume-id');
+    expect(toBookMetadata).toHaveBeenCalledWith(cachedBook);
   });
 
-  it('returns cached detail results without calling Open Library', async () => {
-    cacheGetBook.mockResolvedValueOnce(normalizedBook);
-
-    await expect(service.getOpenLibraryDetail('works', 'OL123W')).resolves.toEqual(normalizedBook);
-    expect(clientGetDetail).not.toHaveBeenCalled();
-    expect(persistOpenLibraryBooks).toHaveBeenCalledWith([normalizedBook]);
+  it('rejects blank Google detail ids', async () => {
+    await expect(service.getGoogleBookDetail('  ')).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('rejects mismatched Open Library detail type and id pairs', async () => {
-    await expect(service.getOpenLibraryDetail('works', 'OL123M')).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
-    expect(cacheGetBook).not.toHaveBeenCalled();
+  it('throws not found when Google detail cannot be cached', async () => {
+    getOrSyncGoogleVolume.mockResolvedValueOnce(null);
+
+    await expect(service.getGoogleBookDetail('missing')).rejects.toBeInstanceOf(NotFoundException);
   });
 });

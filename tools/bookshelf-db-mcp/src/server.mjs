@@ -2,6 +2,9 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { z } from "zod";
 import {
@@ -15,16 +18,16 @@ import {
  */
 const { Pool, escapeIdentifier } = pg;
 
-const DEFAULT_DATABASE_URL =
-  "postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf";
 const DEFAULT_SCHEMA = "public";
 const DEFAULT_MAX_ROWS = 200;
 const DEFAULT_STATEMENT_TIMEOUT_MS = 5000;
 
+loadRootEnv();
+
 const databaseUrl =
   process.env.BOOKSHELF_MCP_DATABASE_URL ??
   process.env.DATABASE_URL ??
-  DEFAULT_DATABASE_URL;
+  databaseUrlFromParts();
 const defaultSchema = readIdentifierEnv("BOOKSHELF_MCP_SCHEMA", DEFAULT_SCHEMA);
 const maxRows = readPositiveIntEnv("BOOKSHELF_MCP_MAX_ROWS", DEFAULT_MAX_ROWS);
 const statementTimeoutMs = readPositiveIntEnv(
@@ -55,7 +58,7 @@ server.registerTool(
       idempotentHint: true,
     },
   },
-  async () => {
+  withToolAccessLog("database_overview", async () => {
     const result = await withReadonlyClient(async (client) => {
       const database = await client.query(
         "select current_database() as database, current_user as user, version() as version",
@@ -85,7 +88,7 @@ server.registerTool(
     });
 
     return jsonResult(result);
-  },
+  }),
 );
 
 server.registerTool(
@@ -110,7 +113,7 @@ server.registerTool(
       idempotentHint: true,
     },
   },
-  async ({ schema, includeViews }) => {
+  withToolAccessLog("list_tables", async ({ schema, includeViews }) => {
     assertIdentifier(schema, "schema");
 
     const result = await withReadonlyClient(async (client) => {
@@ -137,7 +140,7 @@ server.registerTool(
     });
 
     return jsonResult(result);
-  },
+  }),
 );
 
 server.registerTool(
@@ -160,7 +163,7 @@ server.registerTool(
       idempotentHint: true,
     },
   },
-  async ({ schema, table }) => {
+  withToolAccessLog("describe_table", async ({ schema, table }) => {
     assertIdentifier(schema, "schema");
     assertIdentifier(table, "table");
 
@@ -237,7 +240,7 @@ server.registerTool(
     });
 
     return jsonResult(result);
-  },
+  }),
 );
 
 server.registerTool(
@@ -273,7 +276,7 @@ server.registerTool(
       idempotentHint: true,
     },
   },
-  async ({ sql, params, limit }) => {
+  withToolAccessLog("query_readonly", async ({ sql, params, limit }) => {
     const readonlySql = assertReadonlySql(sql);
     const rowLimit = normalizeQueryLimit(limit, maxRows);
     const limitParamIndex = params.length + 1;
@@ -294,8 +297,31 @@ server.registerTool(
     });
 
     return jsonResult(result);
-  },
+  }),
 );
+
+/**
+ * Adds one stderr access log around each MCP tool call without touching stdout protocol traffic.
+ */
+function withToolAccessLog(featureName, handler) {
+  return async (args, extra) => {
+    const startedAt = Date.now();
+    logStartupStatus(`Feature accessed: ${featureName}.`);
+
+    try {
+      const result = await handler(args, extra);
+      logStartupStatus(
+        `Feature completed: ${featureName} (${Date.now() - startedAt}ms).`,
+      );
+      return result;
+    } catch (error) {
+      logStartupStatus(
+        `Feature failed: ${featureName} (${Date.now() - startedAt}ms): ${describeError(error)}.`,
+      );
+      throw error;
+    }
+  };
+}
 
 async function withReadonlyClient(callback) {
   const client = await pool.connect();
@@ -383,13 +409,135 @@ function assertIdentifier(value, label) {
   }
 }
 
+/**
+ * Loads the repo root .env when this server is started directly instead of through bin/run.
+ */
+function loadRootEnv() {
+  const currentFile = fileURLToPath(import.meta.url);
+  const repoRoot = path.resolve(path.dirname(currentFile), "../../..");
+  const envPath = path.join(repoRoot, ".env");
+
+  if (!fs.existsSync(envPath)) {
+    return;
+  }
+
+  const content = fs.readFileSync(envPath, "utf8");
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+
+    if (separatorIndex < 1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1);
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+/**
+ * Builds the MCP database URL from root .env parts when a full URL is not provided.
+ */
+function databaseUrlFromParts() {
+  const database = requiredEnv("POSTGRES_DB");
+  const user =
+    process.env.BOOKSHELF_MCP_POSTGRES_USER ?? requiredEnv("POSTGRES_USER");
+  const password =
+    process.env.BOOKSHELF_MCP_POSTGRES_PASSWORD ??
+    requiredEnv("POSTGRES_PASSWORD");
+  const host =
+    process.env.BOOKSHELF_MCP_POSTGRES_HOST ??
+    process.env.POSTGRES_HOST ??
+    "127.0.0.1";
+  const port =
+    process.env.BOOKSHELF_MCP_POSTGRES_PORT ??
+    process.env.POSTGRES_HOST_PORT ??
+    "5433";
+
+  return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}`;
+}
+
+/**
+ * Reads a required environment variable with an actionable startup error.
+ */
+function requiredEnv(name) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} must be set in the root .env file.`);
+  }
+
+  return value;
+}
+
 async function main() {
+  logStartupStatus("Starting read-only Postgres MCP server over stdio.");
+  logStartupStatus(
+    `Database target: ${describeDatabaseTarget(databaseUrl)}; schema: ${defaultSchema}; max rows: ${maxRows}; timeout: ${statementTimeoutMs}ms.`,
+  );
+  logStartupStatus(
+    "Stdout is reserved for MCP protocol messages; leave this process running while the client is connected.",
+  );
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  logStartupStatus("Ready and waiting for MCP client requests.");
+}
+
+/**
+ * Writes human-facing lifecycle messages to stderr so stdout remains valid MCP protocol output.
+ */
+function logStartupStatus(message) {
+  process.stderr.write(`[bookshelf-db-mcp] ${message}\n`);
+}
+
+/**
+ * Formats thrown values for concise stderr diagnostics.
+ */
+function describeError(error) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+/**
+ * Builds a credential-free database target label for startup feedback.
+ */
+function describeDatabaseTarget(connectionString) {
+  try {
+    const url = new URL(connectionString);
+    const database = decodeURIComponent(url.pathname.replace(/^\//u, ""));
+    const host = url.hostname || "localhost";
+    const port = url.port ? `:${url.port}` : "";
+
+    return `${host}${port}/${database || "(database not specified)"}`;
+  } catch {
+    return "custom database URL";
+  }
 }
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, async () => {
+    logStartupStatus(`Received ${signal}; shutting down.`);
     await pool.end();
     process.exit(0);
   });

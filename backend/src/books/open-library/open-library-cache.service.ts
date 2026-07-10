@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { BookProvider, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
-import { BookSearchResponseDto } from '../dto/book-search-response.dto';
 import { NormalizedBookDto } from '../dto/normalized-book.dto';
 import type { JsonObject } from '../types/json-object';
+import type { OpenLibrarySearchResponse } from './open-library-normalizer.service';
 
 /**
  * Persists Open Library raw payloads and normalized responses so repeated search/detail requests can
@@ -28,7 +28,7 @@ export class OpenLibraryCacheService {
    * Returns a fresh cached normalized search response when the stored JSON still matches the DTO
    * shape.
    */
-  public async getSearch(providerKey: string): Promise<BookSearchResponseDto | null> {
+  public async getSearch(providerKey: string): Promise<OpenLibrarySearchResponse | null> {
     const cached = await this.findFresh(providerKey);
     return cached && isBookSearchResponse(cached) ? cached : null;
   }
@@ -38,7 +38,7 @@ export class OpenLibraryCacheService {
   public async set(
     providerKey: string,
     rawPayload: JsonObject,
-    normalizedResult: BookSearchResponseDto | NormalizedBookDto,
+    normalizedResult: NormalizedBookDto | OpenLibrarySearchResponse,
     expiresAt: Date,
     query?: string,
   ): Promise<void> {
@@ -92,7 +92,7 @@ export class OpenLibraryCacheService {
 /**
  * Performs a minimal runtime shape check before trusting cached search JSON.
  */
-function isBookSearchResponse(value: unknown): value is BookSearchResponseDto {
+function isBookSearchResponse(value: unknown): value is OpenLibrarySearchResponse {
   if (!isRecord(value)) {
     return false;
   }

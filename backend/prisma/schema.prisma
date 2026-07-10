@@ -135,24 +135,14 @@ model GuestSession {
 }
 
 model Book {
-  id                      String        @id @default(uuid()) @db.Uuid
+  id                      String                @id @default(uuid()) @db.Uuid
   sourceProvider          BookProvider
   sourceId                String
   sourceUrl               String?
   openLibraryWorkKey      String?
   openLibraryEditionKey   String?
-  title                   String
-  subtitle                String?
-  primaryAuthor           String?
-  authors                 String[]      @default([])
-  description             String?
-  publisher               String?
-  publishedDate           String?
-  pageCount               Int?
-  coverUrl                String?
   isbn10                  String?
   isbn13                  String?
-  genres                  String[]      @default([])
   googleBooksVolumeId     String?
   googleBooksSyncedAt     DateTime?
   googleBooksSyncStatus   GoogleBooksSyncStatus @default(PENDING)
@@ -161,11 +151,10 @@ model Book {
   normalizedTitle         String
   normalizedPrimaryAuthor String?
   rawProviderPayload      Json?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
-  libraryItems            LibraryItem[]
-  relatedFrom             BookRelation[] @relation("BookRelationSource")
-  relatedTo               BookRelation[] @relation("BookRelationTarget")
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  relatedFrom             BookRelation[]        @relation("BookRelationSource")
+  relatedTo               BookRelation[]        @relation("BookRelationTarget")
   seriesEntries           BookSeriesEntry[]
 
   @@unique([sourceProvider, sourceId])
@@ -199,7 +188,8 @@ model LibraryItem {
   id                String                 @id @default(uuid()) @db.Uuid
   userId            String?                @db.Uuid
   guestSessionId    String?                @db.Uuid
-  bookId            String                 @db.Uuid
+  isbn10            String?
+  isbn13            String?
   dedupeKey         String
   status            LibraryItemStatus      @default(WANT_TO_READ)
   rating            Int?
@@ -212,17 +202,16 @@ model LibraryItem {
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   activityEvents    ActivityEvent[]
-  book              Book                   @relation(fields: [bookId], references: [id], onDelete: Restrict)
   guestSession      GuestSession?          @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
   progressEntries   ReadingProgressEntry[]
   shelves           LibraryItemShelf[]
   user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, bookId])
-  @@unique([guestSessionId, bookId])
   @@unique([userId, dedupeKey])
   @@unique([guestSessionId, dedupeKey])
   @@index([dateFinished])
+  @@index([isbn10])
+  @@index([isbn13])
   @@index([rating])
   @@index([status])
 }

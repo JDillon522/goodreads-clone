@@ -173,7 +173,7 @@ export class GuestService {
         ? Math.min(sampleBook.pageCount, Math.round((sampleBook.pageCount * currentPercent) / 100))
         : null;
 
-    const book = await transaction.book.upsert({
+    await transaction.book.upsert({
       create: this.sampleBookData(sampleBook, sourceId),
       update: this.sampleBookData(sampleBook, sourceId),
       where: {
@@ -185,13 +185,14 @@ export class GuestService {
     });
     const libraryItem = await transaction.libraryItem.create({
       data: {
-        bookId: book.id,
         currentPage,
         currentPercent,
         dateAdded: this.dateDaysAgo(45 - index),
         dateFinished: isRead ? this.dateDaysAgo(30 - index * 4) : null,
         dedupeKey,
         guestSessionId,
+        isbn10: sampleBook.isbn10 ?? null,
+        isbn13: sampleBook.isbn13 ?? null,
         notes: isRead ? `Guest demo note for ${sampleBook.title}.` : null,
         progressUpdatedAt: currentPercent !== null ? this.dateDaysAgo(index + 1) : null,
         rating: isRead ? 4 + (index % 2) : null,
@@ -290,22 +291,13 @@ export class GuestService {
     sourceId: string,
   ): Prisma.BookUncheckedCreateInput & Prisma.BookUncheckedUpdateInput {
     return {
-      authors: book.author ? [book.author] : [],
-      coverUrl: book.coverUrl ?? null,
-      description: book.description ?? null,
-      genres: book.genres ?? [],
       isbn10: book.isbn10 ?? null,
       isbn13: book.isbn13 ?? null,
       normalizedPrimaryAuthor: book.author ? normalizeText(book.author) : null,
       normalizedTitle: normalizeText(book.title),
-      pageCount: book.pageCount ?? null,
-      primaryAuthor: book.author ?? null,
-      publishedDate: book.publishedDate ?? null,
-      publisher: book.publisher ?? null,
-      rawProviderPayload: book,
+      rawProviderPayload: { legacy: book },
       sourceId,
       sourceProvider: BookProvider.SAMPLE,
-      title: book.title,
     };
   }
   /**

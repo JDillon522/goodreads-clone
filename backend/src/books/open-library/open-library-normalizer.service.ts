@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { BookSearchFacetsDto } from '../dto/book-search-facets.dto';
 import { BookSearchFiltersDto } from '../dto/book-search-filters.dto';
-import { BookSearchResponseDto } from '../dto/book-search-response.dto';
 import { NormalizedBookDto } from '../dto/normalized-book.dto';
 import type { JsonObject } from '../types/json-object';
 import type { OpenLibraryDetailKind } from '../types/open-library-detail-kind';
@@ -22,6 +21,17 @@ type SearchOptions = {
   limit: number;
   page: number;
   query: string;
+};
+
+export type OpenLibrarySearchResponse = {
+  count: number;
+  facets: BookSearchFacetsDto;
+  filters: BookSearchFiltersDto;
+  items: NormalizedBookDto[];
+  limit: number;
+  page: number;
+  query: string;
+  total: number;
 };
 
 type DetailOptions = {
@@ -64,6 +74,7 @@ export class OpenLibraryNormalizerService {
         ...stringArrayValue(raw.subject_people),
         ...stringArrayValue(raw.subject_times),
       ]).slice(0, maxGenres),
+      googleBooksVolumeId: null,
       isbn10,
       isbn13,
       ebookAccess,
@@ -86,7 +97,7 @@ export class OpenLibraryNormalizerService {
    * Normalizes a search response, deduplicates equivalent records, and derives response facets
    * from the returned page of results.
    */
-  public normalizeSearch(raw: JsonObject, options: SearchOptions): BookSearchResponseDto {
+  public normalizeSearch(raw: JsonObject, options: SearchOptions): OpenLibrarySearchResponse {
     const docs = objectArrayValue(raw.docs);
     const items = dedupeSearchResults(docs.map((doc) => this.normalizeSearchDoc(doc)));
 
@@ -150,6 +161,7 @@ export class OpenLibraryNormalizerService {
       dedupeKey: dedupeKeyForBook(isbn13, isbn10, providerKey, title, primaryAuthor),
       description: null,
       genres: uniqueStrings(stringArrayValue(doc.subject)).slice(0, maxGenres),
+      googleBooksVolumeId: null,
       isbn10,
       isbn13,
       ebookAccess,
@@ -173,58 +185,24 @@ export class OpenLibraryNormalizerService {
  * Builds dynamic search facet options from the normalized items in the current response page.
  */
 function facetsFromItems(items: NormalizedBookDto[]): BookSearchFacetsDto {
-  const decadeCounts = new Map<number, number>();
-  const subjectCounts = new Map<string, number>();
   let readableCount = 0;
 
   for (const item of items) {
-    const year = yearFromPublishedDate(item.publishedDate);
-
-    if (year !== null) {
-      const decade = Math.floor(year / 10) * 10;
-      decadeCounts.set(decade, (decadeCounts.get(decade) ?? 0) + 1);
-    }
-
-    for (const subject of item.genres) {
-      subjectCounts.set(subject, (subjectCounts.get(subject) ?? 0) + 1);
-    }
-
     if (item.isReadableOnline) {
       readableCount += 1;
     }
   }
 
   return {
-    formats: [
+    availability: [
       {
         count: readableCount,
-        label: 'Readable online / eBook',
-        value: 'ebook',
+        label: 'eBooks',
+        value: 'ebooks',
       },
     ],
-    publishedDecades: [...decadeCounts.entries()]
-      .sort(([left], [right]) => right - left)
-      .map(([decade, count]) => ({
-        count,
-        label: `${decade}s`,
-        value: `${decade}s`,
-        yearFrom: decade,
-        yearTo: decade + 9,
-      })),
-    subjects: [...subjectCounts.entries()]
-      .sort(([leftSubject, leftCount], [rightSubject, rightCount]) => {
-        if (leftCount !== rightCount) {
-          return rightCount - leftCount;
-        }
-
-        return leftSubject.localeCompare(rightSubject);
-      })
-      .slice(0, maxSubjectFacets)
-      .map(([subject, count]) => ({
-        count,
-        label: subject,
-        value: subject,
-      })),
+    printTypes: [{ count: items.length, label: 'Books', value: 'books' }],
+    sortOptions: [{ count: items.length, label: 'Relevance', value: 'relevance' }],
   };
 }
 /**

@@ -1,6 +1,10 @@
+# Note!
+
+This is a virtually 100% vibe coded application! I did this as an experiment to see what I could do if I leveraged AI to the max with no concern for token usage. I'm quite pleased how well it turned out
+
 # Bookshelf
 
-Bookshelf is a full-stack personal reading tracker built from the Frontend Mentor Product Challenge prompt. The app lets people search Open Library, save books, organize them across multiple shelves, track progress, write ratings and notes, manage annual goals, and review reading stats.
+Bookshelf is a full-stack personal reading tracker built from the Frontend Mentor Product Challenge prompt. The app lets people search Google Books, save ISBN-backed books, organize them across multiple shelves, track progress, write ratings and notes, manage annual goals, and review reading stats.
 
 This is no longer the stock challenge starter. The repo is now a working Nest + Angular + Postgres application with Docker-backed local development and a small set of local tooling scripts.
 
@@ -8,8 +12,9 @@ This is no longer the stock challenge starter. The repo is now a working Nest + 
 
 - Account signup, sign-in, refresh, sign-out, password reset token flow, and username-or-email admin login.
 - Guest sessions with seeded demo data from `data/sample-books.json`.
-- Open Library search, provider normalization, permanent book persistence, response caching, pagination, and filters for year, subject, and readable/eBook availability.
-- Google Books enrichment for persisted book metadata, with sync status and raw payload tracking.
+- Google Books search, provider normalization, permanent book metadata caching, response-backed pagination, availability filters, print-type controls, and relevance/newest sorting.
+- Open Library enrichment for missing metadata, subjects, work keys, related/series signals, alternate cover context, and first-publish context.
+- ISBN-owned user library rows: personal state lives on `LibraryItem`, while reusable metadata lives in the shared `Book` cache.
 - User library management with duplicate detection, progress tracking, ratings, notes, and explicit reading status.
 - Multi-shelf membership: a book can be on more than one shelf, and every owner has a protected `Unshelved` shelf.
 - User shelf management through the app, including create, rename, delete, reorder, and `Unshelved` fallback behavior.
@@ -40,7 +45,7 @@ Backend ownership flows use a shared owner context so authenticated users and gu
 
 - Backend: Nest 11, Prisma 7, Postgres 16
 - Frontend: Angular 22 standalone routes, signals, signal forms
-- External data: Open Library, Google Books
+- External data: Google Books first, Open Library enrichment
 - Local runtime: Docker Compose, nginx proxy
 - API contracts: Swagger/OpenAPI at `/docs` and `/docs-json`, with generated frontend types
 - Tooling: npm workspaces plus `bin/run`
@@ -56,6 +61,12 @@ Backend ownership flows use a shared owner context so authenticated users and gu
 | Postgres host port | `127.0.0.1:5433`                |
 
 ## Quick Start
+
+Create your local root environment file:
+
+```sh
+cp .env.example .env
+```
 
 Install dependencies:
 
@@ -119,16 +130,18 @@ bin/run help mcp-db
 
 The development database runs in Docker as `bookshelf-db`.
 
-Host connection:
+Runtime database values live in the root `.env` under the `Database` section. Docker Compose reads that file automatically, and host-side backend, Prisma, seed, and MCP commands load the same file.
+
+Default host connection:
 
 ```txt
-postgresql://bookshelf:bookshelf@127.0.0.1:5433/bookshelf
+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_HOST_PORT}/${POSTGRES_DB}
 ```
 
-Container-network connection:
+Default container-network connection:
 
 ```txt
-postgresql://bookshelf:bookshelf@db:5432/bookshelf
+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONTAINER_HOST}:${POSTGRES_CONTAINER_PORT}/${POSTGRES_DB}
 ```
 
 Prisma schema and migrations live under `backend/prisma/`.

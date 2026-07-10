@@ -2,16 +2,7 @@
   "mcpServers": {
     "bookshelf-db": {
       "command": "node",
-      "args": [
-        "/absolute/path/to/personal-reading-list/bin/run",
-        "mcp-db"
-      ],
-      "env": {
-        "BOOKSHELF_MCP_DATABASE_URL": "postgresql://bookshelf_readonly:readonly-password@127.0.0.1:5433/bookshelf",
-        "BOOKSHELF_MCP_SCHEMA": "public",
-        "BOOKSHELF_MCP_MAX_ROWS": "200",
-        "BOOKSHELF_MCP_STATEMENT_TIMEOUT_MS": "5000"
-      }
+      "args": ["/absolute/path/to/personal-reading-list/bin/run", "mcp-db"]
     }
   }
 }

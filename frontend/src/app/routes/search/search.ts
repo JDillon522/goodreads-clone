@@ -14,7 +14,6 @@ import { form, minLength, required, submit } from '@angular/forms/signals';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 
 import type {
-  BookSearchDecadeFacet,
   BookSearchFacets,
   BookSearchFilters,
   BookSearchValueFacet,
@@ -27,22 +26,21 @@ import { Shelves } from '../../core/shelves/shelves';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
 
 /**
- * Search route controller for Open Library discovery.
+ * Search route controller for Google Books discovery.
  *
  * The URL is the source of truth for query text, page, and filters so browser
  * refresh, pagination, author links, and shared URLs all rehydrate the same
  * server-backed search state.
  */
 const emptyFacets: BookSearchFacets = {
-  formats: [],
-  publishedDecades: [],
-  subjects: [],
+  availability: [],
+  printTypes: [],
+  sortOptions: [],
 };
 const emptyFilters: BookSearchFilters = {
-  format: null,
-  subject: null,
-  yearFrom: null,
-  yearTo: null,
+  filter: null,
+  orderBy: 'relevance',
+  printType: 'books',
 };
 
 @Component({
@@ -61,7 +59,6 @@ export class Search {
   private readonly router = inject(Router);
   private readonly shelvesService = inject(Shelves);
   private readonly model = signal({ query: '' });
-  private readonly filterModel = signal({ yearFrom: '', yearTo: '' });
   private readonly shelfPickerModel = signal({ shelfId: '' });
   private lastQueryParamSearch = '';
 
@@ -104,24 +101,22 @@ export class Search {
     const filters = this.activeFilters();
 
     return Boolean(
-      filters.format ||
-      filters.subject ||
-      typeof filters.yearFrom === 'number' ||
-      typeof filters.yearTo === 'number',
+      filters.filter || filters.orderBy !== 'relevance' || filters.printType !== 'books',
     );
   });
   protected readonly hasFilterOptions = computed(() => {
     const facets = this.facets();
 
     return (
-      facets.publishedDecades.length > 0 || facets.subjects.length > 0 || facets.formats.length > 0
+      facets.availability.length > 0 ||
+      facets.printTypes.length > 0 ||
+      facets.sortOptions.length > 0
     );
   });
   protected readonly searchForm = form(this.model, (path) => {
     required(path.query, { message: 'Search terms are required.' });
     minLength(path.query, 2, { message: 'Use at least 2 characters.' });
   });
-  protected readonly filtersForm = form(this.filterModel, () => {});
   protected readonly shelfPickerForm = form(this.shelfPickerModel, (path) => {
     required(path.shelfId, { message: 'Choose a shelf.' });
   });
@@ -146,7 +141,6 @@ export class Search {
       if (!query) {
         this.lastQueryParamSearch = '';
         this.model.set({ query: '' });
-        this.filterModel.set({ yearFrom: '', yearTo: '' });
         this.activeFilters.set(emptyFilters);
         this.facets.set(emptyFacets);
         this.currentPage.set(1);
@@ -158,7 +152,7 @@ export class Search {
       }
 
       // Router emissions can repeat after navigation merges params; this key keeps
-      // effects and form writes from causing duplicate Open Library calls.
+      // effects and form writes from causing duplicate Google Books calls.
       const searchKey = JSON.stringify({ filters, page, query });
 
       if (searchKey === this.lastQueryParamSearch) {
@@ -167,7 +161,6 @@ export class Search {
 
       this.lastQueryParamSearch = searchKey;
       this.model.set({ query });
-      this.applyFilterModel(filters);
       this.activeFilters.set(this.responseFiltersFromRequest(filters));
       this.currentPage.set(page);
       void this.searchCurrentQuery(query, page, filters);
@@ -206,44 +199,30 @@ export class Search {
     await this.navigateToSearch(query, page);
   }
   /**
-   * Applies typed year filters and resets pagination because the result set changes.
+   * Applies the Google Books availability filter and resets pagination.
    */
-  protected async submitFilters(event: SubmitEvent): Promise<void> {
-    event.preventDefault();
-    const query = this.model().query.trim();
-
-    if (!query || this.isSearching()) {
-      return;
-    }
-
-    await this.navigateToSearch(query, 1, this.filtersFromCurrentState());
-  }
-  /**
-   * Toggles a decade facet by replacing the manual year range with the facet bounds.
-   */
-  protected async applyDecadeFilter(facet: BookSearchDecadeFacet): Promise<void> {
-    const current = this.activeFilters();
-    const isActive = current.yearFrom === facet.yearFrom && current.yearTo === facet.yearTo;
-
+  protected async applyAvailabilityFilter(facet: BookSearchValueFacet): Promise<void> {
     await this.navigateWithFilterPatch({
-      yearFrom: isActive ? undefined : facet.yearFrom,
-      yearTo: isActive ? undefined : facet.yearTo,
+      filter:
+        facet.value === 'all' || this.activeFilters().filter === facet.value
+          ? undefined
+          : (facet.value as BookSearchRequestFilters['filter']),
     });
   }
   /**
-   * Toggles the single selected subject facet supported by the v1 search API.
+   * Applies the Google Books print-type control and resets pagination.
    */
-  protected async applySubjectFilter(facet: BookSearchValueFacet): Promise<void> {
+  protected async applyPrintTypeFilter(facet: BookSearchValueFacet): Promise<void> {
     await this.navigateWithFilterPatch({
-      subject: this.activeFilters().subject === facet.value ? undefined : facet.value,
+      printType: facet.value as BookSearchRequestFilters['printType'],
     });
   }
   /**
-   * Toggles the readable-online filter; v1 only exposes the eBook/readable option.
+   * Applies Google Books result ordering and resets pagination.
    */
-  protected async applyFormatFilter(facet: BookSearchValueFacet): Promise<void> {
+  protected async applySortOption(facet: BookSearchValueFacet): Promise<void> {
     await this.navigateWithFilterPatch({
-      format: this.activeFilters().format === facet.value ? undefined : 'ebook',
+      orderBy: facet.value as BookSearchRequestFilters['orderBy'],
     });
   }
   /**
@@ -259,29 +238,34 @@ export class Search {
     await this.navigateToSearch(query, 1, {});
   }
   /**
-   * Checks active decade state after either a facet click or manual year entry.
+   * Marks the selected availability chip active, treating null as the "all" option.
    */
-  protected isDecadeActive(facet: BookSearchDecadeFacet): boolean {
-    const filters = this.activeFilters();
-
-    return filters.yearFrom === facet.yearFrom && filters.yearTo === facet.yearTo;
+  protected isAvailabilityActive(facet: BookSearchValueFacet): boolean {
+    return facet.value === 'all'
+      ? this.activeFilters().filter === null
+      : this.activeFilters().filter === facet.value;
   }
   /**
-   * Marks the subject chip active when the URL/backend filter matches the facet value.
+   * Marks the selected print-type chip active.
    */
-  protected isSubjectActive(facet: BookSearchValueFacet): boolean {
-    return this.activeFilters().subject === facet.value;
+  protected isPrintTypeActive(facet: BookSearchValueFacet): boolean {
+    return this.activeFilters().printType === facet.value;
   }
   /**
-   * Marks the readable-online chip active when the backend echoed that filter.
+   * Marks the selected sort chip active.
    */
-  protected isFormatActive(facet: BookSearchValueFacet): boolean {
-    return this.activeFilters().format === facet.value;
+  protected isSortActive(facet: BookSearchValueFacet): boolean {
+    return this.activeFilters().orderBy === facet.value;
   }
   /**
    * Opens the add dialog with a valid shelf selection before the user submits.
    */
   protected openAddBookDialog(book: NormalizedBook): void {
+    if (!this.canSaveBook(book)) {
+      this.error.set('This Google Books result is missing an ISBN and cannot be saved.');
+      return;
+    }
+
     this.error.set(null);
     this.status.set(null);
     this.selectedBook.set(book);
@@ -289,7 +273,7 @@ export class Search {
     this.addBookDialog()?.nativeElement.showModal();
   }
   /**
-   * Saves the result to the default shelf when needed, then opens the saved library item detail page.
+   * Opens the info-only Google Books detail page without adding the book to the library.
    */
   protected async openBookDetail(book: NormalizedBook): Promise<void> {
     if (this.openingKey()) {
@@ -298,11 +282,17 @@ export class Search {
 
     this.error.set(null);
     this.status.set(null);
-    this.openingKey.set(book.providerKey);
+    this.openingKey.set(this.bookKey(book));
 
     try {
-      const item = await this.library.add({ book });
-      await this.router.navigate(['/app/books', item.id]);
+      const volumeId =
+        book.summary.googleBooksVolumeId ?? googleVolumeIdFromProviderKey(book.summary.providerKey);
+
+      if (!volumeId) {
+        throw new Error('Missing Google Books volume id.');
+      }
+
+      await this.router.navigate(['/app/book-info/google', volumeId]);
     } catch {
       this.error.set('That book could not be opened.');
     } finally {
@@ -329,12 +319,17 @@ export class Search {
 
     this.error.set(null);
     this.status.set(null);
-    this.addingKey.set(book.providerKey);
+    this.addingKey.set(this.bookKey(book));
 
     try {
       const successful = await submit(this.shelfPickerForm, async (formTree) => {
-        await this.library.add({ book, shelfId: formTree().value().shelfId });
-        this.status.set(`${book.title} was added to your library.`);
+        await this.library.add({
+          googleBooksVolumeId: book.summary.googleBooksVolumeId,
+          isbn10: book.summary.isbn10,
+          isbn13: book.summary.isbn13,
+          shelfId: formTree().value().shelfId,
+        });
+        this.status.set(`${book.summary.title} was added to your library.`);
         this.closeAddBookDialog();
       });
 
@@ -348,24 +343,54 @@ export class Search {
     }
   }
   /**
-   * Returns a usable cover URL only when Open Library provided one.
+   * Returns a usable cover URL only when the provider supplied one.
    */
   protected coverUrl(book: NormalizedBook): string | null {
-    return typeof book.coverUrl === 'string' ? book.coverUrl : null;
+    return book.summary.coverImages.card ?? book.summary.coverUrl ?? null;
   }
   /**
    * Chooses the normalized primary author, falling back to the first author label.
    */
   protected primaryAuthor(book: NormalizedBook): string {
-    return typeof book.primaryAuthor === 'string'
-      ? book.primaryAuthor
-      : (book.authors[0] ?? 'Unknown author');
+    return book.summary.primaryAuthor ?? book.summary.authors[0] ?? 'Unknown author';
   }
   /**
    * Displays the normalized publication date or the unknown-year fallback.
    */
   protected publishedDate(book: NormalizedBook): string {
-    return typeof book.publishedDate === 'string' ? book.publishedDate : 'Unknown year';
+    return book.summary.publishedDate ?? 'Unknown year';
+  }
+  /**
+   * Builds a compact metadata line for search results from stable computed summary fields.
+   */
+  protected resultMetadata(book: NormalizedBook): string {
+    const summary = book.summary;
+    const values = [
+      this.publishedDate(book),
+      summary.publisher,
+      typeof summary.pageCount === 'number' ? `${summary.pageCount} pages` : null,
+      summary.isbn13 ?? summary.isbn10,
+    ].filter((value): value is string => Boolean(value));
+
+    return values.join(' | ');
+  }
+  /**
+   * Shows only the first few genres so result rows stay scannable.
+   */
+  protected previewGenres(book: NormalizedBook): string[] {
+    return book.summary.genres.slice(0, 3);
+  }
+  /**
+   * Returns whether a Google result has the ISBN identity required for library saves.
+   */
+  protected canSaveBook(book: NormalizedBook): boolean {
+    return Boolean(book.summary.isbn13 || book.summary.isbn10);
+  }
+  /**
+   * Returns the stable per-result UI key used for pending states and template tracking.
+   */
+  protected bookKey(book: NormalizedBook): string {
+    return book.summary.providerKey;
   }
   /**
    * Calls the backend search endpoint and stores the result, echoed filters, and dynamic facets.
@@ -389,7 +414,6 @@ export class Search {
       this.currentPage.set(response.page);
       this.activeFilters.set(response.filters);
       this.facets.set(response.facets);
-      this.applyFilterModel(response.filters);
     } catch {
       this.error.set('Search failed.');
       this.results.set([]);
@@ -412,24 +436,19 @@ export class Search {
   ): Promise<void> {
     await this.router.navigate([], {
       queryParams: {
-        format: filters.format ?? null,
+        filter: filters.filter ?? null,
+        orderBy: filters.orderBy && filters.orderBy !== 'relevance' ? filters.orderBy : null,
         page: page <= 1 ? null : page,
+        printType:
+          filters.printType && filters.printType !== 'books' ? filters.printType : null,
         query,
-        subject: filters.subject ?? null,
-        yearFrom: filters.yearFrom ?? null,
-        yearTo: filters.yearTo ?? null,
+        format: null,
+        subject: null,
+        yearFrom: null,
+        yearTo: null,
       },
       queryParamsHandling: 'merge',
       relativeTo: this.route,
-    });
-  }
-  /**
-   * Mirrors backend-normalized year filters into the editable year fields.
-   */
-  private applyFilterModel(filters: BookSearchFilters | BookSearchRequestFilters): void {
-    this.filterModel.set({
-      yearFrom: typeof filters.yearFrom === 'number' ? String(filters.yearFrom) : '',
-      yearTo: typeof filters.yearTo === 'number' ? String(filters.yearTo) : '',
     });
   }
   /**
@@ -452,27 +471,27 @@ export class Search {
    */
   private filtersFromCurrentState(): BookSearchRequestFilters {
     const activeFilters = this.activeFilters();
-    const yearFrom = this.normalizeOptionalYear(this.filterModel().yearFrom);
-    const yearTo = this.normalizeOptionalYear(this.filterModel().yearTo);
 
     return {
-      ...(activeFilters.format ? { format: activeFilters.format } : {}),
-      ...(activeFilters.subject ? { subject: activeFilters.subject } : {}),
-      ...(typeof yearFrom === 'number' ? { yearFrom } : {}),
-      ...(typeof yearTo === 'number' ? { yearTo } : {}),
+      ...(activeFilters.filter ? { filter: activeFilters.filter } : {}),
+      ...(activeFilters.orderBy !== 'relevance' ? { orderBy: activeFilters.orderBy } : {}),
+      ...(activeFilters.printType !== 'books' ? { printType: activeFilters.printType } : {}),
     };
   }
   /**
    * Hydrates URL filter params into the backend request shape.
    */
   private filtersFromParams(params: ParamMap): BookSearchRequestFilters {
-    const subject = params.get('subject')?.trim();
-    const format = params.get('format');
+    const filter = params.get('filter');
+    const orderBy = params.get('orderBy');
+    const printType = params.get('printType');
 
     return {
-      ...(format === 'ebook' ? { format } : {}),
-      ...(subject ? { subject } : {}),
-      ...this.yearFiltersFromParams(params),
+      ...(isGoogleFilter(filter) ? { filter } : {}),
+      ...(orderBy === 'newest' || orderBy === 'relevance' ? { orderBy } : {}),
+      ...(printType === 'all' || printType === 'books' || printType === 'magazines'
+        ? { printType }
+        : {}),
     };
   }
   /**
@@ -480,10 +499,9 @@ export class Search {
    */
   private responseFiltersFromRequest(filters: BookSearchRequestFilters): BookSearchFilters {
     return {
-      format: filters.format ?? null,
-      subject: filters.subject ?? null,
-      yearFrom: filters.yearFrom ?? null,
-      yearTo: filters.yearTo ?? null,
+      filter: filters.filter ?? null,
+      orderBy: filters.orderBy ?? 'relevance',
+      printType: filters.printType ?? 'books',
     };
   }
   /**
@@ -493,30 +511,6 @@ export class Search {
     const page = Number(value);
 
     return Number.isInteger(page) && page > 0 ? page : 1;
-  }
-  /**
-   * Normalizes optional year so comparisons, persistence, and API responses stay stable.
-   */
-  private normalizeOptionalYear(value: null | string): number | undefined {
-    if (!value) {
-      return undefined;
-    }
-
-    const year = Number(value);
-
-    return Number.isInteger(year) && year >= 0 ? year : undefined;
-  }
-  /**
-   * Parses optional year params and drops invalid values instead of sending them to the API.
-   */
-  private yearFiltersFromParams(params: ParamMap): BookSearchRequestFilters {
-    const yearFrom = this.normalizeOptionalYear(params.get('yearFrom'));
-    const yearTo = this.normalizeOptionalYear(params.get('yearTo'));
-
-    return {
-      ...(typeof yearFrom === 'number' ? { yearFrom } : {}),
-      ...(typeof yearTo === 'number' ? { yearTo } : {}),
-    };
   }
   /**
    * Loads active shelves for the add-to-library picker.
@@ -548,4 +542,19 @@ export class Search {
     const preferredShelf = shelves.find((shelf) => shelf.id === preferredShelfId);
     this.shelfPickerModel.set({ shelfId: preferredShelf?.id ?? shelves[0]?.id ?? '' });
   }
+}
+
+/**
+ * Extracts the Google Books volume id from the normalized provider key when the explicit field is
+ * missing in older generated API types.
+ */
+function googleVolumeIdFromProviderKey(providerKey: string): string | null {
+  return providerKey.startsWith('google:') ? providerKey.slice('google:'.length) : null;
+}
+
+/**
+ * Narrows URL params to the Google Books availability values the backend accepts.
+ */
+function isGoogleFilter(value: string | null): value is NonNullable<BookSearchRequestFilters['filter']> {
+  return value === 'ebooks' || value === 'free-ebooks' || value === 'full' || value === 'paid-ebooks';
 }

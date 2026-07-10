@@ -23,8 +23,6 @@ type Environment = {
   PORT: number;
 };
 
-const defaultDatabaseUrl =
-  'postgresql://bookshelf:bookshelf@localhost:5432/bookshelf?schema=public';
 const devAccessSecret = 'dev-only-access-secret-replace-before-deploy';
 const devRefreshSecret = 'dev-only-refresh-secret-replace-before-deploy';
 
@@ -33,7 +31,7 @@ const environmentSchema = Joi.object<Environment>({
   CORS_ORIGIN: Joi.string().trim().allow('').default('http://localhost:4200'),
   DATABASE_URL: Joi.string()
     .uri({ scheme: ['postgresql', 'postgres'] })
-    .default(defaultDatabaseUrl),
+    .required(),
   GUEST_SESSION_TTL_DAYS: Joi.number().integer().positive().default(7),
   GOOGLE_BOOKS_API_KEY: Joi.string().trim().allow('').optional(),
   GOOGLE_BOOKS_BASE_URL: Joi.string().uri().default('https://www.googleapis.com/books/v1'),
@@ -56,7 +54,12 @@ const environmentSchema = Joi.object<Environment>({
  * Applies defaults, coerces numeric values, and blocks unsafe production JWT secrets.
  */
 export function validateEnvironment(config: Record<string, unknown>): Environment {
-  const { error, value } = environmentSchema.validate(config, {
+  const hydratedConfig = {
+    ...config,
+    DATABASE_URL: config['DATABASE_URL'] ?? databaseUrlFromParts(config),
+  };
+
+  const { error, value } = environmentSchema.validate(hydratedConfig, {
     abortEarly: false,
     convert: true,
   });
@@ -80,4 +83,35 @@ export function validateEnvironment(config: Record<string, unknown>): Environmen
   }
 
   return environment;
+}
+
+/**
+ * Builds the local host database URL from the root .env POSTGRES_* values when DATABASE_URL is not
+ * provided directly.
+ */
+function databaseUrlFromParts(config: Record<string, unknown>): string | undefined {
+  const database = stringValue(config['POSTGRES_DB']);
+  const schema = stringValue(config['POSTGRES_SCHEMA']) ?? 'public';
+  const user = stringValue(config['POSTGRES_USER']);
+  const password = stringValue(config['POSTGRES_PASSWORD']);
+  const host = stringValue(config['POSTGRES_HOST']) ?? 'localhost';
+  const port = stringValue(config['POSTGRES_HOST_PORT']) ?? '5432';
+
+  if (!database || !user || !password) {
+    return undefined;
+  }
+
+  const encodedUser = encodeURIComponent(user);
+  const encodedPassword = encodeURIComponent(password);
+  const encodedDatabase = encodeURIComponent(database);
+  const encodedSchema = encodeURIComponent(schema);
+
+  return `postgresql://${encodedUser}:${encodedPassword}@${host}:${port}/${encodedDatabase}?schema=${encodedSchema}`;
+}
+
+/**
+ * Narrows environment-like values to non-empty strings.
+ */
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
