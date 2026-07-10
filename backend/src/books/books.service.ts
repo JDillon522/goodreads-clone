@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'node:crypto';
 
+import { BookPersistenceService } from './book-persistence.service';
 import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
 import { BookSearchQueryDto } from './dto/book-search-query.dto';
 import { BookSearchResponseDto } from './dto/book-search-response.dto';
@@ -24,6 +25,7 @@ export class BooksService {
    */
   public constructor(
     configService: ConfigService,
+    private readonly bookPersistence: BookPersistenceService,
     private readonly cache: OpenLibraryCacheService,
     private readonly openLibraryClient: OpenLibraryClientService,
     private readonly openLibraryNormalizer: OpenLibraryNormalizerService,
@@ -46,6 +48,7 @@ export class BooksService {
     const cached = await this.cache.getBook(providerKey);
 
     if (cached) {
+      await this.bookPersistence.persistOpenLibraryBooks([cached]);
       return cached;
     }
 
@@ -58,6 +61,7 @@ export class BooksService {
       normalized,
       this.dateAfterHours(this.detailCacheTtlHours),
     );
+    await this.bookPersistence.persistOpenLibraryBooks([normalized]);
 
     return normalized;
   }
@@ -75,6 +79,7 @@ export class BooksService {
     const cached = await this.cache.getSearch(providerKey);
 
     if (cached) {
+      await this.bookPersistence.persistOpenLibraryBooks(cached.items);
       return cached;
     }
 
@@ -97,6 +102,7 @@ export class BooksService {
       this.dateAfterHours(this.searchCacheTtlHours),
       normalizedQuery,
     );
+    await this.bookPersistence.persistOpenLibraryBooks(normalized.items);
 
     return normalized;
   }

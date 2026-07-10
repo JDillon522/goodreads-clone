@@ -31,6 +31,9 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-replace-with-production-access-secret}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-with-production-refresh-secret}
       GUEST_SESSION_TTL_DAYS: ${GUEST_SESSION_TTL_DAYS:-7}
+      GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
+      GOOGLE_BOOKS_BASE_URL: ${GOOGLE_BOOKS_BASE_URL:-https://www.googleapis.com/books/v1}
+      GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: ${GOOGLE_BOOKS_REQUEST_TIMEOUT_MS:-8000}
       PASSWORD_RESET_TOKEN_TTL_MINUTES: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:-30}
       OPEN_LIBRARY_BASE_URL: ${OPEN_LIBRARY_BASE_URL:-https://openlibrary.org}
       OPEN_LIBRARY_USER_AGENT: "${OPEN_LIBRARY_USER_AGENT:-Bookshelf/0.1.0 (production; contact: configure@example.com)}"

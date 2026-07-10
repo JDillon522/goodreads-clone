@@ -4,6 +4,7 @@ import { convertToParamMap, ActivatedRoute, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 
 import type { LibraryItemResponse, ShelfResponse } from '../../core/api/api.types';
+import { Books as BooksService } from '../../core/books/books';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
 import { Theme } from '../../core/theme/theme';
@@ -30,6 +31,9 @@ function libraryItem(overrides: Partial<LibraryItemResponse> = {}): LibraryItemR
     book: {
       authors: ['Ada Author'],
       genres: ['Fantasy'],
+      googleBooksSyncedAt: null,
+      googleBooksSyncStatus: 'PENDING',
+      googleBooksVolumeId: null,
       id: 'book-1',
       sourceId: 'sample:1',
       sourceProvider: 'SAMPLE',
@@ -89,11 +93,80 @@ class MockTheme {
   public readonly useBookAsCustomTheme = vi.fn().mockResolvedValue(undefined);
 }
 
+class MockBooks {
+  public readonly series = vi.fn(async () => ({
+    bookId: 'book-1',
+    entries: [
+      {
+        book: {
+          authors: ['Ada Author'],
+          coverUrl: null,
+          genres: ['Fantasy'],
+          id: 'book-1',
+          primaryAuthor: 'Ada Author',
+          publishedDate: '2026',
+          sourceId: 'sample:1',
+          sourceProvider: 'SAMPLE',
+          sourceUrl: null,
+          subtitle: null,
+          title: 'The Test Book',
+        },
+        confidence: 88,
+        position: 1,
+        positionLabel: 'Book 1',
+      },
+      {
+        book: {
+          authors: ['Ada Author'],
+          coverUrl: null,
+          genres: ['Fantasy'],
+          id: 'book-2',
+          primaryAuthor: 'Ada Author',
+          publishedDate: '2027',
+          sourceId: 'sample:2',
+          sourceProvider: 'SAMPLE',
+          sourceUrl: null,
+          subtitle: null,
+          title: 'The Sequel',
+        },
+        confidence: 88,
+        position: 2,
+        positionLabel: 'Book 2',
+      },
+    ],
+    seriesName: 'Test Cycle',
+  }));
+  public readonly related = vi.fn(async () => ({
+    bookId: 'book-1',
+    items: [
+      {
+        book: {
+          authors: ['Ada Author'],
+          coverUrl: null,
+          genres: ['Fantasy'],
+          id: 'book-2',
+          primaryAuthor: 'Ada Author',
+          publishedDate: '2027',
+          sourceId: 'sample:2',
+          sourceProvider: 'SAMPLE',
+          sourceUrl: null,
+          subtitle: null,
+          title: 'The Sequel',
+        },
+        reasons: ['Same author', 'Shared genre: Fantasy'],
+        score: 62,
+      },
+    ],
+  }));
+}
+
 describe('BookDetail', () => {
+  let books: MockBooks;
   let library: MockLibrary;
   let theme: MockTheme;
 
   beforeEach(async () => {
+    books = new MockBooks();
     library = new MockLibrary();
     theme = new MockTheme();
 
@@ -105,6 +178,7 @@ describe('BookDetail', () => {
           provide: ActivatedRoute,
           useValue: { paramMap: of(convertToParamMap({ id: 'item-1' })) },
         },
+        { provide: BooksService, useValue: books },
         { provide: LibraryService, useValue: library },
         { provide: Shelves, useClass: MockShelves },
         { provide: Theme, useValue: theme },
@@ -124,6 +198,10 @@ describe('BookDetail', () => {
     const authorLink = element.querySelector<HTMLAnchorElement>('.author-link');
 
     expect(element.textContent).toContain('The Test Book');
+    expect(element.textContent).toContain('Test Cycle');
+    expect(element.textContent).toContain('The Sequel');
+    expect(books.series).toHaveBeenCalledWith('book-1');
+    expect(books.related).toHaveBeenCalledWith('book-1', 12);
     expect(authorLink?.textContent?.trim()).toBe('Ada Author');
     expect(authorLink?.getAttribute('href')).toBe('/app/search?query=Ada%20Author');
     expect(element.querySelector<HTMLSelectElement>('select')?.value).toBe('READING');

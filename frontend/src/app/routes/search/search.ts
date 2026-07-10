@@ -75,6 +75,7 @@ export class Search {
   protected readonly error = signal<string | null>(null);
   protected readonly status = signal<string | null>(null);
   protected readonly addingKey = signal<string | null>(null);
+  protected readonly openingKey = signal<string | null>(null);
   protected readonly isSearching = signal(false);
   protected readonly isLoadingShelves = signal(true);
   protected readonly pageSize = 10;
@@ -286,6 +287,27 @@ export class Search {
     this.selectedBook.set(book);
     this.ensureSelectedShelf();
     this.addBookDialog()?.nativeElement.showModal();
+  }
+  /**
+   * Saves the result to the default shelf when needed, then opens the saved library item detail page.
+   */
+  protected async openBookDetail(book: NormalizedBook): Promise<void> {
+    if (this.openingKey()) {
+      return;
+    }
+
+    this.error.set(null);
+    this.status.set(null);
+    this.openingKey.set(book.providerKey);
+
+    try {
+      const item = await this.library.add({ book });
+      await this.router.navigate(['/app/books', item.id]);
+    } catch {
+      this.error.set('That book could not be opened.');
+    } finally {
+      this.openingKey.set(null);
+    }
   }
   /**
    * Clears the transient selected book when the modal closes.

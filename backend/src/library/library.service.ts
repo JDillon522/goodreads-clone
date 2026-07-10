@@ -4,9 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ActivityEventType, BookProvider, LibraryItemStatus, Prisma } from '@prisma/client';
+import { ActivityEventType, LibraryItemStatus, Prisma } from '@prisma/client';
 
 import { ActivityService } from '../activity/activity.service';
+import {
+  BookPersistenceService,
+  type BookPersistenceExecutor,
+} from '../books/book-persistence.service';
 import { ownerRecord, type OwnerContext } from '../common/owner/owner-context';
 import { PrismaService } from '../database/prisma.service';
 import { AddLibraryItemShelfRequestDto } from './dto/add-library-item-shelf-request.dto';
@@ -19,7 +23,7 @@ import { MoveLibraryItemRequestDto } from './dto/move-library-item-request.dto';
 import { ShelfSummaryResponseDto } from './dto/shelf-summary-response.dto';
 import { UpdateLibraryItemRequestDto } from './dto/update-library-item-request.dto';
 import { UpdateProgressRequestDto } from './dto/update-progress-request.dto';
-import { calculateProgress, normalizeText } from './library-rules';
+import { calculateProgress } from './library-rules';
 
 /**
  * Owns the user's or guest's saved library items. This service keeps book persistence, shelf
@@ -29,8 +33,6 @@ type LibraryItemWithRelations = Prisma.LibraryItemGetPayload<{
   include: typeof libraryItemInclude;
 }>;
 
-type LibraryExecutor = Prisma.TransactionClient | PrismaService;
-
 @Injectable()
 export class LibraryService {
   /**
@@ -38,6 +40,7 @@ export class LibraryService {
    */
   public constructor(
     private readonly activityService: ActivityService,
+    private readonly bookPersistence: BookPersistenceService,
     private readonly prisma: PrismaService,
   ) {}
   /**
@@ -49,9 +52,6 @@ export class LibraryService {
     dto: AddLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
     const item = await this.prisma.$transaction(async (transaction) => {
-      const shelf = dto.shelfId
-        ? await this.getOwnedShelf(transaction, owner, dto.shelfId)
-        : await this.getDefaultShelf(transaction, owner, 'unshelved');
       const book = await this.upsertBook(transaction, dto.book);
       const existingItem = await transaction.libraryItem.findFirst({
         include: libraryItemInclude,
@@ -62,10 +62,17 @@ export class LibraryService {
       });
 
       if (existingItem) {
+        if (!dto.shelfId) {
+          return existingItem;
+        }
+
+        const shelf = await this.getOwnedShelf(transaction, owner, dto.shelfId);
+
         // Library items can live on multiple shelves; duplicate detection prevents duplicate books
-        // while still allowing the user to classify the same item under another shelf.
+        // while still allowing the user to classify the same item under another shelf. Returning
+        // the existing item keeps "open from search" idempotent when the item is already saved.
         if (existingItem.shelves.some((membership) => membership.shelfId === shelf.id)) {
-          throw new ConflictException('This book is already on that shelf.');
+          return existingItem;
         }
 
         await transaction.libraryItemShelf.create({
@@ -89,6 +96,9 @@ export class LibraryService {
         return this.getOwnedLibraryItemWithExecutor(transaction, owner, existingItem.id);
       }
 
+      const shelf = dto.shelfId
+        ? await this.getOwnedShelf(transaction, owner, dto.shelfId)
+        : await this.getDefaultShelf(transaction, owner, 'unshelved');
       const createdItem = await transaction.libraryItem.create({
         data: {
           bookId: book.id,
@@ -119,7 +129,9 @@ export class LibraryService {
       return createdItem;
     });
 
-    return this.toLibraryItemResponse(owner, item);
+    await this.bookPersistence.syncGoogleBooksForBookId(item.bookId);
+
+    return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, item.id));
   }
   /**
    * Removes an owned library item and its dependent shelf/progress/activity records via Prisma
@@ -140,6 +152,10 @@ export class LibraryService {
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemResponseDto> {
+    const item = await this.getOwnedLibraryItem(owner, libraryItemId);
+
+    await this.bookPersistence.syncGoogleBooksForBookId(item.bookId);
+
     return this.toLibraryItemResponse(owner, await this.getOwnedLibraryItem(owner, libraryItemId));
   }
   /**
@@ -448,7 +464,7 @@ export class LibraryService {
    * Fetches an active default shelf for the owner.
    */
   private async getDefaultShelf(
-    executor: LibraryExecutor,
+    executor: BookPersistenceExecutor,
     owner: OwnerContext,
     slug: string,
   ): Promise<{ id: string; slug: string }> {
@@ -526,7 +542,7 @@ export class LibraryService {
    * Transaction-aware owned item lookup with book and shelf relations needed for response mapping.
    */
   private async getOwnedLibraryItemWithExecutor(
-    executor: LibraryExecutor,
+    executor: BookPersistenceExecutor,
     owner: OwnerContext,
     libraryItemId: string,
   ): Promise<LibraryItemWithRelations> {
@@ -548,7 +564,7 @@ export class LibraryService {
    * Fetches one active shelf inside the current owner boundary.
    */
   private async getOwnedShelf(
-    executor: LibraryExecutor,
+    executor: BookPersistenceExecutor,
     owner: OwnerContext,
     shelfId: string,
   ): Promise<{ id: string; slug: string }> {
@@ -576,6 +592,9 @@ export class LibraryService {
       coverUrl: book.coverUrl,
       description: book.description,
       genres: book.genres,
+      googleBooksSyncedAt: book.googleBooksSyncedAt?.toISOString() ?? null,
+      googleBooksSyncStatus: book.googleBooksSyncStatus,
+      googleBooksVolumeId: book.googleBooksVolumeId,
       id: book.id,
       isbn10: book.isbn10,
       isbn13: book.isbn13,
@@ -653,7 +672,7 @@ export class LibraryService {
    * Fetches the active Unshelved shelf summary required for effective fallback responses.
    */
   private async getUnshelvedShelfSummary(
-    executor: LibraryExecutor,
+    executor: BookPersistenceExecutor,
     owner: OwnerContext,
   ): Promise<ShelfSummaryResponseDto> {
     const shelf = await executor.shelf.findFirst({
@@ -707,43 +726,10 @@ export class LibraryService {
    * Upserts the shared Open Library book record that library items reference.
    */
   private async upsertBook(
-    executor: LibraryExecutor,
+    executor: BookPersistenceExecutor,
     input: BookInputDto,
   ): Promise<{ id: string }> {
-    const sourceProvider = BookProvider.OPEN_LIBRARY;
-    const data = {
-      authors: input.authors,
-      coverUrl: input.coverUrl ?? null,
-      description: input.description ?? null,
-      genres: input.genres,
-      isbn10: input.isbn10 ?? null,
-      isbn13: input.isbn13 ?? null,
-      normalizedPrimaryAuthor: input.primaryAuthor ? normalizeText(input.primaryAuthor) : null,
-      normalizedTitle: normalizeText(input.title),
-      openLibraryEditionKey: input.openLibraryEditionKey ?? null,
-      openLibraryWorkKey: input.openLibraryWorkKey ?? null,
-      pageCount: input.pageCount ?? null,
-      primaryAuthor: input.primaryAuthor ?? null,
-      publishedDate: input.publishedDate ?? null,
-      publisher: input.publisher ?? null,
-      sourceId: input.sourceId,
-      sourceProvider,
-      sourceUrl: input.sourceUrl ?? null,
-      subtitle: input.subtitle ?? null,
-      title: input.title,
-    } satisfies Prisma.BookUncheckedCreateInput;
-
-    return executor.book.upsert({
-      create: data,
-      select: { id: true },
-      update: data,
-      where: {
-        sourceProvider_sourceId: {
-          sourceId: input.sourceId,
-          sourceProvider,
-        },
-      },
-    });
+    return this.bookPersistence.upsertOpenLibraryBook(executor, input);
   }
   /**
    * Converts the current owner context into a Prisma ownership predicate.

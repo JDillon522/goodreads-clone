@@ -18,6 +18,9 @@ services:
       JWT_ACCESS_SECRET: dev-only-access-secret-replace-before-deploy
       JWT_REFRESH_SECRET: dev-only-refresh-secret-replace-before-deploy
       GUEST_SESSION_TTL_DAYS: 7
+      GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
+      GOOGLE_BOOKS_BASE_URL: https://www.googleapis.com/books/v1
+      GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: 8000
       PASSWORD_RESET_TOKEN_TTL_MINUTES: 30
       OPEN_LIBRARY_BASE_URL: https://openlibrary.org
       OPEN_LIBRARY_USER_AGENT: "Bookshelf/0.1.0 (local development; contact: local@example.com)"

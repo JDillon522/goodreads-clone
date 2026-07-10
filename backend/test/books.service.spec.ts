@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { BookPersistenceService } from '../src/books/book-persistence.service';
 import { BooksService } from '../src/books/books.service';
 import { BookSearchResponseDto } from '../src/books/dto/book-search-response.dto';
 import { NormalizedBookDto } from '../src/books/dto/normalized-book.dto';
@@ -58,6 +59,7 @@ describe('BooksService', () => {
   const cacheSet = jest.fn().mockResolvedValue(undefined);
   const clientGetDetail = jest.fn();
   const clientSearchBooks = jest.fn();
+  const persistOpenLibraryBooks = jest.fn().mockResolvedValue(undefined);
   const normalizeDetail = jest.fn();
   const normalizeSearch = jest.fn();
   const configGet = jest.fn((key: string) => {
@@ -79,6 +81,9 @@ describe('BooksService', () => {
     getSearch: cacheGetSearch,
     set: cacheSet,
   } as unknown as OpenLibraryCacheService;
+  const bookPersistenceService = {
+    persistOpenLibraryBooks,
+  } as unknown as BookPersistenceService;
   const clientService = {
     getDetail: clientGetDetail,
     searchBooks: clientSearchBooks,
@@ -92,7 +97,13 @@ describe('BooksService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new BooksService(configService, cacheService, clientService, normalizerService);
+    service = new BooksService(
+      configService,
+      bookPersistenceService,
+      cacheService,
+      clientService,
+      normalizerService,
+    );
   });
 
   it('returns cached search results without calling Open Library', async () => {
@@ -103,6 +114,7 @@ describe('BooksService', () => {
     );
     expect(clientSearchBooks).not.toHaveBeenCalled();
     expect(cacheSet).not.toHaveBeenCalled();
+    expect(persistOpenLibraryBooks).toHaveBeenCalledWith(normalizedSearch.items);
   });
 
   it('fetches, normalizes, and caches search results on cache miss', async () => {
@@ -133,6 +145,7 @@ describe('BooksService', () => {
       expect.any(Date),
       'KINDRED',
     );
+    expect(persistOpenLibraryBooks).toHaveBeenCalledWith(normalizedSearch.items);
   });
 
   it('composes supported filters into the provider query and keeps filters out of the display query', async () => {
@@ -210,6 +223,7 @@ describe('BooksService', () => {
 
     await expect(service.getOpenLibraryDetail('works', 'OL123W')).resolves.toEqual(normalizedBook);
     expect(clientGetDetail).not.toHaveBeenCalled();
+    expect(persistOpenLibraryBooks).toHaveBeenCalledWith([normalizedBook]);
   });
 
   it('rejects mismatched Open Library detail type and id pairs', async () => {

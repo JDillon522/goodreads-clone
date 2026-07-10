@@ -8,6 +8,9 @@ type Environment = {
   CORS_ORIGIN: string;
   DATABASE_URL: string;
   GUEST_SESSION_TTL_DAYS: number;
+  GOOGLE_BOOKS_API_KEY?: string;
+  GOOGLE_BOOKS_BASE_URL: string;
+  GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: number;
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
   NODE_ENV: 'development' | 'test' | 'production';
@@ -32,6 +35,9 @@ const environmentSchema = Joi.object<Environment>({
     .uri({ scheme: ['postgresql', 'postgres'] })
     .default(defaultDatabaseUrl),
   GUEST_SESSION_TTL_DAYS: Joi.number().integer().positive().default(7),
+  GOOGLE_BOOKS_API_KEY: Joi.string().trim().allow('').optional(),
+  GOOGLE_BOOKS_BASE_URL: Joi.string().uri().default('https://www.googleapis.com/books/v1'),
+  GOOGLE_BOOKS_REQUEST_TIMEOUT_MS: Joi.number().integer().positive().default(8000),
   JWT_ACCESS_SECRET: Joi.string().min(32).default(devAccessSecret),
   JWT_REFRESH_SECRET: Joi.string().min(32).default(devRefreshSecret),
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),

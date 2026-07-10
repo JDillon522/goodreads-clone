@@ -43,6 +43,74 @@
         }
         <p class="description">{{ description() }}</p>
 
+        @if (isLoadingRelations()) {
+          <p class="muted">Loading related books...</p>
+        }
+
+        @if (series(); as bookSeries) {
+          @if (bookSeries.entries.length > 0) {
+            <section class="detail-panel detail-panel--wide discovery-panel" aria-labelledby="series-heading">
+              <div class="panel-heading-row">
+                <h2 id="series-heading">{{ bookSeries.seriesName }}</h2>
+                <span class="panel-count">{{ bookSeries.entries.length }}</span>
+              </div>
+              <ul class="series-list">
+                @for (entry of bookSeries.entries; track entry.book.id) {
+                  <li [class.is-current]="entry.book.id === item()!.book.id">
+                    <span class="series-position">
+                      {{ entry.positionLabel || (entry.position ? 'Book ' + entry.position : '--') }}
+                    </span>
+                    <a
+                      routerLink="/app/search"
+                      [queryParams]="{ query: searchQueryForBook(entry.book) }"
+                    >
+                      <span>{{ entry.book.title }}</span>
+                      <small>{{ cardAuthor(entry.book) }}</small>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        }
+
+        @if (relatedBooks().length > 0) {
+          <section class="detail-panel detail-panel--wide discovery-panel" aria-labelledby="related-heading">
+            <div class="panel-heading-row">
+              <h2 id="related-heading">Related books</h2>
+              <span class="panel-count">{{ relatedBooks().length }}</span>
+            </div>
+            <ul class="related-list">
+              @for (related of relatedBooks(); track related.book.id) {
+                <li>
+                  <a
+                    class="related-card"
+                    routerLink="/app/search"
+                    [queryParams]="{ query: searchQueryForBook(related.book) }"
+                  >
+                    <span class="related-cover" aria-hidden="true">
+                      @if (related.book.coverUrl) {
+                        <img [src]="related.book.coverUrl" [alt]="" />
+                      } @else {
+                        <i class="ph ph-book-open-text"></i>
+                      }
+                    </span>
+                    <span class="related-copy">
+                      <strong>{{ related.book.title }}</strong>
+                      <small>{{ cardAuthor(related.book) }}</small>
+                      <span class="related-reasons">{{ related.reasons.join(' | ') }}</span>
+                    </span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (relationsError()) {
+          <p class="muted">{{ relationsError() }}</p>
+        }
+
         <form class="detail-panel" (submit)="submitStatus($event)">
           <h2>Status</h2>
           <app-form-control label="Reading status" kind="select" [control]="statusForm.status">

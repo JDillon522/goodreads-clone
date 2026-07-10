@@ -106,7 +106,7 @@ describe('Bookshelf API workflows', () => {
     await requestExpect('/session/status', 401);
   });
 
-  it('supports signup, shelf listing, add book, duplicate rejection, progress, and goals', async () => {
+  it('supports signup, shelf listing, idempotent add book, progress, and goals', async () => {
     const runId = Date.now();
     const email = `e2e-stage8-${runId}@example.com`;
     const sourceId = `e2e:${runId}`;
@@ -188,11 +188,14 @@ describe('Bookshelf API workflows', () => {
     expect(added.status).toBe('WANT_TO_READ');
     expect(added.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
 
-    await requestExpect('/library', 409, {
+    const duplicateAdd = await request<LibraryItemResponse>('/library', {
       body: { book },
       method: 'POST',
       token: accessToken,
     });
+
+    expect(duplicateAdd.id).toBe(added.id);
+    expect(duplicateAdd.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
 
     const manuallyRead = await request<LibraryItemResponse>(`/library/${added.id}`, {
       body: { status: 'READ' },

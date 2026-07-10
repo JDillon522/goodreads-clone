@@ -28,6 +28,20 @@ enum BookProvider {
   SAMPLE
 }
 
+enum GoogleBooksSyncStatus {
+  FAILED
+  NOT_FOUND
+  PENDING
+  SYNCED
+}
+
+enum BookRelationType {
+  RELATED
+  SAME_AUTHOR
+  SAME_SERIES
+  SAME_SUBJECT
+}
+
 enum ProgressTrackingMode {
   PAGE
   PERCENT
@@ -139,12 +153,20 @@ model Book {
   isbn10                  String?
   isbn13                  String?
   genres                  String[]      @default([])
+  googleBooksVolumeId     String?
+  googleBooksSyncedAt     DateTime?
+  googleBooksSyncStatus   GoogleBooksSyncStatus @default(PENDING)
+  googleBooksRawPayload   Json?
+  googleBooksError        String?
   normalizedTitle         String
   normalizedPrimaryAuthor String?
   rawProviderPayload      Json?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   libraryItems            LibraryItem[]
+  relatedFrom             BookRelation[] @relation("BookRelationSource")
+  relatedTo               BookRelation[] @relation("BookRelationTarget")
+  seriesEntries           BookSeriesEntry[]
 
   @@unique([sourceProvider, sourceId])
   @@index([isbn10])
@@ -297,4 +319,52 @@ model ExternalBookCache {
   @@unique([provider, providerKey])
   @@index([query])
   @@index([expiresAt])
+}
+
+model BookSeries {
+  id             String            @id @default(uuid()) @db.Uuid
+  name           String
+  normalizedName String            @unique
+  sourceProvider BookProvider?
+  sourceId       String?
+  confidence     Int               @default(50)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  entries        BookSeriesEntry[]
+}
+
+model BookSeriesEntry {
+  id             String        @id @default(uuid()) @db.Uuid
+  seriesId       String        @db.Uuid
+  bookId         String        @db.Uuid
+  position       Float?
+  positionLabel  String?
+  sourceProvider BookProvider?
+  confidence     Int           @default(50)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  book           Book          @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  series         BookSeries    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  @@unique([seriesId, bookId])
+  @@index([bookId])
+  @@index([seriesId, position])
+}
+
+model BookRelation {
+  id             String           @id @default(uuid()) @db.Uuid
+  sourceBookId   String           @db.Uuid
+  targetBookId   String           @db.Uuid
+  type           BookRelationType
+  score          Int
+  reasons        Json
+  sourceProvider BookProvider?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  sourceBook     Book             @relation("BookRelationSource", fields: [sourceBookId], references: [id], onDelete: Cascade)
+  targetBook     Book             @relation("BookRelationTarget", fields: [targetBookId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceBookId, targetBookId, type])
+  @@index([sourceBookId, score])
+  @@index([targetBookId])
 }

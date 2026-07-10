@@ -28,6 +28,9 @@ function item(id: string, title: string, shelves: LibraryItemResponse['shelves']
     book: {
       authors: ['Author'],
       genres: [],
+      googleBooksSyncedAt: null,
+      googleBooksSyncStatus: 'PENDING',
+      googleBooksVolumeId: null,
       id: `${id}-book`,
       sourceId: `${id}-source`,
       sourceProvider: 'SAMPLE',

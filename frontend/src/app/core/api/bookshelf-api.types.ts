@@ -370,6 +370,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/books/{id}/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return detected series metadata for a persisted book. */
+        get: operations["getBookSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/books/{id}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return related persisted books for a persisted book. */
+        get: operations["getRelatedBooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/goals/current": {
         parameters: {
             query?: never;
@@ -993,6 +1027,81 @@ export interface components {
             facets: components["schemas"]["BookSearchFacetsDto"];
             items: components["schemas"]["NormalizedBookDto"][];
         };
+        BookCardResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example The Left Hand of Darkness */
+            title: string;
+            /** @example A Novel */
+            subtitle?: string | null;
+            /**
+             * @example [
+             *       "Ursula K. Le Guin"
+             *     ]
+             */
+            authors: string[];
+            /** @example Ursula K. Le Guin */
+            primaryAuthor?: string | null;
+            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            coverUrl?: string | null;
+            /** @example 1969 */
+            publishedDate?: string | null;
+            /**
+             * @example [
+             *       "Science fiction",
+             *       "Fiction"
+             *     ]
+             */
+            genres: string[];
+            /** @example OPEN_LIBRARY */
+            sourceProvider: string;
+            /** @example works:OL262758W */
+            sourceId: string;
+            /** @example https://openlibrary.org/works/OL262758W */
+            sourceUrl?: string | null;
+        };
+        BookSeriesEntryResponseDto: {
+            book: components["schemas"]["BookCardResponseDto"];
+            /** @example 2 */
+            position?: number | null;
+            /** @example Book 2 */
+            positionLabel?: string | null;
+            /** @example 85 */
+            confidence: number;
+        };
+        BookSeriesResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            bookId: string;
+            /** @example The Expanse */
+            seriesName?: string | null;
+            entries: components["schemas"]["BookSeriesEntryResponseDto"][];
+        };
+        RelatedBookResponseDto: {
+            book: components["schemas"]["BookCardResponseDto"];
+            /** @example 72 */
+            score: number;
+            /**
+             * @example [
+             *       "Same author",
+             *       "Shared genre: Science fiction"
+             *     ]
+             */
+            reasons: string[];
+        };
+        RelatedBooksResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            bookId: string;
+            items: components["schemas"]["RelatedBookResponseDto"][];
+        };
         GoalStatsResponseDto: {
             /** @example 6 */
             completedBooks: number;
@@ -1236,6 +1345,15 @@ export interface components {
              *     ]
              */
             genres: string[];
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId?: string | null;
+            /** @example SYNCED */
+            googleBooksSyncStatus: string;
+            /**
+             * Format: date-time
+             * @example 2026-07-09T12:00:00.000Z
+             */
+            googleBooksSyncedAt?: string | null;
         };
         LibraryItemResponseDto: {
             /**
@@ -2267,6 +2385,78 @@ export interface operations {
             };
             /** @description Open Library is unavailable or returned invalid data. */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getBookSeries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookSeriesResponseDto"];
+                };
+            };
+            /** @description Book id is not a valid UUID. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Book was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getRelatedBooks: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelatedBooksResponseDto"];
+                };
+            };
+            /** @description Book id or limit is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Book was not found. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

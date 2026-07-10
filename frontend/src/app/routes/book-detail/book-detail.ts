@@ -12,13 +12,17 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { form, max, maxLength, min, required, submit } from '@angular/forms/signals';
 
 import type {
+  BookCardResponse,
+  BookSeriesResponse,
   LibraryItemResponse,
   LibraryItemStatus,
+  RelatedBookResponse,
   ShelfResponse,
   ShelfSummaryResponse,
   UpdateLibraryItemRequest,
   UpdateProgressRequest,
 } from '../../core/api/api.types';
+import { Books as BooksService } from '../../core/books/books';
 import { Library as LibraryService } from '../../core/library/library';
 import { Shelves } from '../../core/shelves/shelves';
 import { Theme } from '../../core/theme/theme';
@@ -41,6 +45,7 @@ type RatingFormValue = 'none' | '1' | '2' | '3' | '4' | '5';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookDetail {
+  private readonly books = inject(BooksService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly library = inject(LibraryService);
   private readonly route = inject(ActivatedRoute);
@@ -63,6 +68,10 @@ export class BookDetail {
   protected readonly addingShelf = signal(false);
   protected readonly removingShelfId = signal<string | null>(null);
   protected readonly applyingTheme = signal(false);
+  protected readonly series = signal<BookSeriesResponse | null>(null);
+  protected readonly relatedBooks = signal<RelatedBookResponse[]>([]);
+  protected readonly isLoadingRelations = signal(false);
+  protected readonly relationsError = signal<string | null>(null);
   protected readonly ratingOptions: readonly RatingFormValue[] = ['none', '1', '2', '3', '4', '5'];
   protected readonly itemShelves = computed<ShelfSummaryResponse[]>(() => {
     const item = this.item();
@@ -132,6 +141,19 @@ export class BookDetail {
     const author = this.primaryAuthor();
 
     return author === 'Unknown author' ? null : author;
+  }
+  /**
+   * Builds a search query for related/series books because those shared Book rows may not be in the
+   * current user's library yet.
+   */
+  protected searchQueryForBook(book: BookCardResponse): string {
+    return [book.title, book.primaryAuthor].filter(Boolean).join(' ');
+  }
+  /**
+   * Returns a compact author label for book cards.
+   */
+  protected cardAuthor(book: BookCardResponse): string {
+    return book.primaryAuthor ?? book.authors[0] ?? 'Unknown author';
   }
   /**
    * Shows the stored description or the no-description fallback for sparse Open Library records.
@@ -367,6 +389,7 @@ export class BookDetail {
         rating: typeof item.rating === 'number' ? (`${item.rating}` as RatingFormValue) : 'none',
       });
       this.ensureSelectedMembershipShelf();
+      void this.loadBookRelations(item.book.id);
     } catch {
       this.error.set('Book could not be loaded.');
     } finally {
@@ -383,6 +406,39 @@ export class BookDetail {
     } catch {
       this.error.set('Shelves could not be loaded.');
     }
+  }
+  /**
+   * Loads series and related-book enrichment without blocking the editable library item form.
+   */
+  private async loadBookRelations(bookId: string): Promise<void> {
+    this.isLoadingRelations.set(true);
+    this.relationsError.set(null);
+    this.series.set(null);
+    this.relatedBooks.set([]);
+
+    const [seriesResult, relatedResult] = await Promise.allSettled([
+      this.books.series(bookId),
+      this.books.related(bookId, 12),
+    ]);
+    const currentBookId = this.item()?.book.id;
+
+    if (currentBookId !== bookId) {
+      return;
+    }
+
+    if (seriesResult.status === 'fulfilled') {
+      this.series.set(seriesResult.value);
+    } else {
+      this.relationsError.set('Series could not be loaded.');
+    }
+
+    if (relatedResult.status === 'fulfilled') {
+      this.relatedBooks.set(relatedResult.value.items);
+    } else {
+      this.relationsError.set('Related books could not be loaded.');
+    }
+
+    this.isLoadingRelations.set(false);
   }
   /**
    * Keeps the add-shelf picker pointed at an available shelf after item or shelf updates.

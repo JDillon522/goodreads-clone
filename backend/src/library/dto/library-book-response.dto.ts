@@ -65,4 +65,18 @@ export class LibraryBookResponseDto {
 
   @ApiProperty({ example: ['Science fiction', 'Fiction'], isArray: true, type: String })
   genres!: string[];
+
+  @ApiPropertyOptional({ example: 'zyTCAlFPjgYC', nullable: true, type: String })
+  googleBooksVolumeId!: null | string;
+
+  @ApiProperty({ example: 'SYNCED' })
+  googleBooksSyncStatus!: string;
+
+  @ApiPropertyOptional({
+    example: '2026-07-09T12:00:00.000Z',
+    format: 'date-time',
+    nullable: true,
+    type: String,
+  })
+  googleBooksSyncedAt!: null | string;
 }

@@ -36,7 +36,7 @@ Swagger is the backend contract testing surface before frontend work. It uses st
 
 Auth uses short-lived JWT access tokens and opaque refresh tokens stored as hashes in Postgres. In development and test, password reset requests return the reset token in the JSON response so the flow can be tested directly from Swagger. Production hides that token; real email delivery can be added later.
 
-Book search is public. Open Library calls are normalized into app-owned DTOs and cached in `ExternalBookCache`. Missing provider data stays nullable; the frontend owns visual fallbacks like placeholder covers.
+Book search is public. Open Library calls are normalized into app-owned DTOs, cached in `ExternalBookCache`, and persisted into shared `Book` rows for long-term use. Persisted books are enriched from Google Books when possible; Google sync runs for pending or failed rows on backend startup, when a user opens a saved book detail page, and when a user adds a book to a shelf. Google sync status, volume id, raw payload, and errors stay on the `Book` row so provider failures can be inspected later. Missing provider data stays nullable; the frontend owns visual fallbacks like placeholder covers.
 
 Shelves, library items, progress, ratings, notes, and goals require bearer auth. These routes accept either a signed-in user access token or a guest token from `POST /api/guest/session`. Library add uses a normalized book DTO from search/detail, upserts the app-owned book record, rejects owner-scoped duplicates, creates a single shelf assignment, and emits activity events for meaningful actions.
 
@@ -46,6 +46,9 @@ Runtime settings:
 
 ```bash
 GUEST_SESSION_TTL_DAYS=7
+GOOGLE_BOOKS_API_KEY=
+GOOGLE_BOOKS_BASE_URL=https://www.googleapis.com/books/v1
+GOOGLE_BOOKS_REQUEST_TIMEOUT_MS=8000
 OPEN_LIBRARY_BASE_URL=https://openlibrary.org
 OPEN_LIBRARY_USER_AGENT="Bookshelf/0.1.0 (local development; contact: local@example.com)"
 OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS=24

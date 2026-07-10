@@ -43,7 +43,12 @@ export type BookSearchFilters = Schema<'BookSearchFiltersDto'>;
 export type BookSearchResponse = Schema<'BookSearchResponseDto'>;
 export type BookSearchValueFacet = Schema<'BookSearchValueFacetDto'>;
 export type BookSearchDecadeFacet = Schema<'BookSearchDecadeFacetDto'>;
+export type BookCardResponse = Schema<'BookCardResponseDto'>;
+export type BookSeriesEntryResponse = Schema<'BookSeriesEntryResponseDto'>;
+export type BookSeriesResponse = Schema<'BookSeriesResponseDto'>;
 export type NormalizedBook = Schema<'NormalizedBookDto'>;
+export type RelatedBookResponse = Schema<'RelatedBookResponseDto'>;
+export type RelatedBooksResponse = Schema<'RelatedBooksResponseDto'>;
 
 export type AddLibraryItemRequest = Schema<'AddLibraryItemRequestDto'>;
 export type AddLibraryItemShelfRequest = Schema<'AddLibraryItemShelfRequestDto'>;

@@ -48,7 +48,9 @@ function searchResponse(
     count: 1,
     facets: {
       formats: [{ count: 1, label: 'Readable online / eBook', value: 'ebook' }],
-      publishedDecades: [{ count: 1, label: '2020s', value: '2020s', yearFrom: 2020, yearTo: 2029 }],
+      publishedDecades: [
+        { count: 1, label: '2020s', value: '2020s', yearFrom: 2020, yearTo: 2029 },
+      ],
       subjects: [{ count: 1, label: 'Fantasy', value: 'Fantasy' }],
     },
     filters: {
@@ -79,7 +81,7 @@ class MockBooks {
 }
 
 class MockLibrary {
-  public readonly add = vi.fn();
+  public readonly add = vi.fn(async () => ({ id: 'library-item-1' }));
 }
 
 class MockRouter {
@@ -94,11 +96,13 @@ class MockShelves {
 
 describe('Search', () => {
   let books: MockBooks;
+  let library: MockLibrary;
   let queryParamMap: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let router: MockRouter;
 
   beforeEach(async () => {
     books = new MockBooks();
+    library = new MockLibrary();
     router = new MockRouter();
     queryParamMap = new BehaviorSubject(convertToParamMap({ query: 'Ada Author' }));
 
@@ -113,7 +117,7 @@ describe('Search', () => {
           },
         },
         { provide: Books, useValue: books },
-        { provide: LibraryService, useClass: MockLibrary },
+        { provide: LibraryService, useValue: library },
         { provide: Router, useValue: router },
         { provide: Shelves, useClass: MockShelves },
       ],
@@ -142,6 +146,23 @@ describe('Search', () => {
     expect(element.textContent).toContain('Fantasy');
     expect(element.textContent).toContain('Readable online / eBook');
     expect(element.textContent).toContain('Page 1 of 3');
+  });
+
+  it('saves a clicked search result and navigates to its detail page', async () => {
+    const fixture = TestBed.createComponent(Search);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('.result-card__detail')!
+      .click();
+    await fixture.whenStable();
+
+    expect(library.add).toHaveBeenCalledWith({
+      book: normalizedBook('Ada Author', 1),
+    });
+    expect(router.navigate).toHaveBeenLastCalledWith(['/app/book', 'library-item-1']);
   });
 
   it('runs a new search when the query string changes', async () => {
@@ -206,9 +227,9 @@ describe('Search', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    const subjectButton = Array.from(element.querySelectorAll<HTMLButtonElement>('.facet-chip')).find(
-      (button) => button.textContent?.includes('Fantasy'),
-    )!;
+    const subjectButton = Array.from(
+      element.querySelectorAll<HTMLButtonElement>('.facet-chip'),
+    ).find((button) => button.textContent?.includes('Fantasy'))!;
 
     subjectButton.click();
     await fixture.whenStable();

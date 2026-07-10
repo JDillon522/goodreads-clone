@@ -8,7 +8,8 @@ This is no longer the stock challenge starter. The repo is now a working Nest + 
 
 - Account signup, sign-in, refresh, sign-out, password reset token flow, and username-or-email admin login.
 - Guest sessions with seeded demo data from `data/sample-books.json`.
-- Open Library search, provider normalization, response caching, pagination, and filters for year, subject, and readable/eBook availability.
+- Open Library search, provider normalization, permanent book persistence, response caching, pagination, and filters for year, subject, and readable/eBook availability.
+- Google Books enrichment for persisted book metadata, with sync status and raw payload tracking.
 - User library management with duplicate detection, progress tracking, ratings, notes, and explicit reading status.
 - Multi-shelf membership: a book can be on more than one shelf, and every owner has a protected `Unshelved` shelf.
 - User shelf management through the app, including create, rename, delete, reorder, and `Unshelved` fallback behavior.
@@ -39,7 +40,7 @@ Backend ownership flows use a shared owner context so authenticated users and gu
 
 - Backend: Nest 11, Prisma 7, Postgres 16
 - Frontend: Angular 22 standalone routes, signals, signal forms
-- External data: Open Library
+- External data: Open Library, Google Books
 - Local runtime: Docker Compose, nginx proxy
 - API contracts: Swagger/OpenAPI at `/docs` and `/docs-json`, with generated frontend types
 - Tooling: npm workspaces plus `bin/run`

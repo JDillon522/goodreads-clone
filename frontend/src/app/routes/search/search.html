@@ -131,25 +131,39 @@
     <div class="results-list">
       @for (book of results(); track book.providerKey) {
         <article class="result-card">
-          <div class="result-card__cover">
-            @if (coverUrl(book)) {
-              <img [src]="coverUrl(book)" [alt]="book.title + ' cover'" loading="lazy" />
-            } @else {
-              <i class="ph ph-book-open-text" aria-hidden="true"></i>
-            }
-          </div>
-          <div class="result-card__body">
-            <h2>{{ book.title }}</h2>
-            <p>{{ primaryAuthor(book) }}</p>
-            <p class="muted">{{ publishedDate(book) }}</p>
-          </div>
+          <button
+            class="result-card__detail"
+            type="button"
+            (click)="openBookDetail(book)"
+            [disabled]="openingKey() === book.providerKey"
+            [attr.aria-label]="'Open details for ' + book.title"
+          >
+            <span class="result-card__cover">
+              @if (coverUrl(book)) {
+                <img [src]="coverUrl(book)" [alt]="book.title + ' cover'" loading="lazy" />
+              } @else {
+                <i class="ph ph-book-open-text" aria-hidden="true"></i>
+              }
+            </span>
+            <span class="result-card__body">
+              <span class="result-card__title">{{ book.title }}</span>
+              <span>{{ primaryAuthor(book) }}</span>
+              <span class="muted">{{ publishedDate(book) }}</span>
+            </span>
+          </button>
           <button
             class="secondary-button"
             type="button"
             (click)="openAddBookDialog(book)"
-            [disabled]="addingKey() === book.providerKey"
+            [disabled]="addingKey() === book.providerKey || openingKey() === book.providerKey"
           >
-            {{ addingKey() === book.providerKey ? 'Adding...' : 'Add' }}
+            {{
+              addingKey() === book.providerKey
+                ? 'Adding...'
+                : openingKey() === book.providerKey
+                  ? 'Opening...'
+                  : 'Add'
+            }}
           </button>
         </article>
       }
