@@ -6,6 +6,8 @@ Put a trusted local development CA at `certs/local-ca.pem` when Node reports
 The file is ignored by Git. Development startup paths use it automatically:
 
 - `npm run dev:backend` sets `NODE_EXTRA_CA_CERTS` for host backend startup.
+- Docker builds admit only `certs/local-ca.pem` into the build context and use it when Prisma
+  downloads its Linux engine.
 - `npm run docker:up` sets `NODE_EXTRA_CA_CERTS` for Docker backend startup.
 - Direct `docker compose up` also points the backend at `/app/certs/local-ca.pem`.
 
@@ -16,12 +18,12 @@ Do not use `NODE_TLS_REJECT_UNAUTHORIZED=0` as a runtime default.
 `mkcert` is useful when you are creating certificates for local domains like
 `localhost` or `bookshelf.local`. It does not fix external requests when a
 network security product is intercepting HTTPS and re-signing real sites such as
-`openlibrary.org`.
+`www.googleapis.com`.
 
 To identify the CA that Node needs, inspect the actual server chain:
 
 ```bash
-openssl s_client -connect openlibrary.org:443 -servername openlibrary.org -showcerts </dev/null
+openssl s_client -connect www.googleapis.com:443 -servername www.googleapis.com -showcerts </dev/null
 ```
 
 Look at the `issuer` values in the certificate chain. Export the matching

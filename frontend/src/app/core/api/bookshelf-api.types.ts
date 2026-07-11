@@ -996,28 +996,6 @@ export interface components {
             coverImages: components["schemas"]["BookCoverImagesDto"];
             externalLinks: components["schemas"]["BookExternalLinksDto"];
         };
-        BookOpenLibraryMetadataDto: {
-            /** @example /works/OL262758W */
-            workKey?: string | null;
-            /** @example /books/OL24631830M */
-            editionKey?: string | null;
-            /** @example https://openlibrary.org/works/OL262758W */
-            sourceUrl?: string | null;
-            /**
-             * @example [
-             *       "Science fiction",
-             *       "Fiction"
-             *     ]
-             */
-            subjects: string[];
-            /** @example 1969 */
-            firstPublishDate?: string | null;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
-            coverUrl?: string | null;
-            raw?: {
-                [key: string]: unknown;
-            } | null;
-        };
         BookSyncDto: {
             /**
              * @example SYNCED
@@ -1041,7 +1019,6 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             summary: components["schemas"]["BookSummaryDto"];
-            openLibrary: components["schemas"]["BookOpenLibraryMetadataDto"];
             sync: components["schemas"]["BookSyncDto"];
         };
         BookSearchFiltersDto: {
@@ -1107,7 +1084,7 @@ export interface components {
             authors: string[];
             /** @example Ursula K. Le Guin */
             primaryAuthor?: string | null;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            /** @example https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1 */
             coverUrl?: string | null;
             /** @example 1969 */
             publishedDate?: string | null;
@@ -1118,11 +1095,11 @@ export interface components {
              *     ]
              */
             genres: string[];
-            /** @example OPEN_LIBRARY */
+            /** @example GOOGLE_BOOKS */
             sourceProvider: string;
-            /** @example works:OL262758W */
+            /** @example isbn13:9780441478125 */
             sourceId: string;
-            /** @example https://openlibrary.org/works/OL262758W */
+            /** @example https://books.google.com/books?id=zyTCAlFPjgYC */
             sourceUrl?: string | null;
         };
         BookSeriesEntryResponseDto: {
@@ -1323,7 +1300,6 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             summary: components["schemas"]["BookSummaryDto"];
-            openLibrary: components["schemas"]["BookOpenLibraryMetadataDto"];
             sync: components["schemas"]["BookSyncDto"];
         };
         LibraryItemResponseDto: {
@@ -1468,7 +1444,7 @@ export interface components {
             libraryItemId?: string | null;
             /** @example The Left Hand of Darkness */
             title: string;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            /** @example https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1 */
             coverUrl: string | null;
             /**
              * Format: date-time
@@ -1613,7 +1589,7 @@ export interface components {
             pageCount: number | null;
             /** @example 304 */
             estimatedPages: number;
-            /** @example https://covers.openlibrary.org/b/id/9255566-L.jpg */
+            /** @example https://books.google.com/books/content?id=zyTCAlFPjgYC&img=1&zoom=1 */
             coverUrl: string | null;
             /**
              * Format: date-time

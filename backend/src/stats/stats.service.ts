@@ -117,7 +117,7 @@ export class StatsService {
     );
     const generatedAt = new Date();
     const completed = resolvedItems.filter((item) => this.isFinishedInYear(item, start, end));
-    // Some Open Library records do not have page counts. The estimate keeps totals useful by using
+    // Some Google Books records do not have page counts. The estimate keeps totals useful by using
     // known completed books to fill in unknown completed-book page totals.
     const completedPageEstimate = calculateCompletedPageEstimate(
       completed.map((item) => ({

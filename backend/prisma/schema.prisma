@@ -24,7 +24,6 @@ enum ActivityEventType {
 enum BookProvider {
   GOOGLE_BOOKS
   MANUAL
-  OPEN_LIBRARY
   SAMPLE
 }
 
@@ -139,8 +138,6 @@ model Book {
   sourceProvider          BookProvider
   sourceId                String
   sourceUrl               String?
-  openLibraryWorkKey      String?
-  openLibraryEditionKey   String?
   isbn10                  String?
   isbn13                  String?
   googleBooksVolumeId     String?
@@ -292,22 +289,6 @@ model ActivityEvent {
   @@index([guestSessionId, occurredAt])
   @@index([libraryItemId])
   @@index([type])
-}
-
-model ExternalBookCache {
-  id               String       @id @default(uuid()) @db.Uuid
-  provider         BookProvider
-  providerKey      String
-  query            String?
-  rawPayload       Json
-  normalizedResult Json?
-  expiresAt        DateTime?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-
-  @@unique([provider, providerKey])
-  @@index([query])
-  @@index([expiresAt])
 }
 
 model BookSeries {

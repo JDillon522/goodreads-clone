@@ -10,14 +10,6 @@ type ShelfCreateArgs = {
   };
 };
 
-type BookUpsertArgs = {
-  where: {
-    sourceProvider_sourceId: {
-      sourceId: string;
-    };
-  };
-};
-
 describe('GuestService', () => {
   const configService = {
     get: jest.fn().mockReturnValue(7),
@@ -41,15 +33,9 @@ describe('GuestService', () => {
   );
   const userPreferenceCreate = jest.fn().mockResolvedValue({ id: 'preference-id' });
   const readingGoalCreate = jest.fn().mockResolvedValue({ id: 'goal-id' });
-  const bookUpsert = jest.fn((args: BookUpsertArgs) =>
-    Promise.resolve({ id: `book-${args.where.sourceProvider_sourceId.sourceId}` }),
-  );
   const libraryItemCreate = jest.fn().mockResolvedValue({ id: 'library-item-id' });
   const readingProgressEntryCreate = jest.fn().mockResolvedValue({ id: 'progress-id' });
   const transaction = {
-    book: {
-      upsert: bookUpsert,
-    },
     guestSession: {
       create: guestSessionCreate,
     },
@@ -118,6 +104,7 @@ describe('GuestService', () => {
       },
     });
     expect(libraryItemCreate).toHaveBeenCalledTimes(12);
+    expect(transaction).not.toHaveProperty('book');
     expect(readingProgressEntryCreate).toHaveBeenCalled();
     expect(emitWithExecutor).toHaveBeenCalledWith(transaction, {
       metadata: {

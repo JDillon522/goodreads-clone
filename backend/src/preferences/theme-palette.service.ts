@@ -4,12 +4,12 @@ import { decode } from 'jpeg-js';
 
 import {
   createThemePaletteFromRgbaImage,
-  isAllowedOpenLibraryCoverUrl,
+  isAllowedGoogleBooksCoverUrl,
   type ThemePalette,
 } from './theme-palette-rules';
 
 /**
- * Fetches allowed Open Library cover images and extracts constrained app theme palettes from them.
+ * Fetches allowed Google Books cover images and extracts constrained app theme palettes from them.
  */
 const maxCoverBytes = 1_500_000;
 
@@ -19,21 +19,19 @@ export class ThemePaletteService {
   private readonly requestTimeoutMs: number;
   private readonly userAgent: string;
   /**
-   * Reads the existing provider timeout/user-agent settings so cover fetches behave like book API
+   * Reads the Google provider timeout so cover fetches behave like book API
    * calls.
    */
   public constructor(configService: ConfigService) {
-    this.requestTimeoutMs = configService.get<number>('OPEN_LIBRARY_REQUEST_TIMEOUT_MS') ?? 8000;
-    this.userAgent =
-      configService.get<string>('OPEN_LIBRARY_USER_AGENT') ??
-      'Bookshelf/0.1.0 (local development; contact: local@example.com)';
+    this.requestTimeoutMs = configService.get<number>('GOOGLE_BOOKS_REQUEST_TIMEOUT_MS') ?? 8000;
+    this.userAgent = 'Bookshelf/0.1.0';
   }
   /**
-   * Downloads and decodes one Open Library JPEG cover, then derives the light/dark token payload.
+   * Downloads and decodes one Google Books JPEG cover, then derives the light/dark token payload.
    */
   public async createFromCoverUrl(coverUrl: string): Promise<ThemePalette> {
-    if (!isAllowedOpenLibraryCoverUrl(coverUrl)) {
-      throw new UnprocessableEntityException('Only Open Library cover images can be used.');
+    if (!isAllowedGoogleBooksCoverUrl(coverUrl)) {
+      throw new UnprocessableEntityException('Only Google Books cover images can be used.');
     }
 
     const buffer = await this.fetchCover(coverUrl);

@@ -1,0 +1,3439 @@
+{
+  "generatedAt": "2026-07-11T13:45:57.545Z",
+  "provider": "GOOGLE_BOOKS",
+  "volumes": [
+    {
+      "isbn10": "0743273567",
+      "isbn13": "9780743273565",
+      "title": "The Great Gatsby",
+      "volume": {
+        "kind": "books#volume",
+        "id": "fIlQDwAAQBAJ",
+        "etag": "TMstlRJXE5Q",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/fIlQDwAAQBAJ",
+        "volumeInfo": {
+          "title": "The Great Gatsby",
+          "authors": ["F. Scott Fitzgerald"],
+          "publisher": "Simon and Schuster",
+          "publishedDate": "2004-09-30",
+          "description": "A mysterious American millionaire tries to recapture the sweetheart of his youth, which results in tragedy.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780743273565"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0743273567"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 208,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.3.2.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=fIlQDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=fIlQDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=fIlQDwAAQBAJ&printsec=frontcover&dq=isbn:9780743273565&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=fIlQDwAAQBAJ&dq=isbn:9780743273565&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Great_Gatsby.html?hl=&id=fIlQDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=fIlQDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "A young man newly rich tries to recapture the past and win back his former love, despite the fact that she has married."
+        }
+      }
+    },
+    {
+      "isbn10": "0061120081",
+      "isbn13": "9780061120084",
+      "title": "To Kill a Mockingbird",
+      "volume": {
+        "kind": "books#volume",
+        "id": "ncuX8p2xLIUC",
+        "etag": "1hu3KtvsGfU",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/ncuX8p2xLIUC",
+        "volumeInfo": {
+          "title": "To Kill a Mockingbird",
+          "authors": ["Harper Lee"],
+          "publisher": "Harper Perennial Modern Classics",
+          "publishedDate": "2006-05-23",
+          "description": "Harper Lee's Pulitzer Prize-winning masterwork of honor and injustice in the deep South -- and the heroism of one man in the face of blind and violent hatred One of the best-loved stories of all time, To Kill a Mockingbird has been translated into more than forty languages, sold more than thirty million copies worldwide, served as the basis of an enormously popular motion picture, and was voted one of the best novels of the twentieth century by librarians across the country. A gripping, heart-wrenching, and wholly remarkable tale of coming-of-age in a South poisoned by virulent prejudice, it views a world of great beauty and savage inequities through the eyes of a young girl, as her father -- a crusading local lawyer -- risks everything to defend a black man unjustly accused of a terrible crime.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0061120081"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780061120084"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 346,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 4.5,
+          "ratingsCount": 9,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.4.4.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=ncuX8p2xLIUC&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=ncuX8p2xLIUC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=ncuX8p2xLIUC&dq=isbn:9780061120084&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=ncuX8p2xLIUC&dq=isbn:9780061120084&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/To_Kill_a_Mockingbird.html?hl=&id=ncuX8p2xLIUC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=ncuX8p2xLIUC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Harper Lee&#39;s Pulitzer Prize-winning masterwork of honor and injustice in the deep South -- and the heroism of one man in the face of blind and violent hatred One of the best-loved stories of all time, To Kill a Mockingbird has been ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0451524934",
+      "isbn13": "9780451524935",
+      "title": "1984",
+      "volume": {
+        "kind": "books#volume",
+        "id": "Dd9N0AEACAAJ",
+        "etag": "jgYi5GOQb/o",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/Dd9N0AEACAAJ",
+        "volumeInfo": {
+          "title": "1984",
+          "authors": ["George Orwell"],
+          "publisher": "Signet",
+          "publishedDate": "1950-07-01",
+          "description": "Written more than 70 years ago, 1984 was George Orwell’s chilling prophecy about the future. And while 1984 has come and gone, his dystopian vision of a government that will do anything to control the narrative is timelier than ever... • Nominated as one of America’s best-loved novels by PBS’s The Great American Read • “The Party told you to reject the evidence of your eyes and ears. It was their final, most essential command.” Winston Smith toes the Party line, rewriting history to satisfy the demands of the Ministry of Truth. With each lie he writes, Winston grows to hate the Party that seeks power for its own sake and persecutes those who dare to commit thoughtcrimes. But as he starts to think for himself, Winston can’t escape the fact that Big Brother is always watching... A startling and haunting novel, 1984 creates an imaginary world that is completely convincing from start to finish. No one can deny the novel’s hold on the imaginations of whole generations, or the power of its admonitions—a power that seems to grow, not lessen, with the passage of time.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0451524934"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780451524935"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=Dd9N0AEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=Dd9N0AEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=Dd9N0AEACAAJ&dq=isbn:9780451524935&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=Dd9N0AEACAAJ&dq=isbn:9780451524935&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/1984.html?hl=&id=Dd9N0AEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=Dd9N0AEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Written more than 70 years ago, 1984 was George Orwell’s chilling prophecy about the future."
+        }
+      }
+    },
+    {
+      "isbn10": "0141439513",
+      "isbn13": "9780141439518",
+      "title": "Pride and Prejudice",
+      "volume": {
+        "kind": "books#volume",
+        "id": "uY6MEAAAQBAJ",
+        "etag": "qnXqLVk1rcw",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/uY6MEAAAQBAJ",
+        "volumeInfo": {
+          "title": "Pride and Prejudice",
+          "authors": ["Jane Austen"],
+          "publisher": "National Geographic Books",
+          "publishedDate": "2002-12-31",
+          "description": "Austen's most popular novel, the unforgettable story of Elizabeth Bennet and Mr. Darcy Few have failed to be charmed by the witty and independent spirit of Elizabeth Bennet in Austen’s beloved classic Pride and Prejudice. When Elizabeth Bennet first meets eligible bachelor Fitzwilliam Darcy, she thinks him arrogant and conceited; he is indifferent to her good looks and lively mind. When she later discovers that Darcy has involved himself in the troubled relationship between his friend Bingley and her beloved sister Jane, she is determined to dislike him more than ever. In the sparkling comedy of manners that follows, Jane Austen shows us the folly of judging by first impressions and superbly evokes the friendships, gossip and snobberies of provincial middle-class life. This Penguin Classics edition, based on Austen's first edition, contains the original Penguin Classics introduction by Tony Tanner and an updated introduction and notes by Viven Jones. For more than seventy years, Penguin has been the leading publisher of classic literature in the English-speaking world. With more than 1,700 titles, Penguin Classics represents a global bookshelf of the best works throughout history and across genres and disciplines. Readers trust the series to provide authoritative texts enhanced by introductions and notes by distinguished scholars and contemporary authors, as well as up-to-date translations by award-winning translators.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780141439518"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0141439513"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=uY6MEAAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=uY6MEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=uY6MEAAAQBAJ&dq=isbn:9780141439518&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=uY6MEAAAQBAJ&dq=isbn:9780141439518&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Pride_and_Prejudice.html?hl=&id=uY6MEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=uY6MEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "This Penguin Classics edition, based on Austen&#39;s first edition, contains the original Penguin Classics introduction by Tony Tanner and an updated introduction and notes by Viven Jones."
+        }
+      }
+    },
+    {
+      "isbn10": "0316769487",
+      "isbn13": "9780316769488",
+      "title": "The Catcher in the Rye",
+      "volume": {
+        "kind": "books#volume",
+        "id": "ZotvleqZomIC",
+        "etag": "GajrKk1FfZs",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/ZotvleqZomIC",
+        "volumeInfo": {
+          "title": "The Catcher in the Rye",
+          "authors": ["J.D. Salinger"],
+          "publisher": "Little, Brown",
+          "publishedDate": "1991-05-01",
+          "description": "The \"brilliant, funny, meaningful novel\" (The New Yorker) that established J. D. Salinger as a leading voice in American literature--and that has instilled in millions of readers around the world a lifelong love of books. \"If you really want to hear about it, the first thing you'll probably want to know is where I was born, and what my lousy childhood was like, and how my parents were occupied and all before they had me, and all that David Copperfield kind of crap, but I don't feel like going into it, if you want to know the truth.\" The hero-narrator of The Catcher in the Rye is an ancient child of sixteen, a native New Yorker named Holden Caufield. Through circumstances that tend to preclude adult, secondhand description, he leaves his prep school in Pennsylvania and goes underground in New York City for three days.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0316769487"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780316769488"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 228,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 4.5,
+          "ratingsCount": 2,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.11.6.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=ZotvleqZomIC&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=ZotvleqZomIC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=ZotvleqZomIC&dq=isbn:9780316769488&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=ZotvleqZomIC&dq=isbn:9780316769488&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Catcher_in_the_Rye.html?hl=&id=ZotvleqZomIC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=ZotvleqZomIC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "&quot; The hero-narrator of The Catcher in the Rye is an ancient child of sixteen, a native New Yorker named Holden Caufield."
+        }
+      }
+    },
+    {
+      "isbn10": "1400033411",
+      "isbn13": "9781400033416",
+      "title": "Beloved",
+      "volume": {
+        "kind": "books#volume",
+        "id": "bm-KDQAAQBAJ",
+        "etag": "g/4iuOYcAR0",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/bm-KDQAAQBAJ",
+        "volumeInfo": {
+          "title": "Beloved",
+          "subtitle": "Pulitzer Prize Winner",
+          "authors": ["Toni Morrison"],
+          "publisher": "Vintage",
+          "publishedDate": "2004-06-08",
+          "description": "PULITZER PRIZE WINNER • NEW YORK TIMES BESTSELLER • This \"powerful, mesmerizing story” (People) is an unflinching look into the abyss of slavery, from the acclaimed Nobel Prize winner. With an afterword by the author and a new introduction by Honorée Fanonne Jeffers. “A masterwork.... Wonderful.... I can’t imagine American literature without it.” —John Leonard, Los Angeles Times Sethe was born a slave and escaped to Ohio, but eighteen years later she is still not free. Sethe has too many memories of Sweet Home, the beautiful farm where so many hideous things happened. And Sethe’s new home is haunted by the ghost of her baby, who died nameless and whose tombstone is engraved with a single word: Beloved. “Dazzling. . . . Magical. . . . An extraordinary work.” —The New York Times",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781400033416"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1400033411"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 369,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.8.2.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=bm-KDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=bm-KDQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=bm-KDQAAQBAJ&printsec=frontcover&dq=isbn:9781400033416&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=bm-KDQAAQBAJ&dq=isbn:9781400033416&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Beloved.html?hl=&id=bm-KDQAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=bm-KDQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "And Sethe’s new home is haunted by the ghost of her baby, who died nameless and whose tombstone is engraved with a single word: Beloved. “Dazzling. . . . Magical. . . . An extraordinary work.” —The New York Times"
+        }
+      }
+    },
+    {
+      "isbn10": "0307387895",
+      "isbn13": "9780307387899",
+      "title": "The Road",
+      "volume": {
+        "kind": "books#volume",
+        "id": "53aMEAAAQBAJ",
+        "etag": "Dra8bd0KV6Y",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/53aMEAAAQBAJ",
+        "volumeInfo": {
+          "title": "The Road",
+          "authors": ["Cormac McCarthy"],
+          "publisher": "National Geographic Books",
+          "publishedDate": "2007-03-28",
+          "description": "NATIONAL BESTSELLER • WINNER OF THE PULITZER PRIZE • A searing, post-apocalyptic novel about a father and son's fight to survive, this \"tale of survival and the miracle of goodness only adds to McCarthy's stature as a living master. It's gripping, frightening and, ultimately, beautiful\" (San Francisco Chronicle). A father and his son walk alone through burned America. Nothing moves in the ravaged landscape save the ash on the wind. It is cold enough to crack stones, and when the snow falls it is gray. The sky is dark. Their destination is the coast, although they don't know what, if anything, awaits them there. They have nothing; just a pistol to defend themselves against the lawless bands that stalk the road, the clothes they are wearing, a cart of scavenged food—and each other. The Road is the profoundly moving story of a journey. It boldly imagines a future in which no hope remains, but in which the father and his son, \"each the other's world entire,\" are sustained by love. Awesome in the totality of its vision, it is an unflinching meditation on the worst and the best that we are capable of: ultimate destructiveness, desperate tenacity, and the tenderness that keeps two people alive in the face of total devastation. Look for Cormac McCarthy's new novel, The Passenger, coming October '22.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780307387899"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0307387895"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=53aMEAAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=53aMEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=53aMEAAAQBAJ&dq=isbn:9780307387899&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=53aMEAAAQBAJ&dq=isbn:9780307387899&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Road.html?hl=&id=53aMEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=53aMEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "NATIONAL BESTSELLER • WINNER OF THE PULITZER PRIZE • A searing, post-apocalyptic novel about a father and son&#39;s fight to survive, this &quot;tale of survival and the miracle of goodness only adds to McCarthy&#39;s stature as a living master."
+        }
+      }
+    },
+    {
+      "isbn10": "1984822187",
+      "isbn13": "9781984822185",
+      "title": "Normal People",
+      "volume": {
+        "kind": "books#volume",
+        "id": "vrpPEAAAQBAJ",
+        "etag": "D42r1paXgi4",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/vrpPEAAAQBAJ",
+        "volumeInfo": {
+          "title": "Normal People",
+          "subtitle": "A Novel",
+          "authors": ["Sally Rooney"],
+          "publisher": "Crown",
+          "publishedDate": "2020-02-18",
+          "description": "NOW AN EMMY-NOMINATED HULU ORIGINAL SERIES • NEW YORK TIMES BESTSELLER • LONGLISTED FOR THE BOOKER PRIZE • “A stunning novel about the transformative power of relationships” (People) from the author of Conversations with Friends, “a master of the literary page-turner” (J. Courtney Sullivan). “[A] novel that demands to be read compulsively, in one sitting.”—The Washington Post ONE OF ENTERTAINMENT WEEKLY’S TEN BEST NOVELS OF THE DECADE TEN BEST BOOKS OF THE YEAR: People, Slate, The New York Public Library, Harvard Crimson Connell and Marianne grew up in the same small town, but the similarities end there. At school, Connell is popular and well liked, while Marianne is a loner. But when the two strike up a conversation—awkward but electrifying—something life changing begins. A year later, they’re both studying at Trinity College in Dublin. Marianne has found her feet in a new social world while Connell hangs at the sidelines, shy and uncertain. Throughout their years at university, Marianne and Connell circle one another, straying toward other people and possibilities but always magnetically, irresistibly drawn back together. And as she veers into self-destruction and he begins to search for meaning elsewhere, each must confront how far they are willing to go to save the other. Normal People is the story of mutual fascination, friendship, and love. It takes us from that first conversation to the years beyond, in the company of two people who try to stay apart but find that they can’t. WINNER: The British Book Award, The Costa Book Award, The An Post Irish Novel of the Year, Sunday Times Young Writer of the Year Award BEST BOOKS OF THE YEAR: The New York Times, The New York Times Book Review, Oprah Daily, Time, NPR, The Washington Post, Vogue, Esquire, Glamour, Elle, Marie Claire, Vox, The Paris Review, Good Housekeeping, Town & Country",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781984822185"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1984822187"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 305,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.3.2.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=vrpPEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=vrpPEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=vrpPEAAAQBAJ&printsec=frontcover&dq=isbn:9781984822185&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=vrpPEAAAQBAJ&dq=isbn:9781984822185&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Normal_People.html?hl=&id=vrpPEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=vrpPEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "And as she veers into self-destruction and he begins to search for meaning elsewhere, each must confront how far they are willing to go to save the other. Normal People is the story of mutual fascination, friendship, and love."
+        }
+      }
+    },
+    {
+      "isbn10": "0143110438",
+      "isbn13": "9780143110439",
+      "title": "A Gentleman in Moscow",
+      "volume": {
+        "kind": "books#volume",
+        "id": "-9CLDwAAQBAJ",
+        "etag": "jeSPqTFaRqc",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/-9CLDwAAQBAJ",
+        "volumeInfo": {
+          "title": "A Gentleman in Moscow",
+          "subtitle": "A Novel",
+          "authors": ["Amor Towles"],
+          "publisher": "Penguin",
+          "publishedDate": "2019-03-26",
+          "description": "The mega-bestseller with more than 2 million readers • A New York Times “Readers’ Choice: Best Books of the 21st Century” Pick From the #1 New York Times-bestselling author of The Lincoln Highway and Table for Two, a beautifully transporting novel about a man who is ordered to spend the rest of his life inside a luxury hotel In 1922, Count Alexander Rostov is deemed an unrepentant aristocrat by a Bolshevik tribunal, and is sentenced to house arrest in the Metropol, a grand hotel across the street from the Kremlin. Rostov, an indomitable man of erudition and wit, has never worked a day in his life, and must now live in an attic room while some of the most tumultuous decades in Russian history are unfolding outside the hotel’s doors. Unexpectedly, his reduced circumstances provide him entry into a much larger world of emotional discovery. Brimming with humor, a glittering cast of characters, and one beautifully rendered scene after another, this singular novel casts a spell as it relates the count’s endeavor to gain a deeper understanding of what it means to be a man of purpose.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780143110439"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0143110438"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 497,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 5,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.12.4.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=-9CLDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=-9CLDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=-9CLDwAAQBAJ&printsec=frontcover&dq=isbn:9780143110439&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=-9CLDwAAQBAJ&dq=isbn:9780143110439&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/A_Gentleman_in_Moscow.html?hl=&id=-9CLDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=-9CLDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Brimming with humor, a glittering cast of characters, and one beautifully rendered scene after another, this singular novel casts a spell as it relates the count’s endeavor to gain a deeper understanding of what it means to be a man of ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0316556343",
+      "isbn13": "9780316556347",
+      "title": "Circe",
+      "volume": {
+        "kind": "books#volume",
+        "id": "W6j2swEACAAJ",
+        "etag": "ZqDaK+WzzaI",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/W6j2swEACAAJ",
+        "volumeInfo": {
+          "title": "CIRCE",
+          "authors": ["Madeline Miller"],
+          "publisher": "Little, Brown",
+          "publishedDate": "2018-04-10",
+          "description": "\"A bold and subversive retelling of the goddess's story,\" this #1 New York Times bestseller is \"both epic and intimate in its scope, recasting the most infamous female figure from the Odyssey as a hero in her own right\" (Alexandra Alter, The New York Times). In the house of Helios, god of the sun and mightiest of the Titans, a daughter is born. But Circe is a strange child -- not powerful like her father, nor viciously alluring like her mother. Turning to the world of mortals for companionship, she discovers that she does possess power -- the power of witchcraft, which can transform rivals into monsters and menace the gods themselves. Threatened, Zeus banishes her to a deserted island, where she hones her occult craft, tames wild beasts, and crosses paths with many of the most famous figures in all of mythology, including the Minotaur, Daedalus and his doomed son Icarus, the murderous Medea, and, of course, wily Odysseus. But there is danger, too, for a woman who stands alone and Circe unwittingly draws the wrath of both men and gods, ultimately finding herself pitted against one of the most terrifying and vengeful of the Olympians. To protect what she loves most, Circe must summon all her strength and choose, once and for all, whether she belongs with the gods she is born from, or the mortals she has come to love. With unforgettably vivid characters, mesmerizing language, and page-turning suspense, Circe is a triumph of storytelling, an intoxicating epic of family rivalry, palace intrigue, love and loss, as well as a celebration of indomitable female strength in a man's world. #1 New York Times bestseller -- named one of the best books of the year by NPR, the Washington Post, People, Time, Amazon, Entertainment Weekly, Bustle, Newsweek, the A.V. Club, Christian Science Monitor, Refinery 29, BuzzFeed, Paste, Audible, Kirkus, Publishers Weekly, Thrillist, NYPL, Self, Real Simple, Goodreads, Boston Globe, Electric Literature, BookPage, the Guardian, Book Riot, Seattle Times, and Business Insider",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0316556343"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780316556347"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=W6j2swEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=W6j2swEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=W6j2swEACAAJ&dq=isbn:9780316556347&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=W6j2swEACAAJ&dq=isbn:9780316556347&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/CIRCE.html?hl=&id=W6j2swEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=W6j2swEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "With unforgettably vivid characters, mesmerizing language, and page-turning suspense, Circe is a triumph of storytelling, an intoxicating epic of family rivalry, palace intrigue, love and loss, as well as a celebration of indomitable female ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0062316095",
+      "isbn13": "9780062316097",
+      "title": "Sapiens: A Brief History of Humankind",
+      "volume": {
+        "kind": "books#volume",
+        "id": "ibALnwEACAAJ",
+        "etag": "BFR4v0EaUGE",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/ibALnwEACAAJ",
+        "volumeInfo": {
+          "title": "Sapiens",
+          "subtitle": "A Brief History of Humankind",
+          "authors": ["Yuval Noah Harari"],
+          "publisher": "Harper",
+          "publishedDate": "2015-02-10",
+          "description": "One hundred thousand years ago, at least six human species inhabited the earth. Today there is just one. Us. Homo sapiens. How did our species succeed in the battle for dominance? Why did our foraging ancestors come together to create cities and kingdoms? How did we come to believe in gods, nations, and human rights; to trust money, books, and laws; and to be enslaved by bureaucracy, timetables, and consumerism? And what will our world be like in the millennia to come? In Sapiens, Professor Yuval Noah Harari spans the whole of human history, from the very first humans to walk the earth to the radical—and sometimes devastating—breakthroughs of the Cognitive, Agricultural, and Scientific Revolutions. Drawing on insights from biology, anthropology, paleontology, and economics, and incorporating full-color illustrations throughout the text, he explores how the currents of history have shaped our human societies, the animals and plants around us, and even our personalities. Have we become happier as history has unfolded? Can we ever free our behavior from the legacy of our ancestors? And what, if anything, can we do to influence the course of the centuries to come? Bold, wide-ranging, and provocative, Sapiens integrates history and science to challenge everything we thought we knew about being human: our thoughts, our actions, our heritage...and our future.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0062316095"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780062316097"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 464,
+          "printType": "BOOK",
+          "categories": ["Science"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=ibALnwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=ibALnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=ibALnwEACAAJ&dq=isbn:9780062316097&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=ibALnwEACAAJ&dq=isbn:9780062316097&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Sapiens.html?hl=&id=ibALnwEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=ibALnwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Most books about the history of humanity pursue either a historical or a biological approach, but Dr. Yuval Noah Harari breaks the mold with this highly original book that begins about 70,000 years ago with the appearance of modern ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0399590501",
+      "isbn13": "9780399590504",
+      "title": "Educated",
+      "volume": {
+        "kind": "books#volume",
+        "id": "6rdPEAAAQBAJ",
+        "etag": "vXrvWFt4BfA",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/6rdPEAAAQBAJ",
+        "volumeInfo": {
+          "title": "Educated",
+          "subtitle": "A Memoir",
+          "authors": ["Tara Westover"],
+          "publisher": "Random House",
+          "publishedDate": "2018-02-20",
+          "description": "#1 NEW YORK TIMES, WALL STREET JOURNAL, AND BOSTON GLOBE BESTSELLER • One of the most acclaimed books of our time: an unforgettable memoir about a young woman who, kept out of school, leaves her survivalist family and goes on to earn a PhD from Cambridge University “Extraordinary . . . an act of courage and self-invention.”—The New York Times NAMED ONE OF THE TEN BEST BOOKS OF THE YEAR BY THE NEW YORK TIMES BOOK REVIEW • ONE OF BARACK OBAMA’S FAVORITE BOOKS OF THE YEAR • A KIRKUS REVIEWS BEST NONFICTION BOOK OF THE CENTURY • FINALIST: National Book Critics Circle’s Award In Autobiography and John Leonard Prize For Best First Book • PEN/Jean Stein Book Award • Los Angeles Times Book Prize Born to survivalists in the mountains of Idaho, Tara Westover was seventeen the first time she set foot in a classroom. Her family was so isolated from mainstream society that there was no one to ensure the children received an education, and no one to intervene when one of Tara’s older brothers became violent. When another brother got himself into college, Tara decided to try a new kind of life. Her quest for knowledge transformed her, taking her over oceans and across continents, to Harvard and to Cambridge University. Only then would she wonder if she’d traveled too far, if there was still a way home. “Beautiful and propulsive . . . Despite the singularity of [Westover’s] childhood, the questions her book poses are universal: How much of ourselves should we give to those we love? And how much must we betray them to grow up?”—Vogue ONE OF THE BEST BOOKS OF THE YEAR: The Washington Post, O: The Oprah Magazine, Time, NPR, Good Morning America, San Francisco Chronicle, The Guardian, The Economist, Financial Times, Newsday, New York Post, theSkimm, Refinery29, Bloomberg, Self, Real Simple, Town & Country, Bustle, Paste, Publishers Weekly, Library Journal, LibraryReads, Book Riot, Pamela Paul, KQED, New York Public Library",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780399590504"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0399590501"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 353,
+          "printType": "BOOK",
+          "categories": ["Biography & Autobiography"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.2.1.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=6rdPEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=6rdPEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=6rdPEAAAQBAJ&printsec=frontcover&dq=isbn:9780399590504&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=6rdPEAAAQBAJ&dq=isbn:9780399590504&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Educated.html?hl=&id=6rdPEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=6rdPEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "#1 NEW YORK TIMES, WALL STREET JOURNAL, AND BOSTON GLOBE BESTSELLER • One of the most acclaimed books of our time: an unforgettable memoir about a young woman who, kept out of school, leaves her survivalist family and goes on to earn a ..."
+        }
+      }
+    },
+    {
+      "isbn10": "1400052181",
+      "isbn13": "9781400052189",
+      "title": "The Immortal Life of Henrietta Lacks",
+      "volume": {
+        "kind": "books#volume",
+        "id": "aOpAx3-czwIC",
+        "etag": "TkQ9P0ByRHg",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/aOpAx3-czwIC",
+        "volumeInfo": {
+          "title": "The Immortal Life of Henrietta Lacks",
+          "authors": ["Rebecca Skloot"],
+          "publisher": "Crown",
+          "publishedDate": "2011-03-08",
+          "description": "#1 NEW YORK TIMES BESTSELLER • “The story of modern medicine and bioethics—and, indeed, race relations—is refracted beautifully, and movingly.”—Entertainment Weekly NOW A MAJOR MOTION PICTURE FROM HBO® STARRING OPRAH WINFREY AND ROSE BYRNE • ONE OF THE “MOST INFLUENTIAL” (CNN), “DEFINING” (LITHUB), AND “BEST” (THE PHILADELPHIA INQUIRER) BOOKS OF THE DECADE • ONE OF ESSENCE’S 50 MOST IMPACTFUL BLACK BOOKS OF THE PAST 50 YEARS • WINNER OF THE CHICAGO TRIBUNE HEARTLAND PRIZE FOR NONFICTION NAMED ONE OF THE BEST BOOKS OF THE YEAR BY The New York Times Book Review • Entertainment Weekly • O: The Oprah Magazine • NPR • Financial Times • New York • Independent (U.K.) • Times (U.K.) • Publishers Weekly • Library Journal • Kirkus Reviews • Booklist • Globe and Mail Her name was Henrietta Lacks, but scientists know her as HeLa. She was a poor Southern tobacco farmer who worked the same land as her slave ancestors, yet her cells—taken without her knowledge—became one of the most important tools in medicine: The first “immortal” human cells grown in culture, which are still alive today, though she has been dead for more than sixty years. HeLa cells were vital for developing the polio vaccine; uncovered secrets of cancer, viruses, and the atom bomb’s effects; helped lead to important advances like in vitro fertilization, cloning, and gene mapping; and have been bought and sold by the billions. Yet Henrietta Lacks remains virtually unknown, buried in an unmarked grave. Henrietta’s family did not learn of her “immortality” until more than twenty years after her death, when scientists investigating HeLa began using her husband and children in research without informed consent. And though the cells had launched a multimillion-dollar industry that sells human biological materials, her family never saw any of the profits. As Rebecca Skloot so brilliantly shows, the story of the Lacks family—past and present—is inextricably connected to the dark history of experimentation on African Americans, the birth of bioethics, and the legal battles over whether we control the stuff we are made of. Over the decade it took to uncover this story, Rebecca became enmeshed in the lives of the Lacks family—especially Henrietta’s daughter Deborah. Deborah was consumed with questions: Had scientists cloned her mother? Had they killed her to harvest her cells? And if her mother was so important to medicine, why couldn’t her children afford health insurance? Intimate in feeling, astonishing in scope, and impossible to put down, The Immortal Life of Henrietta Lacks captures the beauty and drama of scientific discovery, as well as its human consequences.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781400052189"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1400052181"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 402,
+          "printType": "BOOK",
+          "categories": ["Science"],
+          "averageRating": 3,
+          "ratingsCount": 2,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.8.1.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=aOpAx3-czwIC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=aOpAx3-czwIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=aOpAx3-czwIC&printsec=frontcover&dq=isbn:9781400052189&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=aOpAx3-czwIC&dq=isbn:9781400052189&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Immortal_Life_of_Henrietta_Lacks.html?hl=&id=aOpAx3-czwIC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=aOpAx3-czwIC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Over the decade it took to uncover this story, Rebecca became enmeshed in the lives of the Lacks family—especially Henrietta’s daughter Deborah. Deborah was consumed with questions: Had scientists cloned her mother?"
+        }
+      }
+    },
+    {
+      "isbn10": "0374533555",
+      "isbn13": "9780374533557",
+      "title": "Thinking, Fast and Slow",
+      "volume": {
+        "kind": "books#volume",
+        "id": "YGPzXWanppcC",
+        "etag": "5kDK6mqF7Sg",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/YGPzXWanppcC",
+        "volumeInfo": {
+          "title": "Thinking, Fast and Slow",
+          "authors": ["Daniel Kahneman"],
+          "publisher": "Penguin UK",
+          "publishedDate": "2011",
+          "description": "No Marketing Blurb",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781846140556"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1846140552"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 611,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.7.7.0.preview.2",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=YGPzXWanppcC&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=YGPzXWanppcC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=YGPzXWanppcC&dq=intitle:%22Thinking,+Fast+and+Slow%22+inauthor:%22Daniel+Kahneman%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=YGPzXWanppcC&dq=intitle:%22Thinking,+Fast+and+Slow%22+inauthor:%22Daniel+Kahneman%22&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Thinking_Fast_and_Slow.html?hl=&id=YGPzXWanppcC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": true
+          },
+          "pdf": {
+            "isAvailable": true
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=YGPzXWanppcC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "No Marketing Blurb"
+        }
+      }
+    },
+    {
+      "isbn10": "0399588175",
+      "isbn13": "9780399588174",
+      "title": "Born a Crime",
+      "volume": {
+        "kind": "books#volume",
+        "id": "8LdPEAAAQBAJ",
+        "etag": "hQ9c6ZLSX38",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/8LdPEAAAQBAJ",
+        "volumeInfo": {
+          "title": "Born a Crime",
+          "subtitle": "Stories from a South African Childhood",
+          "authors": ["Trevor Noah"],
+          "publisher": "One World",
+          "publishedDate": "2016-11-15",
+          "description": "#1 NEW YORK TIMES BESTSELLER • More than one million copies sold! A “brilliant” (Lupita Nyong’o, Time), “poignant” (Entertainment Weekly), “soul-nourishing” (USA Today) memoir about coming of age during the twilight of apartheid “Noah’s childhood stories are told with all the hilarity and intellect that characterizes his comedy, while illuminating a dark and brutal period in South Africa’s history that must never be forgotten.”—Esquire Winner of the Thurber Prize for American Humor and an NAACP Image Award • Named one of the best books of the year by The New York Time, USA Today, San Francisco Chronicle, NPR, Esquire, Newsday, and Booklist Trevor Noah’s unlikely path from apartheid South Africa to the desk of The Daily Show began with a criminal act: his birth. Trevor was born to a white Swiss father and a black Xhosa mother at a time when such a union was punishable by five years in prison. Living proof of his parents’ indiscretion, Trevor was kept mostly indoors for the earliest years of his life, bound by the extreme and often absurd measures his mother took to hide him from a government that could, at any moment, steal him away. Finally liberated by the end of South Africa’s tyrannical white rule, Trevor and his mother set forth on a grand adventure, living openly and freely and embracing the opportunities won by a centuries-long struggle. Born a Crime is the story of a mischievous young boy who grows into a restless young man as he struggles to find himself in a world where he was never supposed to exist. It is also the story of that young man’s relationship with his fearless, rebellious, and fervently religious mother—his teammate, a woman determined to save her son from the cycle of poverty, violence, and abuse that would ultimately threaten her own life. The stories collected here are by turns hilarious, dramatic, and deeply affecting. Whether subsisting on caterpillars for dinner during hard times, being thrown from a moving car during an attempted kidnapping, or just trying to survive the life-and-death pitfalls of dating in high school, Trevor illuminates his curious world with an incisive wit and unflinching honesty. His stories weave together to form a moving and searingly funny portrait of a boy making his way through a damaged world in a dangerous time, armed only with a keen sense of humor and a mother’s unconventional, unconditional love.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780399588174"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0399588175"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 305,
+          "printType": "BOOK",
+          "categories": ["Biography & Autobiography"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.1.1.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=8LdPEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=8LdPEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=8LdPEAAAQBAJ&printsec=frontcover&dq=isbn:9780399588174&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=8LdPEAAAQBAJ&dq=isbn:9780399588174&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Born_a_Crime.html?hl=&id=8LdPEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=8LdPEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Born a Crime is the story of a mischievous young boy who grows into a restless young man as he struggles to find himself in a world where he was never supposed to exist."
+        }
+      }
+    },
+    {
+      "isbn10": "0735211299",
+      "isbn13": "9780735211292",
+      "title": "Atomic Habits",
+      "volume": {
+        "kind": "books#volume",
+        "id": "XfFvDwAAQBAJ",
+        "etag": "7ag4vicu4s8",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/XfFvDwAAQBAJ",
+        "volumeInfo": {
+          "title": "Atomic Habits",
+          "subtitle": "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+          "authors": ["James Clear"],
+          "publisher": "Penguin",
+          "publishedDate": "2018-10-16",
+          "description": "The #1 New York Times bestseller. Over 25 million copies sold! Translated into 60+ languages! Tiny Changes, Remarkable Results No matter your goals, Atomic Habits offers a proven framework for improving--every day. James Clear, one of the world's leading experts on habit formation, reveals practical strategies that will teach you exactly how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results. If you're having trouble changing your habits, the problem isn't you. The problem is your system. Bad habits repeat themselves again and again not because you don't want to change, but because you have the wrong system for change. You do not rise to the level of your goals. You fall to the level of your systems. Here, you'll get a proven system that can take you to new heights. Clear is known for his ability to distill complex topics into simple behaviors that can be easily applied to daily life and work. Here, he draws on the most proven ideas from biology, psychology, and neuroscience to create an easy-to-understand guide for making good habits inevitable and bad habits impossible. Along the way, readers will be inspired and entertained with true stories from Olympic gold medalists, award-winning artists, business leaders, life-saving physicians, and star comedians who have used the science of small habits to master their craft and vault to the top of their field. Learn how to: make time for new habits (even when life gets crazy); overcome a lack of motivation and willpower; design your environment to make success easier; get back on track when you fall off course; ...and much more. Atomic Habits will reshape the way you think about progress and success, and give you the tools and strategies you need to transform your habits--whether you are a team looking to win a championship, an organization hoping to redefine an industry, or simply an individual who wishes to quit smoking, lose weight, reduce stress, or achieve any other goal.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780735211292"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0735211299"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 321,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "averageRating": 3.5,
+          "ratingsCount": 7,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.18.3.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=XfFvDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=XfFvDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=XfFvDwAAQBAJ&printsec=frontcover&dq=isbn:9780735211292&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=XfFvDwAAQBAJ&dq=isbn:9780735211292&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Atomic_Habits.html?hl=&id=XfFvDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=XfFvDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Atomic Habits will reshape the way you think about progress and success, and give you the tools and strategies you need to transform your habits--whether you are a team looking to win a championship, an organization hoping to redefine an ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0385539304",
+      "isbn13": "9780385539302",
+      "title": "The Body: A Guide for Occupants",
+      "volume": {
+        "kind": "books#volume",
+        "id": "RkGNEAAAQBAJ",
+        "etag": "yLjjaBsIb+0",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/RkGNEAAAQBAJ",
+        "volumeInfo": {
+          "title": "The Body",
+          "subtitle": "A Guide for Occupants",
+          "authors": ["Bill Bryson"],
+          "publisher": "National Geographic Books",
+          "publishedDate": "2019-10-15",
+          "description": "AN INSTANT NEW YORK TIMES BESTSELLER • A BEST BOOK OF THE YEAR BY THE WASHINGTON POST • LONGLISTED FOR THE PEN E.O. WILSON LITERARY SCIENCE WRITING AWARD \"Glorious. . .You will marvel at the brilliance and vast weirdness of your design.\" —The Washington Post Bill Bryson, bestselling author of A Short History of Nearly Everything, takes us on a head-to-toe tour of the marvel that is the human body. As addictive as it is comprehensive, this is Bryson at his very best, a must-read owner's manual for everybody. Bill Bryson once again proves himself to be an incomparable companion as he guides us through the human body--how it functions, its remarkable ability to heal itself, and (unfortunately) the ways it can fail. Full of extraordinary facts (your body made a million red blood cells since you started reading this) and irresistible Bryson-esque anecdotes, The Body will lead you to a deeper understanding of the miracle that is life in general and you in particular. As Bill Bryson writes, \"We pass our existence within this wobble of flesh and yet take it almost entirely for granted.\" The Body will cure that indifference with generous doses of wondrous, compulsively readable facts and information.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780385539302"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0385539304"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Science"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=RkGNEAAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=RkGNEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=RkGNEAAAQBAJ&dq=isbn:9780385539302&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=RkGNEAAAQBAJ&dq=isbn:9780385539302&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Body.html?hl=&id=RkGNEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=RkGNEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "As addictive as it is comprehensive, this is Bryson at his very best, a must-read owner&#39;s manual for everybody."
+        }
+      }
+    },
+    {
+      "isbn10": "0307352153",
+      "isbn13": "9780307352156",
+      "title": "Quiet: The Power of Introverts in a World That Can't Stop Talking",
+      "volume": {
+        "kind": "books#volume",
+        "id": "uNMjeFMorPgC",
+        "etag": "B3voDcXaIKQ",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/uNMjeFMorPgC",
+        "volumeInfo": {
+          "title": "Quiet",
+          "subtitle": "The Power of Introverts in a World That Can't Stop Talking",
+          "authors": ["Susan Cain"],
+          "publisher": "Crown",
+          "publishedDate": "2013-01-29",
+          "description": "#1 NEW YORK TIMES BESTSELLER • Experience the book that started the Quiet Movement and revolutionized how the world sees introverts—and how introverts see themselves—by offering validation, inclusion, and inspiration “Superbly researched, deeply insightful, and a fascinating read, Quiet is an indispensable resource for anyone who wants to understand the gifts of the introverted half of the population.”—Gretchen Rubin, author of The Happiness Project NAMED ONE OF THE BEST BOOKS OF THE YEAR BY People • O: The Oprah Magazine • Christian Science Monitor • Inc. • Library Journal • Kirkus Reviews What are the advantages of being an introvert? They make up at least one-third of the people we know. They are the ones who prefer listening to speaking; who innovate and create but dislike self-promotion; who favor working on their own over working in teams. It is to introverts—Rosa Parks, Chopin, Dr. Seuss, Steve Wozniak—that we owe many of the great contributions to society. In Quiet, Susan Cain argues that we dramatically undervalue introverts and shows how much we lose in doing so. She charts the rise of the Extrovert Ideal throughout the twentieth century and explores how deeply it has come to permeate our culture. She also introduces us to successful introverts—from a witty, high-octane public speaker who recharges in solitude after his talks, to a record-breaking salesman who quietly taps into the power of questions. Passionately argued, impeccably researched, and filled with indelible stories of real people, Quiet has the power to permanently change how you see yourself. Now with Extra Libris material, including a reader’s guide and bonus content",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780307352156"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0307352153"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 370,
+          "printType": "BOOK",
+          "categories": ["Psychology"],
+          "averageRating": 5,
+          "ratingsCount": 4,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.8.0.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=uNMjeFMorPgC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=uNMjeFMorPgC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=uNMjeFMorPgC&printsec=frontcover&dq=isbn:9780307352156&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=uNMjeFMorPgC&dq=isbn:9780307352156&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Quiet.html?hl=&id=uNMjeFMorPgC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=uNMjeFMorPgC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "#1 NEW YORK TIMES BESTSELLER • Experience the book that started the Quiet Movement and revolutionized how the world sees introverts—and how introverts see themselves—by offering validation, inclusion, and inspiration “Superbly ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0735214484",
+      "isbn13": "9780735214484",
+      "title": "Range: Why Generalists Triumph in a Specialized World",
+      "volume": {
+        "kind": "books#volume",
+        "id": "1ZyaDwAAQBAJ",
+        "etag": "oAif+Vc34Y4",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/1ZyaDwAAQBAJ",
+        "volumeInfo": {
+          "title": "Range",
+          "subtitle": "Why Generalists Triumph in a Specialized World",
+          "authors": ["David Epstein"],
+          "publisher": "Penguin",
+          "publishedDate": "2019-05-28",
+          "description": "The #1 New York Times bestseller that has all America talking: as seen/heard on CNN's Fareed Zakaria GPS, Morning Joe, CBS This Morning, The Bill Simmons Podcast, Rich Roll, and more. “The most important business—and parenting—book of the year.” —Forbes “Urgent and important. . . an essential read for bosses, parents, coaches, and anyone who cares about improving performance.” —Daniel H. Pink Shortlisted for the Financial Times/McKinsey Business Book of the Year Award Plenty of experts argue that anyone who wants to develop a skill, play an instrument, or lead their field should start early, focus intensely, and rack up as many hours of deliberate practice as possible. If you dabble or delay, you’ll never catch up to the people who got a head start. But a closer look at research on the world’s top performers, from professional athletes to Nobel laureates, shows that early specialization is the exception, not the rule. David Epstein examined the world’s most successful athletes, artists, musicians, inventors, forecasters and scientists. He discovered that in most fields—especially those that are complex and unpredictable—generalists, not specialists, are primed to excel. Generalists often find their path late, and they juggle many interests rather than focusing on one. They’re also more creative, more agile, and able to make connections their more specialized peers can’t see. Provocative, rigorous, and engrossing, Range makes a compelling case for actively cultivating inefficiency. Failing a test is the best way to learn. Frequent quitters end up with the most fulfilling careers. The most impactful inventors cross domains rather than deepening their knowledge in a single area. As experts silo themselves further while computers master more of the skills once reserved for highly focused humans, people who think broadly and embrace diverse experiences and perspectives will increasingly thrive.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780735214484"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0735214484"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 354,
+          "printType": "BOOK",
+          "categories": ["Psychology"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.7.0.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=1ZyaDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=1ZyaDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=1ZyaDwAAQBAJ&printsec=frontcover&dq=isbn:9780735214484&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=1ZyaDwAAQBAJ&dq=isbn:9780735214484&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Range.html?hl=&id=1ZyaDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=1ZyaDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "They’re also more creative, more agile, and able to make connections their more specialized peers can’t see. Provocative, rigorous, and engrossing, Range makes a compelling case for actively cultivating inefficiency."
+        }
+      }
+    },
+    {
+      "isbn10": null,
+      "isbn13": "9780385521314",
+      "title": "Say Nothing: A True Story of Murder and Memory in Northern Ireland",
+      "volume": {
+        "kind": "books#volume",
+        "id": "By4vtwEACAAJ",
+        "etag": "GraqY64X3kI",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/By4vtwEACAAJ",
+        "volumeInfo": {
+          "title": "Say Nothing",
+          "subtitle": "A True Story of Murder and Memory in Northern Ireland",
+          "authors": ["Patrick Radden Keefe"],
+          "publisher": "Doubleday Books",
+          "publishedDate": "2019",
+          "description": "One of the New York Times 10 Best Books of the Year BEST NONFICTION BOOK OF THE YEAR - TIME MAGAZINE ONE OF THE BEST 10 BOOKS OF THE YEAR - WASHINGTON POST NEW YORK TIMES BESTSELLER WINNER OF THE ORWELL PRIZE LONGLISTED FOR THE NATIONAL BOOK AWARD \"Masked intruders dragged Jean McConville, a 38-year-old widow and mother of 10, from her Belfast home in 1972. In this meticulously reported book -- as finely paced as a novel -- Keefe uses McConville's murder as a prism to tell the history of the Troubles in Northern Ireland. Interviewing people on both sides of the conflict, he transforms the tragic damage and waste of the era into a searing, utterly gripping saga.\" - New York Times Book Review, Ten Best Books of the Year From award-winning New Yorker staff writer Patrick Radden Keefe, a stunning, intricate narrative about a notorious killing in Northern Ireland and its devastating repercussions In December 1972, Jean McConville, a thirty-eight-year-old mother of ten, was dragged from her Belfast home by masked intruders, her children clinging to her legs. They never saw her again. Her abduction was one of the most notorious episodes of the vicious conflict known as The Troubles. Everyone in the neighborhood knew the I.R.A. was responsible. But in a climate of fear and paranoia, no one would speak of it. In 2003, five years after an accord brought an uneasy peace to Northern Ireland, a set of human bones was discovered on a beach. McConville's children knew it was their mother when they were told a blue safety pin was attached to the dress--with so many kids, she had always kept it handy for diapers or ripped clothes. Patrick Radden Keefe's mesmerizing book on the bitter conflict in Northern Ireland and its aftermath uses the McConville case as a starting point for the tale of a society wracked by a violent guerrilla war, a war whose consequences have never been reckoned with. The brutal violence seared not only people like the McConville children, but also I.R.A. members embittered by a peace that fell far short of the goal of a united Ireland, and left them wondering whether the killings they committed were not justified acts of war, but simple murders. From radical and impetuous I.R.A. terrorists such as Dolours Price, who, when she was barely out of her teens, was already planting bombs in London and targeting informers for execution, to the ferocious I.R.A. mastermind known as The Dark, to the spy games and dirty schemes of the British Army, to Gerry Adams, who negotiated the peace but betrayed his hardcore comrades by denying his I.R.A. past--Say Nothing conjures a world of passion, betrayal, vengeance, and anguish.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0385521316"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780385521314"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["HISTORY"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=By4vtwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=By4vtwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=By4vtwEACAAJ&dq=isbn:9780385521314&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=By4vtwEACAAJ&dq=isbn:9780385521314&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Say_Nothing.html?hl=&id=By4vtwEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=By4vtwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "In this meticulously reported book -- as finely paced as a novel -- Keefe uses McConville&#39;s murder as a prism to tell the history of the Troubles in Northern Ireland."
+        }
+      }
+    },
+    {
+      "isbn10": "0441013597",
+      "isbn13": "9780441013593",
+      "title": "Dune",
+      "volume": {
+        "kind": "books#volume",
+        "id": "B1hSG45JCX4C",
+        "etag": "lKw6jETBLVg",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/B1hSG45JCX4C",
+        "volumeInfo": {
+          "title": "Dune",
+          "authors": ["Frank Herbert"],
+          "publisher": "Penguin",
+          "publishedDate": "2005-08-02",
+          "description": "Frank Herbert’s classic masterpiece—a triumph of the imagination and one of the bestselling science fiction novels of all time. Set on the desert planet Arrakis, Dune is the story of Paul Atreides—who would become known as Muad'Dib—and of a great family's ambition to bring to fruition humankind's most ancient and unattainable dream. A stunning blend of adventure and mysticism, environmentalism and politics, Dune won the first Nebula Award, shared the Hugo Award, and formed the basis of what is undoubtedly the grandest epic in science fiction.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0441013597"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780441013593"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 548,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 4.5,
+          "ratingsCount": 25,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "3.8.10.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=B1hSG45JCX4C&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=B1hSG45JCX4C&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=B1hSG45JCX4C&printsec=frontcover&dq=isbn:9780441013593&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=B1hSG45JCX4C&dq=isbn:9780441013593&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Dune.html?hl=&id=B1hSG45JCX4C"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=B1hSG45JCX4C&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Set on the desert planet Arrakis, Dune is the story of Paul Atreides—who would become known as Muad&#39;Dib—and of a great family&#39;s ambition to bring to fruition humankind&#39;s most ancient and unattainable dream."
+        }
+      }
+    },
+    {
+      "isbn10": "0441478123",
+      "isbn13": "9780441478125",
+      "title": "The Left Hand of Darkness",
+      "volume": {
+        "kind": "books#volume",
+        "id": "gD9gDwAAQBAJ",
+        "etag": "gwa6dA9FQJg",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/gD9gDwAAQBAJ",
+        "volumeInfo": {
+          "title": "The Left Hand of Darkness",
+          "subtitle": "50th Anniversary Edition",
+          "authors": ["Ursula K. Le Guin"],
+          "publisher": "Penguin",
+          "publishedDate": "1987-03-15",
+          "description": "50TH ANNIVERSARY EDITION—WITH A NEW INTRODUCTION BY DAVID MITCHELL AND A NEW AFTERWORD BY CHARLIE JANE ANDERS Ursula K. Le Guin’s groundbreaking work of science fiction—winner of the Hugo and Nebula Awards. A lone human ambassador is sent to the icebound planet of Winter, a world without sexual prejudice, where the inhabitants’ gender is fluid. His goal is to facilitate Winter’s inclusion in a growing intergalactic civilization. But to do so he must bridge the gulf between his own views and those of the strange, intriguing culture he encounters... Embracing the aspects of psychology, society, and human emotion on an alien world, The Left Hand of Darkness stands as a landmark achievement in the annals of intellectual science fiction.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780441478125"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0441478123"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 369,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.8.3.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=gD9gDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=gD9gDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=gD9gDwAAQBAJ&printsec=frontcover&dq=isbn:9780441478125&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=gD9gDwAAQBAJ&dq=isbn:9780441478125&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Left_Hand_of_Darkness.html?hl=&id=gD9gDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=gD9gDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Embracing the aspects of psychology, society, and human emotion on an alien world, The Left Hand of Darkness stands as a landmark achievement in the annals of intellectual science fiction."
+        }
+      }
+    },
+    {
+      "isbn10": "0441569595",
+      "isbn13": "9780441569595",
+      "title": "Neuromancer",
+      "volume": {
+        "kind": "books#volume",
+        "id": "Bd_UZAdvUDIC",
+        "etag": "hO31WcLnd4U",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/Bd_UZAdvUDIC",
+        "volumeInfo": {
+          "title": "Neuromancer",
+          "authors": ["William Gibson"],
+          "publisher": "Penguin",
+          "publishedDate": "2000-07-01",
+          "description": "Winner of the Hugo, Nebula, and Philip K. Dick Awards, Neuromancer is a science fiction masterpiece—a classic that ranks as one of the twentieth century’s most potent visions of the future. Case was the sharpest data-thief in the matrix—until he crossed the wrong people and they crippled his nervous system, banishing him from cyberspace. Now a mysterious new employer has recruited him for a last-chance run at an unthinkably powerful artificial intelligence. With a dead man riding shotgun and Molly, a mirror-eyed street-samurai, to watch his back, Case is ready for the adventure that upped the ante on an entire genre of fiction. Neuromancer was the first fully-realized glimpse of humankind’s digital future—a shocking vision that has challenged our assumptions about technology and ourselves, reinvented the way we speak and think, and forever altered the landscape of our imaginations.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781101146460"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "110114646X"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 337,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 5,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": true,
+          "contentVersion": "4.10.8.0.preview.2",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=Bd_UZAdvUDIC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=Bd_UZAdvUDIC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=Bd_UZAdvUDIC&printsec=frontcover&dq=intitle:%22Neuromancer%22+inauthor:%22William+Gibson%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "https://play.google.com/store/books/details?id=Bd_UZAdvUDIC&source=gbs_api",
+          "canonicalVolumeLink": "https://play.google.com/store/books/details?id=Bd_UZAdvUDIC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "FOR_SALE",
+          "isEbook": true,
+          "listPrice": {
+            "amount": 12.99,
+            "currencyCode": "USD"
+          },
+          "retailPrice": {
+            "amount": 12.99,
+            "currencyCode": "USD"
+          },
+          "buyLink": "https://play.google.com/store/books/details?id=Bd_UZAdvUDIC&rdid=book-Bd_UZAdvUDIC&rdot=1&source=gbs_api",
+          "offers": [
+            {
+              "finskyOfferType": 1,
+              "listPrice": {
+                "amountInMicros": 12990000,
+                "currencyCode": "USD"
+              },
+              "retailPrice": {
+                "amountInMicros": 12990000,
+                "currencyCode": "USD"
+              },
+              "giftable": true
+            }
+          ]
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.com/books/download/Neuromancer-sample-epub.acsm?id=Bd_UZAdvUDIC&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=Bd_UZAdvUDIC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Neuromancer was the first fully-realized glimpse of humankind’s digital future—a shocking vision that has challenged our assumptions about technology and ourselves, reinvented the way we speak and think, and forever altered the ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0756404746",
+      "isbn13": "9780756404741",
+      "title": "The Name of the Wind",
+      "volume": {
+        "kind": "books#volume",
+        "id": "zFGJEAAAQBAJ",
+        "etag": "1yRrR86VpcQ",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/zFGJEAAAQBAJ",
+        "volumeInfo": {
+          "title": "The Name of the Wind",
+          "authors": ["Patrick Rothfuss"],
+          "publisher": "Astra Publishing House",
+          "publishedDate": "2008-04-01",
+          "description": "Discover #1 New York Times-bestselling Patrick Rothfuss’ epic fantasy series, The Kingkiller Chronicle. “I just love the world of Patrick Rothfuss.” —Lin-Manuel Miranda OVER 1 MILLION COPIES SOLD! DAY ONE: THE NAME OF THE WIND My name is Kvothe. I have stolen princesses back from sleeping barrow kings. I burned down the town of Trebon. I have spent the night with Felurian and left with both my sanity and my life. I was expelled from the University at a younger age than most people are allowed in. I tread paths by moonlight that others fear to speak of during day. I have talked to Gods, loved women, and written songs that make the minstrels weep. You may have heard of me. So begins a tale unequaled in fantasy literature—the story of a hero told in his own voice. It is a tale of sorrow, a tale of survival, a tale of one man’s search for meaning in his universe, and how that search, and the indomitable will that drove it, gave birth to a legend.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780756404741"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0756404746"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": true
+          },
+          "pageCount": 738,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.3.1.0.preview.1",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=zFGJEAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=zFGJEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=zFGJEAAAQBAJ&printsec=frontcover&dq=isbn:9780756404741&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=zFGJEAAAQBAJ&dq=isbn:9780756404741&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Name_of_the_Wind.html?hl=&id=zFGJEAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.com/books/download/The_Name_of_the_Wind-sample-pdf.acsm?id=zFGJEAAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=zFGJEAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "DAY ONE: THE NAME OF THE WIND My name is Kvothe. I have stolen princesses back from sleeping barrow kings. I burned down the town of Trebon. I have spent the night with Felurian and left with both my sanity and my life."
+        }
+      }
+    },
+    {
+      "isbn10": "0593135202",
+      "isbn13": "9780593135204",
+      "title": "Project Hail Mary",
+      "volume": {
+        "kind": "books#volume",
+        "id": "CnSJEQAAQBAJ",
+        "etag": "EgReUpW7k/Q",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/CnSJEQAAQBAJ",
+        "volumeInfo": {
+          "title": "Project Hail Mary (Movie Tie-In)",
+          "subtitle": "A Novel",
+          "authors": ["Andy Weir"],
+          "publisher": "Random House",
+          "publishedDate": "2025-12-02",
+          "description": "THE #1 NEW YORK TIMES BESTSELLER FROM THE AUTHOR OF THE MARTIAN • Soon to be a major motion picture starring Ryan Gosling, directed by Phil Lord and Christopher Miller, with a screenplay by Drew Goddard A lone astronaut must save the earth from disaster in this “propulsive” (Entertainment Weekly), cinematic thriller full of suspense, humor, and fascinating science. HUGO AWARD FINALIST • ONE OF THE YEAR’S BEST BOOKS: Bill Gates, GatesNotes, New York Public Library, Parade, Newsweek, Polygon, Shelf Awareness, She Reads, Kirkus Reviews, Library Journal • New York Times Readers Pick: 100 Best Books of the 21st Century “An epic story of redemption, discovery and cool speculative sci-fi.”—USA Today “If you loved The Martian, you’ll go crazy for Weir’s latest.”—The Washington Post Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish. Except that right now, he doesn’t know that. He can’t even remember his own name, let alone the nature of his assignment or how to complete it. All he knows is that he’s been asleep for a very, very long time. And he’s just been awakened to find himself millions of miles from home, with nothing but two corpses for company. His crewmates dead, his memories fuzzily returning, Ryland realizes that an impossible task now confronts him. Hurtling through space on this tiny ship, it’s up to him to puzzle out an impossible scientific mystery—and conquer an extinction-level threat to our species. And with the clock ticking down and the nearest human being light-years away, he’s got to do it all alone. Or does he? An irresistible interstellar adventure as only Andy Weir could deliver, Project Hail Mary is a tale of discovery, speculation, and survival to rival The Martian—while taking us to places it never dreamed of going.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9798217299461"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": true
+          },
+          "pageCount": 497,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "1.2.1.0.preview.1",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=CnSJEQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=CnSJEQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=CnSJEQAAQBAJ&printsec=frontcover&dq=intitle:%22Project+Hail+Mary%22+inauthor:%22Andy+Weir%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=CnSJEQAAQBAJ&dq=intitle:%22Project+Hail+Mary%22+inauthor:%22Andy+Weir%22&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Project_Hail_Mary_Movie_Tie_In.html?hl=&id=CnSJEQAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.com/books/download/Project_Hail_Mary_Movie_Tie_In-sample-pdf.acsm?id=CnSJEQAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=CnSJEQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "HUGO AWARD FINALIST • NEW YORK TIMES READER PICK: 100 BEST BOOKS OF THE 21ST CENTURY • ONE OF THE YEAR’S BEST BOOKS: Parade, Newsweek, New York Public Library, Polygon, Shelf Awareness, She Reads, Kirkus Reviews, Library Journal ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0316229296",
+      "isbn13": "9780316229296",
+      "title": "The Fifth Season",
+      "volume": {
+        "kind": "books#volume",
+        "id": "tNPQnQEACAAJ",
+        "etag": "zsWCO7bTHaU",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/tNPQnQEACAAJ",
+        "volumeInfo": {
+          "title": "The Fifth Season",
+          "authors": ["N. K. Jemisin"],
+          "publisher": "Orbit",
+          "publishedDate": "2015-08-04",
+          "description": "\"Intricate and extraordinary.\" - New York Times on The Fifth Season (A New York Times Notable Book of 2015) WINNER OF THE HUGO AWARD FOR BEST NOVEL 2016 This is the way the world ends...for the last time. A season of endings has begun. It starts with the great red rift across the heart of the world's sole continent, spewing ash that blots out the sun. It starts with death, with a murdered son and a missing daughter. It starts with betrayal, and long dormant wounds rising up to fester. This is the Stillness, a land long familiar with catastrophe, where the power of the earth is wielded as a weapon. And where there is no mercy. For more from N. K. Jemisin, check out: The Inheritance Trilogy The Hundred Thousand Kingdoms The Broken Kingdoms The Kingdom of Gods The Inheritance Trilogy (omnibus edition) Shades in Shadow: An Inheritance Triptych (e-only short fiction) The Awakened Kingdom (e-only novella) Dreamblood Duology The Killing Moon The Shadowed Sun The Broken EarthThe Fifth SeasonThe Obelisk Gate",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0316229296"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780316229296"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 512,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=tNPQnQEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=tNPQnQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=tNPQnQEACAAJ&dq=isbn:9780316229296&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=tNPQnQEACAAJ&dq=isbn:9780316229296&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Fifth_Season.html?hl=&id=tNPQnQEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=tNPQnQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "&quot;Intricate and extraordinary.&quot; - New York Times on The Fifth Season (A New York Times Notable Book of 2015) WINNER OF THE HUGO AWARD FOR BEST NOVEL 2016 This is the way the world ends...for the last time. A season of endings has begun."
+        }
+      }
+    },
+    {
+      "isbn10": "1635575940",
+      "isbn13": "9781635575941",
+      "title": "Piranesi",
+      "volume": {
+        "kind": "books#volume",
+        "id": "1qy3zgEACAAJ",
+        "etag": "1MBgqm6/Ih4",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/1qy3zgEACAAJ",
+        "volumeInfo": {
+          "title": "Piranesi",
+          "subtitle": "Roman",
+          "authors": ["Susanna Clarke"],
+          "publishedDate": "2022-07-11",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "3453321987"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9783453321984"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 272,
+          "printType": "BOOK",
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "language": "de",
+          "previewLink": "http://books.google.com/books?id=1qy3zgEACAAJ&dq=intitle:%22Piranesi%22+inauthor:%22Susanna+Clarke%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=1qy3zgEACAAJ&dq=intitle:%22Piranesi%22+inauthor:%22Susanna+Clarke%22&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Piranesi.html?hl=&id=1qy3zgEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=1qy3zgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        }
+      }
+    },
+    {
+      "isbn10": "0316452505",
+      "isbn13": "9780316452502",
+      "title": "Children of Time",
+      "volume": {
+        "kind": "books#volume",
+        "id": "n7JfDwAAQBAJ",
+        "etag": "W/j9pF7kQnw",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/n7JfDwAAQBAJ",
+        "volumeInfo": {
+          "title": "Children of Time",
+          "authors": ["Adrian Tchaikovsky"],
+          "publisher": "Orbit",
+          "publishedDate": "2018-09-18",
+          "description": "Adrian Tchaikovsky's Arthur C. Clarke Award-winning novel Children of Time is the epic story of humanity's battle for survival on a terraformed planet. Who will inherit this new Earth? The last remnants of the human race left a dying Earth, desperate to find a new home among the stars. Following in the footsteps of their ancestors, they discover the greatest treasure of the past age—a world terraformed and prepared for human life. But all is not right in this new Eden. In the long years since the planet was abandoned, the work of its architects has borne disastrous fruit. The planet is not waiting for them, pristine and unoccupied. New masters have turned it from a refuge into mankind's worst nightmare. Now two civilizations are on a collision course, both testing the boundaries of what they will do to survive. As the fate of humanity hangs in the balance, who are the true heirs of this new Earth?",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780316452496"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0316452491"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 532,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 4,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": true,
+          "contentVersion": "2.9.10.0.preview.2",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=n7JfDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=n7JfDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=n7JfDwAAQBAJ&printsec=frontcover&dq=intitle:%22Children+of+Time%22+inauthor:%22Adrian+Tchaikovsky%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "https://play.google.com/store/books/details?id=n7JfDwAAQBAJ&source=gbs_api",
+          "canonicalVolumeLink": "https://play.google.com/store/books/details?id=n7JfDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "FOR_SALE",
+          "isEbook": true,
+          "listPrice": {
+            "amount": 9.99,
+            "currencyCode": "USD"
+          },
+          "retailPrice": {
+            "amount": 9.99,
+            "currencyCode": "USD"
+          },
+          "buyLink": "https://play.google.com/store/books/details?id=n7JfDwAAQBAJ&rdid=book-n7JfDwAAQBAJ&rdot=1&source=gbs_api",
+          "offers": [
+            {
+              "finskyOfferType": 1,
+              "listPrice": {
+                "amountInMicros": 9990000,
+                "currencyCode": "USD"
+              },
+              "retailPrice": {
+                "amountInMicros": 9990000,
+                "currencyCode": "USD"
+              },
+              "giftable": true
+            }
+          ]
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.com/books/download/Children_of_Time-sample-epub.acsm?id=n7JfDwAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=n7JfDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Adrian Tchaikovsky&#39;s Arthur C. Clarke Award-winning novel Children of Time is the epic story of humanity&#39;s battle for survival on a terraformed planet."
+        }
+      }
+    },
+    {
+      "isbn10": "0061054887",
+      "isbn13": "9780061054884",
+      "title": "The Dispossessed",
+      "volume": {
+        "kind": "books#volume",
+        "id": "h9ysQgAACAAJ",
+        "etag": "TNoOKPJew3o",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/h9ysQgAACAAJ",
+        "volumeInfo": {
+          "title": "The Dispossessed",
+          "authors": ["Ursula K. Le Guin"],
+          "publisher": "Harper Voyager",
+          "publishedDate": "1994-10-20",
+          "description": "Shevek, a brilliant physicist, decides to take action. he will seek answers, question the unquestionable, and attempt to tear down the walls of hatred that have isolated his planet of anarchists from the rest of the civilized universe. To do this dangerous task will mean giving up his family and possibly his life. Shevek must make the unprecedented journey to the utopian mother planet, Anarres, to challenge the complex structures of life and living, and ignite the fires of change.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0061054887"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780061054884"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 400,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "averageRating": 5,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=h9ysQgAACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=h9ysQgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=h9ysQgAACAAJ&dq=isbn:9780061054884&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=h9ysQgAACAAJ&dq=isbn:9780061054884&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Dispossessed.html?hl=&id=h9ysQgAACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=h9ysQgAACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Shevek, a brilliant physicist, decides to take action. he will seek answers, question the unquestionable, and attempt to tear down the walls of hatred that have isolated his planet of anarchists from the rest of the civilized universe."
+        }
+      }
+    },
+    {
+      "isbn10": "031624662X",
+      "isbn13": "9780316246620",
+      "title": "Ancillary Justice",
+      "volume": {
+        "kind": "books#volume",
+        "id": "JYQ4lwEACAAJ",
+        "etag": "Th/HYv8fGvE",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/JYQ4lwEACAAJ",
+        "volumeInfo": {
+          "title": "Ancillary Justice",
+          "authors": ["Ann Leckie"],
+          "publisher": "Orbit",
+          "publishedDate": "2013-10-01",
+          "description": "Winner of the Hugo, Nebula, British Science Fiction, Locus and Arthur C. Clarke Awards. On a remote, icy planet, the soldier known as Breq is drawing closer to completing her quest. Once, she was the Justice of Toren - a colossal starship with an artificial intelligence linking thousands of soldiers in the service of the Radch, the empire that conquered the galaxy. Now, an act of treachery has ripped it all away, leaving her with one fragile human body, unanswered questions, and a burning desire for vengeance. In the Ancillary world: 1. Ancillary Justice2. Ancillary Sword3. Ancillary Mercy",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "031624662X"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780316246620"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 416,
+          "printType": "BOOK",
+          "categories": ["Fiction"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=JYQ4lwEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=JYQ4lwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=JYQ4lwEACAAJ&dq=isbn:9780316246620&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=JYQ4lwEACAAJ&dq=isbn:9780316246620&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Ancillary_Justice.html?hl=&id=JYQ4lwEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=JYQ4lwEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "The only novel ever to win the Hugo, Nebula, and Arthur C. Clarke Awards and the first book in Ann Leckie&#39;s New York Times bestselling trilogy."
+        }
+      }
+    },
+    {
+      "isbn10": "1455586692",
+      "isbn13": "9781455586691",
+      "title": "Deep Work",
+      "volume": {
+        "kind": "books#volume",
+        "id": "foeNrgEACAAJ",
+        "etag": "OS3YWcAlNcs",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/foeNrgEACAAJ",
+        "volumeInfo": {
+          "title": "Deep Work",
+          "subtitle": "Rules for Focused Success in a Distracted World",
+          "authors": ["Cal Newport"],
+          "publisher": "Grand Central Publishing",
+          "publishedDate": "2016-01-05",
+          "description": "Read the Wall Street Journal Bestseller for \"cultivating intense focus\" for fast, powerful performance results for achieving success and true meaning in one's professional life (Adam Grant, author of Give and Take). Deep work is the ability to focus without distraction on a cognitively demanding task. It's a skill that allows you to quickly master complicated information and produce better results in less time. Deep work will make you better at what you do and provide the sense of true fulfillment that comes from craftsmanship. In short, deep work is like a super power in our increasingly competitive twenty-first century economy. And yet, most people have lost the ability to go deep-spending their days instead in a frantic blur of e-mail and social media, not even realizing there's a better way. In DEEP WORK, author and professor Cal Newport flips the narrative on impact in a connected age. Instead of arguing distraction is bad, he instead celebrates the power of its opposite. Dividing this book into two parts, he first makes the case that in almost any profession, cultivating a deep work ethic will produce massive benefits. He then presents a rigorous training regimen, presented as a series of four \"rules,\" for transforming your mind and habits to support this skill. 1. Work Deeply2. Embrace Boredom 3. Quit Social Media4. Drain the Shallows A mix of cultural criticism and actionable advice, DEEP WORK takes the reader on a journey through memorable stories-from Carl Jung building a stone tower in the woods to focus his mind, to a social media pioneer buying a round-trip business class ticket to Tokyo to write a book free from distraction in the air-and no-nonsense advice, such as the claim that most serious professionals should quit social media and that you should practice being bored. DEEP WORK is an indispensable guide to anyone seeking focused success in a distracted world. An Amazon Best Book of 2016 Pick in Business & LeadershipWall Street Journal Business BestsellerA Business Book of the Week at 800-CEO-READ",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "1455586692"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9781455586691"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "averageRating": 4,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=foeNrgEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=foeNrgEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=foeNrgEACAAJ&dq=isbn:9781455586691&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=foeNrgEACAAJ&dq=isbn:9781455586691&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Deep_Work.html?hl=&id=foeNrgEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=foeNrgEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Instead of arguing distraction is bad, he instead celebrates the power of its opposite. Dividing this book into two parts, he first makes the case that in almost any profession, cultivating a deep work ethic will produce massive benefits."
+        }
+      }
+    },
+    {
+      "isbn10": null,
+      "isbn13": "9780857197689",
+      "title": "The Psychology of Money",
+      "volume": {
+        "kind": "books#volume",
+        "id": "5HrrDwAAQBAJ",
+        "etag": "SGMbco1OlJ8",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/5HrrDwAAQBAJ",
+        "volumeInfo": {
+          "title": "The Psychology of Money",
+          "subtitle": "Timeless lessons on wealth, greed, and happiness",
+          "authors": ["Morgan Housel"],
+          "publisher": "Pan Macmillan",
+          "publishedDate": "2020-09-08",
+          "description": "Doing well with money isn’t necessarily about what you know. It’s about how you behave. And behavior is hard to teach, even to really smart people. Money—investing, personal finance, and business decisions—is typically taught as a math-based field, where data and formulas tell us exactly what to do. But in the real world people don’t make financial decisions on a spreadsheet. They make them at the dinner table, or in a meeting room, where personal history, your own unique view of the world, ego, pride, marketing, and odd incentives are scrambled together. In The Psychology of Money, award-winning author Morgan Housel shares 19 short stories exploring the strange ways people think about money and teaches you how to make better sense of one of life’s most important topics.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780857197689"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0857197681"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": false
+          },
+          "pageCount": 256,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": true,
+          "contentVersion": "0.3.4.0.preview.2",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=5HrrDwAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=5HrrDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=5HrrDwAAQBAJ&dq=isbn:9780857197689&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=5HrrDwAAQBAJ&dq=isbn:9780857197689&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Psychology_of_Money.html?hl=&id=5HrrDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": true
+          },
+          "pdf": {
+            "isAvailable": true
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=5HrrDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "In The Psychology of Money, award-winning author Morgan Housel shares 19 short stories exploring the strange ways people think about money and teaches you how to make better sense of one of life’s most important topics."
+        }
+      }
+    },
+    {
+      "isbn10": "0525536515",
+      "isbn13": "9780525536512",
+      "title": "Digital Minimalism",
+      "volume": {
+        "kind": "books#volume",
+        "id": "1eGCDwAAQBAJ",
+        "etag": "cSGFtOgIFdw",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/1eGCDwAAQBAJ",
+        "volumeInfo": {
+          "title": "Digital Minimalism",
+          "subtitle": "Choosing a Focused Life in a Noisy World",
+          "authors": ["Cal Newport"],
+          "publisher": "Penguin",
+          "publishedDate": "2019-02-05",
+          "description": "A New York Times, Wall Street Journal, Publishers Weekly, and USA Today bestseller \"Newport is making a bid to be the Marie Kondo of technology: someone with an actual plan for helping you realize the digital pursuits that do, and don't, bring value to your life.\"--Ezra Klein, Vox Minimalism is the art of knowing how much is just enough. Digital minimalism applies this idea to our personal technology. It's the key to living a focused life in an increasingly noisy world. In this timely and enlightening book, the bestselling author of Deep Work introduces a philosophy for technology use that has already improved countless lives. Digital minimalists are all around us. They're the calm, happy people who can hold long conversations without furtive glances at their phones. They can get lost in a good book, a woodworking project, or a leisurely morning run. They can have fun with friends and family without the obsessive urge to document the experience. They stay informed about the news of the day, but don't feel overwhelmed by it. They don't experience \"fear of missing out\" because they already know which activities provide them meaning and satisfaction. Now, Newport gives us a name for this quiet movement, and makes a persuasive case for its urgency in our tech-saturated world. Common sense tips, like turning off notifications, or occasional rituals like observing a digital sabbath, don't go far enough in helping us take back control of our technological lives, and attempts to unplug completely are complicated by the demands of family, friends and work. What we need instead is a thoughtful method to decide what tools to use, for what purposes, and under what conditions. Drawing on a diverse array of real-life examples, from Amish farmers to harried parents to Silicon Valley programmers, Newport identifies the common practices of digital minimalists and the ideas that underpin them. He shows how digital minimalists are rethinking their relationship to social media, rediscovering the pleasures of the offline world, and reconnecting with their inner selves through regular periods of solitude. He then shares strategies for integrating these practices into your life, starting with a thirty-day \"digital declutter\" process that has already helped thousands feel less overwhelmed and more in control. Technology is intrinsically neither good nor bad. The key is using it to support your goals and values, rather than letting it use you. This book shows the way.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780525536512"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0525536515"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 305,
+          "printType": "BOOK",
+          "categories": ["Self-Help"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.6.3.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=1eGCDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=1eGCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=1eGCDwAAQBAJ&printsec=frontcover&dq=isbn:9780525536512&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=1eGCDwAAQBAJ&dq=isbn:9780525536512&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Digital_Minimalism.html?hl=&id=1eGCDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=1eGCDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Technology is intrinsically neither good nor bad. The key is using it to support your goals and values, rather than letting it use you. This book shows the way."
+        }
+      }
+    },
+    {
+      "isbn10": null,
+      "isbn13": "9780374159122",
+      "title": "Four Thousand Weeks: Time Management for Mortals",
+      "volume": {
+        "kind": "books#volume",
+        "id": "5my-zQEACAAJ",
+        "etag": "+y3deX23guQ",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/5my-zQEACAAJ",
+        "volumeInfo": {
+          "title": "Four Thousand Weeks",
+          "subtitle": "Time Management for Mortals",
+          "authors": ["Oliver Burkeman"],
+          "publisher": "Farrar, Straus and Giroux",
+          "publishedDate": "2021-07-13",
+          "description": "Time is our biggest worry: there is too little of it. The award-winning, renowned Guardian columnist Oliver Burkeman offers a lively, entertaining philosophical guide to time and time management, setting aside superficial efficiency solutions in favor of reckoning with and finding joy in the finitude of human life The average human lifespan is absurdly, insultingly brief. Assuming you live to be eighty, you have just over four thousand weeks. Nobody needs telling there isn’t enough time. We’re obsessed with our lengthening to-do lists, our overfilled inboxes, work-life balance, and the ceaseless struggle against distraction; and we’re deluged with advice on becoming more productive and efficient, and “life hacks” to optimize our days. But such techniques often end up making things worse. The sense of anxious hurry grows more intense, and still the most meaningful parts of life seem to lie just beyond the horizon. Still, we rarely make the connection between our daily struggles with time and the ultimate time management problem: the challenge of how best to use our four thousand weeks. Drawing on the insights of both ancient and contemporary philosophers, psychologists, and spiritual teachers, Oliver Burkeman delivers an entertaining, humorous, practical, and ultimately profound guide to time and time management. Rejecting the futile modern obsession with “getting everything done,” Four Thousand Weeks introduces readers to tools for constructing a meaningful life, showing how many of the unhelpful ways we’ve come to think about time aren’t inescapable, unchanging truths, but choices we’ve made as individuals and as a society—and that we could do things differently.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0374159122"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780374159122"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 224,
+          "printType": "BOOK",
+          "categories": ["Self-Help"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=5my-zQEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=5my-zQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=5my-zQEACAAJ&dq=isbn:9780374159122&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=5my-zQEACAAJ&dq=isbn:9780374159122&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Four_Thousand_Weeks.html?hl=&id=5my-zQEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=5my-zQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Rejecting the futile modern fixation on “getting everything done,” Four Thousand Weeks introduces readers to tools for constructing a meaningful life by embracing finitude, showing how many of the unhelpful ways we’ve come to think ..."
+        }
+      }
+    },
+    {
+      "isbn10": "0804137382",
+      "isbn13": "9780804137386",
+      "title": "Essentialism: The Disciplined Pursuit of Less",
+      "volume": {
+        "kind": "books#volume",
+        "id": "CleNDQAAQBAJ",
+        "etag": "ZzURMhxWUu4",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/CleNDQAAQBAJ",
+        "volumeInfo": {
+          "title": "Essentialism",
+          "subtitle": "The Disciplined Pursuit of Less",
+          "authors": ["Greg McKeown"],
+          "publisher": "Crown Currency",
+          "publishedDate": "2014-04-15",
+          "description": "THE LIFE-CHANGING NEW YORK TIMES BESTSELLER • MORE THAN TWO MILLION COPIES SOLD “Essentialism holds the keys to solving one of the great puzzles of life: How can we do less but accomplish more?”—Adam Grant, bestselling author of Think Again Essentialism isn’t about getting more done in less time. It’s about getting only the right things done. Have you ever found yourself stretched too thin? Are you often busy but not productive? Do you feel like your time is constantly being hijacked? If you answered yes to any of these, the way out is the Way of the Essentialist. Essentialism is more than a time-management technique. It is a systematic discipline for discerning what is absolutely essential, then eliminating everything that is not, so we can make the highest possible contribution toward the things that really matter. By forcing us to apply more selective criteria for where to spend our precious time and energy, the disciplined pursuit of less empowers us to reclaim control of our own choices, instead of giving others the implicit permission to choose for us. Essentialism is not one more thing to do. It’s a whole new way of doing less, but better, in every area of our lives. Join the millions of people who have used Essentialism to change their outlook on the world.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780804137386"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0804137382"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 274,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "averageRating": 5,
+          "ratingsCount": 1,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.6.0.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=CleNDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=CleNDQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=CleNDQAAQBAJ&printsec=frontcover&dq=isbn:9780804137386&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=CleNDQAAQBAJ&dq=isbn:9780804137386&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Essentialism.html?hl=&id=CleNDQAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=CleNDQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Essentialism is not one more thing to do. It’s a whole new way of doing less, but better, in every area of our lives. Join the millions of people who have used Essentialism to change their outlook on the world."
+        }
+      }
+    },
+    {
+      "isbn10": "0735216355",
+      "isbn13": "9780735216358",
+      "title": "Thinking in Bets",
+      "volume": {
+        "kind": "books#volume",
+        "id": "hOZFDwAAQBAJ",
+        "etag": "9J3TP1Q8pRA",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/hOZFDwAAQBAJ",
+        "volumeInfo": {
+          "title": "Thinking in Bets",
+          "subtitle": "Making Smarter Decisions When You Don't Have All the Facts",
+          "authors": ["Annie Duke"],
+          "publisher": "Penguin",
+          "publishedDate": "2018-02-06",
+          "description": "NATIONAL BESTSELLER • Poker champion turned business consultant Annie Duke teaches you how to get comfortable with uncertainty and make better decisions as a result in “the ultimate guide to thinking about risk” (Charles Duhigg, author of The Power of Habit). “A big favorite among investors these days.”—The New York Times “Outstanding.”—Jason Zweig, The Wall Street Journal In Super Bowl XLIX, Seahawks coach Pete Carroll made one of the most controversial calls in football history: With 26 seconds remaining, and trailing by four at the Patriots' one-yard line, he called for a pass instead of a hand off to his star running back. The pass was intercepted and the Seahawks lost. Critics called it the dumbest play in history. But was the call really that bad? Or did Carroll actually make a great move that was ruined by bad luck? Even the best decision doesn't yield the best outcome every time. There's always an element of luck that you can't control, and there is always information that is hidden from view. So the key to long-term success (and avoiding worrying yourself to death) is to think in bets: How sure am I? What are the possible ways things could turn out? What decision has the highest odds of success? Did I land in the unlucky 10% on the strategy that works 90% of the time? Or is my success attributable to dumb luck rather than great decision making? Annie Duke, a former World Series of Poker champion turned business consultant, draws on examples from business, sports, politics, and (of course) poker to share tools anyone can use to embrace uncertainty and make better decisions. For most people, it's difficult to say \"I'm not sure\" in a world that values and, even, rewards the appearance of certainty. But professional poker players are comfortable with the fact that great decisions don't always lead to great outcomes and bad decisions don't always lead to bad outcomes. By shifting your thinking from a need for certainty to a goal of accurately assessing what you know and what you don't, you'll be less vulnerable to reactive emotions, knee-jerk biases, and destructive habits in your decision making. You'll become more confident, calm, compassionate and successful in the long run.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780735216358"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0735216355"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 289,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.6.2.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=hOZFDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=hOZFDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=hOZFDwAAQBAJ&printsec=frontcover&dq=isbn:9780735216358&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=hOZFDwAAQBAJ&dq=isbn:9780735216358&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Thinking_in_Bets.html?hl=&id=hOZFDwAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=hOZFDwAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "What decision has the highest odds of success? Did I land in the unlucky 10% on the strategy that works 90% of the time? Or is my success attributable to dumb luck rather than great decision making?"
+        }
+      }
+    },
+    {
+      "isbn10": "1591846358",
+      "isbn13": "9781591846352",
+      "title": "The Obstacle Is the Way",
+      "volume": {
+        "kind": "books#volume",
+        "id": "jWqJDQAAQBAJ",
+        "etag": "yhtGkc1JQjI",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/jWqJDQAAQBAJ",
+        "volumeInfo": {
+          "title": "The Obstacle Is the Way",
+          "subtitle": "The Timeless Art of Turning Trials into Triumph",
+          "authors": ["Ryan Holiday"],
+          "publisher": "Penguin",
+          "publishedDate": "2014-05-01",
+          "description": "#1 Wall Street Journal Bestseller The Obstacle is the Way has become a cult classic, beloved by men and women around the world who apply its wisdom to become more successful at whatever they do. Its many fans include a former governor and movie star (Arnold Schwarzenegger), a hip hop icon (LL Cool J), an Irish tennis pro (James McGee), an NBC sportscaster (Michele Tafoya), and the coaches and players of winning teams like the New England Patriots, Seattle Seahawks, Chicago Cubs, and University of Texas men’s basketball team. The book draws its inspiration from stoicism, the ancient Greek philosophy of enduring pain or adversity with perseverance and resilience. Stoics focus on the things they can control, let go of everything else, and turn every new obstacle into an opportunity to get better, stronger, tougher. As Marcus Aurelius put it nearly 2000 years ago: “The impediment to action advances action. What stands in the way becomes the way.” Ryan Holiday shows us how some of the most successful people in history—from John D. Rockefeller to Amelia Earhart to Ulysses S. Grant to Steve Jobs—have applied stoicism to overcome difficult or even impossible situations. Their embrace of these principles ultimately mattered more than their natural intelligence, talents, or luck. If you’re feeling frustrated, demoralized, or stuck in a rut, this book can help you turn your problems into your biggest advantages. And along the way it will inspire you with dozens of true stories of the greats from every age and era.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781591846352"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1591846358"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 226,
+          "printType": "BOOK",
+          "categories": ["Business & Economics"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.8.0.0.preview.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=jWqJDQAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=jWqJDQAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=jWqJDQAAQBAJ&printsec=frontcover&dq=isbn:9781591846352&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=jWqJDQAAQBAJ&dq=isbn:9781591846352&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Obstacle_Is_the_Way.html?hl=&id=jWqJDQAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=jWqJDQAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "If you’re feeling frustrated, demoralized, or stuck in a rut, this book can help you turn your problems into your biggest advantages. And along the way it will inspire you with dozens of true stories of the greats from every age and era."
+        }
+      }
+    },
+    {
+      "isbn10": "0135957052",
+      "isbn13": "9780135957059",
+      "title": "The Pragmatic Programmer",
+      "volume": {
+        "kind": "books#volume",
+        "id": "sNeFxAEACAAJ",
+        "etag": "cQjHyADforQ",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/sNeFxAEACAAJ",
+        "volumeInfo": {
+          "title": "The Pragmatic Programmer",
+          "authors": ["David Hurst Thomas", "Andrew Hunt"],
+          "publisher": "Addison-Wesley Professional",
+          "publishedDate": "2019-09-13",
+          "description": "Using anecdotes, analogies, examples and parables, this user-friendly guide offers techniques for getting any programming job done effectively, and can help any programmer improve skills, no matter what level. Incorporates today's top languages, including Java, C, C++, and Perl.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0135957052"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780135957059"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 352,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=sNeFxAEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=sNeFxAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=sNeFxAEACAAJ&dq=isbn:9780135957059&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=sNeFxAEACAAJ&dq=isbn:9780135957059&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/The_Pragmatic_Programmer.html?hl=&id=sNeFxAEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=sNeFxAEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "&quot; --Obie Fernandez, Author, The Rails Way &quot;Twenty years ago, the first edition of The Pragmatic Programmer completely changed the trajectory of my career. This new edition could do the same for yours."
+        }
+      }
+    },
+    {
+      "isbn10": "0132350882",
+      "isbn13": "9780132350884",
+      "title": "Clean Code",
+      "volume": {
+        "kind": "books#volume",
+        "id": "hjEFCAAAQBAJ",
+        "etag": "zIprsldFpW4",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/hjEFCAAAQBAJ",
+        "volumeInfo": {
+          "title": "Clean Code",
+          "subtitle": "A Handbook of Agile Software Craftsmanship",
+          "authors": ["Robert C. Martin"],
+          "publisher": "Pearson Education",
+          "publishedDate": "2009",
+          "description": "This title shows the process of cleaning code. Rather than just illustrating the end result, or just the starting and ending state, the author shows how several dozen seemingly small code changes can positively impact the performance and maintainability of an application code base.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780132350884"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0132350882"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": true
+          },
+          "pageCount": 464,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "averageRating": 4.5,
+          "ratingsCount": 3,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.1.1.0.preview.1",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=hjEFCAAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=hjEFCAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=hjEFCAAAQBAJ&printsec=frontcover&dq=isbn:9780132350884&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=hjEFCAAAQBAJ&dq=isbn:9780132350884&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Clean_Code.html?hl=&id=hjEFCAAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=hjEFCAAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "This title shows the process of cleaning code."
+        }
+      }
+    },
+    {
+      "isbn10": "1449373321",
+      "isbn13": "9781449373320",
+      "title": "Designing Data-Intensive Applications",
+      "volume": {
+        "kind": "books#volume",
+        "id": "BM7woQEACAAJ",
+        "etag": "HZPnC5pIbno",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/BM7woQEACAAJ",
+        "volumeInfo": {
+          "title": "Designing Data-intensive Applications",
+          "subtitle": "The Big Ideas Behind Reliable, Scalable, and Maintainable Systems",
+          "authors": ["Martin Kleppmann"],
+          "publisher": "Oreilly & Associates Incorporated",
+          "publishedDate": "2017",
+          "description": "Want to know how the best software engineers and architects structure their applications to make them scalable, reliable, and maintainable in the long term? This book examines the key principles, algorithms, and trade-offs of data systems, using the internals of various popular software packages and frameworks as examples. Tools at your disposal are evolving and demands on applications are increasing, but the principles behind them remain the same. You'll learn how to determine what kind of tool is appropriate for which purpose, and how certain tools can be combined to form the foundation of a good application architecture. You'll learn how to develop an intuition for what your systems are doing, so that you're better able to track down any problems that arise.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "1449373321"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9781449373320"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 590,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=BM7woQEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=BM7woQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=BM7woQEACAAJ&dq=isbn:9781449373320&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=BM7woQEACAAJ&dq=isbn:9781449373320&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Designing_Data_intensive_Applications.html?hl=&id=BM7woQEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=BM7woQEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "This book examines the key principles, algorithms, and trade-offs of data systems, using the internals of various popular software packages and frameworks as examples."
+        }
+      }
+    },
+    {
+      "isbn10": null,
+      "isbn13": "9781732102200",
+      "title": "A Philosophy of Software Design",
+      "volume": {
+        "kind": "books#volume",
+        "id": "pD6-swEACAAJ",
+        "etag": "0fJJXnjFlQw",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/pD6-swEACAAJ",
+        "volumeInfo": {
+          "title": "A Philosophy of Software Design",
+          "authors": ["John Ousterhout"],
+          "publisher": "Yaknyam Publishing",
+          "publishedDate": "2018-04-10",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "1732102201"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9781732102200"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "printType": "BOOK",
+          "averageRating": 4,
+          "ratingsCount": 2,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=pD6-swEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=pD6-swEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=pD6-swEACAAJ&dq=isbn:9781732102200&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=pD6-swEACAAJ&dq=isbn:9781732102200&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/A_Philosophy_of_Software_Design.html?hl=&id=pD6-swEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=pD6-swEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "The book also introduces a set of red flags that identify design problems. You can apply the ideas in this book to minimize the complexity of large software systems, so that you can write software more quickly and cheaply.&quot;--"
+        }
+      }
+    },
+    {
+      "isbn10": "0134757599",
+      "isbn13": "9780134757599",
+      "title": "Refactoring: Improving the Design of Existing Code",
+      "volume": {
+        "kind": "books#volume",
+        "id": "o69NtAEACAAJ",
+        "etag": "U5Wnt+1cq20",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/o69NtAEACAAJ",
+        "volumeInfo": {
+          "title": "Refactoring",
+          "subtitle": "Improving the Design of Existing Code",
+          "authors": ["Martin Fowler"],
+          "publisher": "Addison-Wesley Professional",
+          "publishedDate": "2019",
+          "description": "\"Whenever you read Refactoring], it's time to read it again. And if you haven't read it yet, please do before writing another line of code.\" -David Heinemeier Hansson, Creator of Ruby on Rails, Founder & CTO at Basecamp Fully Revised and Updated--Includes New Refactorings and Code Examples \"Any fool can write code that a computer can understand. Good programmers write code that humans can understand.\" -M. Fowler (1999) For more than twenty years, experienced programmers worldwide have relied on Martin Fowler's Refactoring to improve the design of existing code and to enhance software maintainability, as well as to make existing code easier to understand. This eagerly awaited new edition has been fully updated to reflect crucial changes in the programming landscape. Refactoring, Second Edition, features an updated catalog of refactorings and includes JavaScript code examples, as well as new functional examples that demonstrate refactoring without classes. Like the original, this edition explains what refactoring is; why you should refactor; how to recognize code that needs refactoring; and how to actually do it successfully, no matter what language you use. Understand the process and general principles of refactoring Quickly apply useful refactorings to make a program easier to comprehend and change Recognize \"bad smells\" in code that signal opportunities to refactor Explore the refactorings, each with explanations, motivation, mechanics, and simple examples Build solid tests for your refactorings Recognize tradeoffs and obstacles to refactoring Includes free access to the canonical web edition, with even more refactoring resources. (See inside the book for details about how to access the web edition.)",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_10",
+              "identifier": "0134757599"
+            },
+            {
+              "type": "ISBN_13",
+              "identifier": "9780134757599"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": false
+          },
+          "pageCount": 0,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "preview-1.0.0",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=o69NtAEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=o69NtAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=o69NtAEACAAJ&dq=isbn:9780134757599&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=o69NtAEACAAJ&dq=isbn:9780134757599&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Refactoring.html?hl=&id=o69NtAEACAAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "NO_PAGES",
+          "embeddable": false,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=o69NtAEACAAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "NONE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Martin Fowler&#39;s &#39;Refactoring&#39; defined core ideas and techniques that hundreds of thousands of developers have used to improve their software. Now, Fowler has thoroughly updated his book to reflect modern programming techniques."
+        }
+      }
+    },
+    {
+      "isbn10": "0201835959",
+      "isbn13": "9780201835953",
+      "title": "The Mythical Man-Month",
+      "volume": {
+        "kind": "books#volume",
+        "id": "Yq35BY5Fk3gC",
+        "etag": "LRwGeelUmJQ",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/Yq35BY5Fk3gC",
+        "volumeInfo": {
+          "title": "The Mythical Man-Month",
+          "subtitle": "Essays on Software Engineering, Anniversary Edition",
+          "authors": ["Frederick P. Brooks Jr."],
+          "publisher": "Pearson Education",
+          "publishedDate": "1995-08-02",
+          "description": "Few books on software project management have been as influential and timeless as The Mythical Man-Month. With a blend of software engineering facts and thought-provoking opinions, Fred Brooks offers insight for anyone managing complex projects. These essays draw from his experience as project manager for the IBM System/360 computer family and then for OS/360, its massive software system. Now, 20 years after the initial publication of his book, Brooks has revisited his original ideas and added new thoughts and advice, both for readers already familiar with his work and for readers discovering it for the first time. The added chapters contain (1) a crisp condensation of all the propositions asserted in the original book, including Brooks' central argument in The Mythical Man-Month: that large programming projects suffer management problems different from small ones due to the division of labor; that the conceptual integrity of the product is therefore critical; and that it is difficult but possible to achieve this unity; (2) Brooks' view of these propositions a generation later; (3) a reprint of his classic 1986 paper \"No Silver Bullet\"; and (4) today's thoughts on the 1986 assertion, \"There will be no silver bullet within ten years.\"",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780132119160"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0132119161"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": true
+          },
+          "pageCount": 348,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "averageRating": 4.5,
+          "ratingsCount": 6,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": true,
+          "contentVersion": "2.19.13.0.preview.3",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=Yq35BY5Fk3gC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=Yq35BY5Fk3gC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=Yq35BY5Fk3gC&printsec=frontcover&dq=intitle:%22The+Mythical+Man-Month%22+inauthor:%22Frederick+P.+Brooks+Jr.%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "https://play.google.com/store/books/details?id=Yq35BY5Fk3gC&source=gbs_api",
+          "canonicalVolumeLink": "https://play.google.com/store/books/details?id=Yq35BY5Fk3gC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "FOR_SALE",
+          "isEbook": true,
+          "listPrice": {
+            "amount": 41.99,
+            "currencyCode": "USD"
+          },
+          "retailPrice": {
+            "amount": 31.91,
+            "currencyCode": "USD"
+          },
+          "buyLink": "https://play.google.com/store/books/details?id=Yq35BY5Fk3gC&rdid=book-Yq35BY5Fk3gC&rdot=1&source=gbs_api",
+          "offers": [
+            {
+              "finskyOfferType": 1,
+              "listPrice": {
+                "amountInMicros": 41990000,
+                "currencyCode": "USD"
+              },
+              "retailPrice": {
+                "amountInMicros": 31910000,
+                "currencyCode": "USD"
+              },
+              "giftable": true
+            }
+          ]
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=Yq35BY5Fk3gC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "These essays draw from his experience as project manager for the IBM System/360 computer family and then for OS/360, its massive software system."
+        }
+      }
+    },
+    {
+      "isbn10": "0321965515",
+      "isbn13": "9780321965516",
+      "title": "Don't Make Me Think",
+      "volume": {
+        "kind": "books#volume",
+        "id": "qahpAgAAQBAJ",
+        "etag": "5vSrCJl8Y+g",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/qahpAgAAQBAJ",
+        "volumeInfo": {
+          "title": "Don't Make Me Think, Revisited",
+          "subtitle": "A Common Sense Approach to Web Usability",
+          "authors": ["Steve Krug"],
+          "publisher": "Pearson Education",
+          "publishedDate": "2014",
+          "description": "Examines the principles behind website design and development. Includes examples and information on ensuring your website is usable on a mobile device.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9780321965516"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "0321965515"
+            }
+          ],
+          "readingModes": {
+            "text": false,
+            "image": true
+          },
+          "pageCount": 214,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": false,
+          "contentVersion": "0.3.2.0.preview.1",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=qahpAgAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=qahpAgAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=qahpAgAAQBAJ&printsec=frontcover&dq=isbn:9780321965516&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=qahpAgAAQBAJ&dq=isbn:9780321965516&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Don_t_Make_Me_Think_Revisited.html?hl=&id=qahpAgAAQBAJ"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED_FOR_ACCESSIBILITY",
+          "epub": {
+            "isAvailable": false
+          },
+          "pdf": {
+            "isAvailable": false
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=qahpAgAAQBAJ&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Examines the principles behind website design and development. Includes examples and information on ensuring your website is usable on a mobile device."
+        }
+      }
+    },
+    {
+      "isbn10": "1593272820",
+      "isbn13": "9781593272821",
+      "title": "Eloquent JavaScript",
+      "volume": {
+        "kind": "books#volume",
+        "id": "9U5I_tskq9MC",
+        "etag": "wmRdI4vfWWE",
+        "selfLink": "https://www.googleapis.com/books/v1/volumes/9U5I_tskq9MC",
+        "volumeInfo": {
+          "title": "Eloquent JavaScript",
+          "subtitle": "A Modern Introduction to Programming",
+          "authors": ["Marijn Haverbeke"],
+          "publisher": "No Starch Press",
+          "publishedDate": "2011",
+          "description": "Provides information and examples on writing JavaScript code, covering such topics as syntax, control, data, regular expressions, and scripting.",
+          "industryIdentifiers": [
+            {
+              "type": "ISBN_13",
+              "identifier": "9781593272821"
+            },
+            {
+              "type": "ISBN_10",
+              "identifier": "1593272820"
+            }
+          ],
+          "readingModes": {
+            "text": true,
+            "image": true
+          },
+          "pageCount": 227,
+          "printType": "BOOK",
+          "categories": ["Computers"],
+          "averageRating": 4,
+          "ratingsCount": 6,
+          "maturityRating": "NOT_MATURE",
+          "allowAnonLogging": true,
+          "contentVersion": "0.4.4.0.preview.3",
+          "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+          },
+          "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=9U5I_tskq9MC&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=9U5I_tskq9MC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+          },
+          "language": "en",
+          "previewLink": "http://books.google.com/books?id=9U5I_tskq9MC&printsec=frontcover&dq=intitle:%22Eloquent+JavaScript%22+inauthor:%22Marijn+Haverbeke%22&hl=&as_pt=BOOKS&cd=1&source=gbs_api",
+          "infoLink": "http://books.google.com/books?id=9U5I_tskq9MC&dq=intitle:%22Eloquent+JavaScript%22+inauthor:%22Marijn+Haverbeke%22&hl=&as_pt=BOOKS&source=gbs_api",
+          "canonicalVolumeLink": "https://books.google.com/books/about/Eloquent_JavaScript.html?hl=&id=9U5I_tskq9MC"
+        },
+        "saleInfo": {
+          "country": "US",
+          "saleability": "NOT_FOR_SALE",
+          "isEbook": false
+        },
+        "accessInfo": {
+          "country": "US",
+          "viewability": "PARTIAL",
+          "embeddable": true,
+          "publicDomain": false,
+          "textToSpeechPermission": "ALLOWED",
+          "epub": {
+            "isAvailable": true
+          },
+          "pdf": {
+            "isAvailable": true
+          },
+          "webReaderLink": "http://play.google.com/books/reader?id=9U5I_tskq9MC&hl=&as_pt=BOOKS&source=gbs_api",
+          "accessViewStatus": "SAMPLE",
+          "quoteSharingAllowed": false
+        },
+        "searchInfo": {
+          "textSnippet": "Provides information and examples on writing JavaScript code, covering such topics as syntax, control, data, regular expressions, and scripting."
+        }
+      }
+    }
+  ]
+}

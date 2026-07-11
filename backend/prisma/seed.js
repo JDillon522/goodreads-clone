@@ -2,6 +2,7 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const {
   PrismaClient,
   BookProvider,
+  GoogleBooksSyncStatus,
   LibraryItemStatus,
   ProgressTrackingMode,
   ThemePreference,
@@ -127,9 +128,96 @@ function dateDaysAgo(daysAgo) {
   return date;
 }
 
+function cleanIsbn(value) {
+  return typeof value === 'string' ? value.replace(/[-\s]/g, '').toUpperCase() || null : null;
+}
+
+function readGoogleBooksSnapshot() {
+  const snapshotPath = path.resolve(__dirname, '../../data/google-books-snapshot.json');
+  const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
+
+  if (snapshot.provider !== 'GOOGLE_BOOKS' || !Array.isArray(snapshot.volumes)) {
+    throw new Error('data/google-books-snapshot.json is not a valid Google Books snapshot.');
+  }
+
+  return snapshot;
+}
+
+async function prewarmGoogleBooksCache(books, snapshot) {
+  const snapshotsByIsbn = new Map();
+  const snapshotsByTitle = new Map();
+
+  for (const entry of snapshot.volumes) {
+    if (typeof entry.title === 'string') {
+      snapshotsByTitle.set(normalizeText(entry.title), entry);
+    }
+
+    for (const isbn of [cleanIsbn(entry.isbn13), cleanIsbn(entry.isbn10)]) {
+      if (isbn) {
+        snapshotsByIsbn.set(isbn, entry);
+      }
+    }
+  }
+
+  for (const sampleBook of books) {
+    const identity = cleanIsbn(sampleBook.isbn13) ?? cleanIsbn(sampleBook.isbn10);
+    const entry =
+      (identity ? snapshotsByIsbn.get(identity) : null) ??
+      snapshotsByTitle.get(normalizeText(sampleBook.title));
+    const volume = entry?.volume;
+    const volumeInfo = volume?.volumeInfo;
+
+    if (!entry || !volume || typeof volume.id !== 'string' || !volumeInfo) {
+      throw new Error(`Google Books snapshot is missing ${sampleBook.title}.`);
+    }
+
+    const authors = Array.isArray(volumeInfo.authors) ? volumeInfo.authors : [];
+    const sourceId = sourceIdForBook(sampleBook);
+    const sourceUrl =
+      typeof volumeInfo.infoLink === 'string'
+        ? volumeInfo.infoLink.replace(/^http:\/\//i, 'https://')
+        : null;
+
+    await prisma.book.upsert({
+      where: {
+        sourceProvider_sourceId: {
+          sourceProvider: BookProvider.GOOGLE_BOOKS,
+          sourceId,
+        },
+      },
+      create: {
+        sourceProvider: BookProvider.GOOGLE_BOOKS,
+        sourceId,
+        sourceUrl,
+        isbn10: cleanIsbn(entry.isbn10),
+        isbn13: cleanIsbn(entry.isbn13),
+        googleBooksVolumeId: volume.id,
+        googleBooksSyncedAt: new Date(snapshot.generatedAt),
+        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+        googleBooksRawPayload: volume,
+        normalizedTitle: normalizeText(volumeInfo.title ?? sampleBook.title),
+        normalizedPrimaryAuthor: authors[0] ? normalizeText(authors[0]) : null,
+      },
+      update: {
+        sourceUrl,
+        isbn10: cleanIsbn(entry.isbn10),
+        isbn13: cleanIsbn(entry.isbn13),
+        googleBooksVolumeId: volume.id,
+        googleBooksSyncedAt: new Date(snapshot.generatedAt),
+        googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+        googleBooksRawPayload: volume,
+        googleBooksError: null,
+        normalizedTitle: normalizeText(volumeInfo.title ?? sampleBook.title),
+        normalizedPrimaryAuthor: authors[0] ? normalizeText(authors[0]) : null,
+      },
+    });
+  }
+}
+
 async function main() {
   const sampleBooksPath = path.resolve(__dirname, '../../data/sample-books.json');
   const books = JSON.parse(fs.readFileSync(sampleBooksPath, 'utf8'));
+  const googleBooksSnapshot = readGoogleBooksSnapshot();
   const year = new Date().getUTCFullYear();
   const adminEmail = requiredEnv('ADMIN_EMAIL');
   const adminUsername = requiredEnv('ADMIN_USERNAME');
@@ -137,6 +225,8 @@ async function main() {
     type: argon2.argon2id,
   });
   const adminDisplayName = process.env.ADMIN_DISPLAY_NAME || 'Bookshelf Admin';
+
+  await prewarmGoogleBooksCache(books, googleBooksSnapshot);
 
   const adminUser = await prisma.user.upsert({
     where: { username: adminUsername },
@@ -257,38 +347,10 @@ async function main() {
       continue;
     }
 
-    const normalizedTitle = normalizeText(sampleBook.title);
-    const normalizedPrimaryAuthor = sampleBook.author ? normalizeText(sampleBook.author) : null;
-    const sourceId = sourceIdForBook(sampleBook);
     const shelfSlug = shelfSlugForIndex(index);
     const shelf = shelves[shelfSlug];
     const isRead = shelfSlug === 'read' || shelfSlug === 'favorites';
     const isCurrentlyReading = shelfSlug === 'currently-reading';
-
-    await prisma.book.upsert({
-      where: {
-        sourceProvider_sourceId: {
-          sourceProvider: BookProvider.SAMPLE,
-          sourceId,
-        },
-      },
-      create: {
-        sourceProvider: BookProvider.SAMPLE,
-        sourceId,
-        isbn10: sampleBook.isbn10 ?? null,
-        isbn13: sampleBook.isbn13 ?? null,
-        normalizedTitle,
-        normalizedPrimaryAuthor,
-        rawProviderPayload: { legacy: sampleBook },
-      },
-      update: {
-        isbn10: sampleBook.isbn10 ?? null,
-        isbn13: sampleBook.isbn13 ?? null,
-        normalizedTitle,
-        normalizedPrimaryAuthor,
-        rawProviderPayload: { legacy: sampleBook },
-      },
-    });
 
     const currentPercent = isCurrentlyReading ? 20 + (index - 15) * 15 : isRead ? 100 : null;
     const currentPage =

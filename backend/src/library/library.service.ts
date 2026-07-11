@@ -45,7 +45,7 @@ export class LibraryService {
     private readonly prisma: PrismaService,
   ) {}
   /**
-   * Adds an Open Library book to the owner's library, defaulting to Unshelved when no target shelf
+   * Adds a Google Books volume to the owner's library, defaulting to Unshelved when no target shelf
    * is supplied. Existing books gain another shelf membership instead of being duplicated.
    */
   public async addLibraryItem(

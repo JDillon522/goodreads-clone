@@ -37,7 +37,7 @@ Swagger is the backend contract testing surface before frontend work. It uses st
 
 Auth uses short-lived JWT access tokens and opaque refresh tokens stored as hashes in Postgres. In development and test, password reset requests return the reset token in the JSON response so the flow can be tested directly from Swagger. Production hides that token; real email delivery can be added later.
 
-Book search is public and Google Books is the primary provider. Search uses Google-native pagination and controls, persists normalized Google volumes into reusable `Book` cache rows, and then enriches those rows with Open Library metadata where Google is sparse. Open Library remains an internal enrichment source for subjects, work keys, related/series hints, alternate cover context, and first-publish context. Google sync status, volume id, raw payload, and errors stay on the `Book` row so provider failures can be inspected later. Missing provider data stays nullable; the frontend owns visual fallbacks like placeholder covers.
+Book search is public and Google Books is the sole metadata provider. Search uses Google-native pagination and controls and persists raw Google volumes into reusable `Book` cache rows. Related-book candidate searches, series detection, external links, covers, and theme palettes all use the same Google-backed cache. Google sync status, volume id, raw payload, and errors stay on the `Book` row so provider failures can be inspected later. Missing provider data stays nullable; the frontend owns visual fallbacks like placeholder covers.
 
 Shelves, library items, progress, ratings, notes, and goals require bearer auth. These routes accept either a signed-in user access token or a guest token from `POST /api/guest/session`. Library add requires at least one ISBN, stores ISBNs and personal state on `LibraryItem`, resolves reusable metadata through the shared `Book` cache, rejects owner-scoped duplicates, creates the requested shelf membership when provided, and emits activity events for meaningful actions. ISBN-less Google results can be viewed through the info-only route but cannot be saved.
 
@@ -50,14 +50,11 @@ GUEST_SESSION_TTL_DAYS=7
 GOOGLE_BOOKS_API_KEY=
 GOOGLE_BOOKS_BASE_URL=https://www.googleapis.com/books/v1
 GOOGLE_BOOKS_REQUEST_TIMEOUT_MS=8000
-OPEN_LIBRARY_BASE_URL=https://openlibrary.org
-OPEN_LIBRARY_USER_AGENT="Bookshelf/0.1.0 (local development; contact: local@example.com)"
-OPEN_LIBRARY_SEARCH_CACHE_TTL_HOURS=24
-OPEN_LIBRARY_DETAIL_CACHE_TTL_HOURS=168
-OPEN_LIBRARY_REQUEST_TIMEOUT_MS=8000
 ```
 
-If local Open Library requests fail with `SELF_SIGNED_CERT_IN_CHAIN`, the machine/network is intercepting HTTPS with an untrusted local certificate. Put the trusted CA at `certs/local-ca.pem`; `npm run dev:backend` and `npm run docker:up` will automatically set `NODE_EXTRA_CA_CERTS` for backend startup. Direct `docker compose up` also points the backend at `/app/certs/local-ca.pem` through the development override. You can still override the path manually with `NODE_EXTRA_CA_CERTS=/path/to/local-ca.pem`. Do not make `NODE_TLS_REJECT_UNAUTHORIZED=0` a runtime default.
+If local Google Books requests fail with `SELF_SIGNED_CERT_IN_CHAIN`, the machine/network is intercepting HTTPS with an untrusted local certificate. Put the trusted CA at `certs/local-ca.pem`; `npm run dev:backend` and `npm run docker:up` will automatically set `NODE_EXTRA_CA_CERTS` for backend startup. Direct `docker compose up` also points the backend at `/app/certs/local-ca.pem` through the development override. You can still override the path manually with `NODE_EXTRA_CA_CERTS=/path/to/local-ca.pem`. Do not make `NODE_TLS_REJECT_UNAUTHORIZED=0` a runtime default.
+
+`data/google-books-snapshot.json` contains the committed raw Google volumes used to prewarm all 45 curated demo books during database seeding. Refresh it from the repository root with `npm run books:snapshot:refresh`; guest-session creation itself performs no provider calls.
 
 ## Database
 

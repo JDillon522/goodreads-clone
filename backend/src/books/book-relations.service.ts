@@ -9,18 +9,15 @@ import {
   type BookMetadataRecord,
 } from './book-metadata.mapper';
 import { BookPersistenceService } from './book-persistence.service';
-import { BookCardResponseDto } from './dto/book-card-response.dto';
-import { BookSearchFiltersDto } from './dto/book-search-filters.dto';
 import { BookSeriesResponseDto } from './dto/book-series-response.dto';
 import { RelatedBookResponseDto } from './dto/related-book-response.dto';
 import { RelatedBooksResponseDto } from './dto/related-books-response.dto';
-import { OpenLibraryClientService } from './open-library/open-library-client.service';
-import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
+import { GoogleBooksClientService } from './google-books/google-books-client.service';
 
 /**
  * Discovers and persists shared book-to-book metadata such as series placement and related books.
- * V1 combines local database scoring with small opportunistic Open Library searches so the detail
- * page can improve as the shared book table grows.
+ * Local scoring is supplemented with small Google Books searches so the detail page can improve
+ * as the shared book table grows.
  */
 const bookWithSeriesInclude = {
   seriesEntries: {
@@ -46,12 +43,6 @@ type SeriesDetection = {
   positionLabel: null | string;
 };
 
-const emptyFilters: BookSearchFiltersDto = {
-  filter: null,
-  orderBy: 'relevance',
-  printType: 'books',
-};
-
 @Injectable()
 export class BookRelationsService {
   private readonly logger = new Logger(BookRelationsService.name);
@@ -60,8 +51,7 @@ export class BookRelationsService {
    */
   public constructor(
     private readonly bookPersistence: BookPersistenceService,
-    private readonly openLibraryClient: OpenLibraryClientService,
-    private readonly openLibraryNormalizer: OpenLibraryNormalizerService,
+    private readonly googleBooksClient: GoogleBooksClientService,
     private readonly prisma: PrismaService,
   ) {}
   /**
@@ -100,7 +90,7 @@ export class BookRelationsService {
     };
   }
   /**
-   * Scores local related books and, when needed, seeds a small set of additional Open Library
+   * Scores local related books and, when needed, seeds a small set of additional Google Books
    * candidates based on author, subject, or detected series name.
    */
   public async getRelatedBooks(bookId: string, limit: number): Promise<RelatedBooksResponseDto> {
@@ -292,45 +282,37 @@ export class BookRelationsService {
     return { book: candidate, reasons: uniqueStrings(reasons), score };
   }
   /**
-   * Searches Open Library for a few likely related books and persists the normalized results so the
-   * normal local scorer can handle them on the second pass.
+   * Searches Google Books for likely related volumes and persists them for the local scorer.
    */
   private async seedProviderCandidates(book: BookWithSeries, limit: number): Promise<void> {
     const series = await this.ensureSeriesMetadata(book);
     const summary = bookSummary(book as BookMetadataRecord);
     const queries = uniqueStrings(
       [
-        series?.name,
-        summary.primaryAuthor ?? undefined,
-        summary.genres[0] ? `subject:${quoteOpenLibraryPhrase(summary.genres[0])}` : undefined,
+        series?.name ? `intitle:${quoteGooglePhrase(series.name)}` : undefined,
+        summary.primaryAuthor ? `inauthor:${quoteGooglePhrase(summary.primaryAuthor)}` : undefined,
+        summary.genres[0] ? `subject:${quoteGooglePhrase(summary.genres[0])}` : undefined,
       ].filter(isString),
     ).slice(0, 3);
 
     for (const query of queries) {
       try {
         const providerLimit = Math.min(Math.max(limit, 6), 12);
-        const raw = await this.openLibraryClient.searchBooks({
-          limit: providerLimit,
-          page: 1,
+        const result = await this.googleBooksClient.searchVolumes({
+          maxResults: providerLimit,
+          orderBy: 'relevance',
+          printType: 'books',
           query,
-        });
-        const normalized = this.openLibraryNormalizer.normalizeSearch(raw, {
-          filters: emptyFilters,
-          limit: providerLimit,
-          page: 1,
-          query,
+          startIndex: 0,
         });
 
-        await Promise.all(
-          normalized.items
-            .filter((item) => item.isbn13 || item.isbn10)
-            .filter((item) => item.isbn13 !== book.isbn13 && item.isbn10 !== book.isbn10)
-            .map((item) =>
-              this.bookPersistence.ensureBookForIdentity({
-                isbn10: item.isbn10,
-                isbn13: item.isbn13,
-              }),
-            ),
+        await this.bookPersistence.persistGoogleBooksVolumes(
+          result.items.filter(
+            (item) =>
+              item.id !== book.googleBooksVolumeId &&
+              (item.isbn13 === null || item.isbn13 !== book.isbn13) &&
+              (item.isbn10 === null || item.isbn10 !== book.isbn10),
+          ),
         );
       } catch (error) {
         this.logger.warn(
@@ -346,7 +328,7 @@ export class BookRelationsService {
     for (const item of related) {
       await this.prisma.bookRelation.upsert({
         create: {
-          reasons: item.reasons as Prisma.InputJsonValue,
+          reasons: item.reasons,
           score: item.score,
           sourceBookId,
           sourceProvider: item.book.sourceProvider,
@@ -354,7 +336,7 @@ export class BookRelationsService {
           type: relationTypeForReasons(item.reasons),
         },
         update: {
-          reasons: item.reasons as Prisma.InputJsonValue,
+          reasons: item.reasons,
           score: item.score,
           sourceProvider: item.book.sourceProvider,
         },
@@ -408,7 +390,6 @@ function detectSeries(book: BookRecord): SeriesDetection | null {
   const summary = bookSummary(book as BookMetadataRecord);
   const candidates = [
     ...seriesDetectionsFromJson(book.googleBooksRawPayload, 82),
-    ...seriesDetectionsFromJson(book.rawProviderPayload, 70),
     ...seriesDetectionsFromText(summary.title, summary.subtitle),
   ]
     .map((candidate) => normalizeSeriesDetection(candidate, summary.title))
@@ -697,9 +678,9 @@ function toRelatedBookResponse(scored: ScoredBook): RelatedBookResponseDto {
 }
 
 /**
- * Escapes phrase searches for Open Library's query syntax.
+ * Escapes phrase searches for Google Books query operators.
  */
-function quoteOpenLibraryPhrase(value: string): string {
+function quoteGooglePhrase(value: string): string {
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 

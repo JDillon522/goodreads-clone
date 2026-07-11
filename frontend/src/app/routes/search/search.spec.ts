@@ -38,15 +38,6 @@ function normalizedBook(query: string, page: number): NormalizedBook {
       },
     },
     id: `book-${volumeId}`,
-    openLibrary: {
-      coverUrl: null,
-      editionKey: null,
-      firstPublishDate: null,
-      raw: null,
-      sourceUrl: null,
-      subjects: ['Fantasy'],
-      workKey: null,
-    },
     summary: {
       authors: [query],
       averageRating: null,

@@ -2,48 +2,42 @@ import { BookProvider, GoogleBooksSyncStatus } from '@prisma/client';
 
 import { BookRelationsService } from '../src/books/book-relations.service';
 import { BookPersistenceService } from '../src/books/book-persistence.service';
-import { OpenLibraryClientService } from '../src/books/open-library/open-library-client.service';
-import { OpenLibraryNormalizerService } from '../src/books/open-library/open-library-normalizer.service';
+import { GoogleBooksClientService } from '../src/books/google-books/google-books-client.service';
 import { PrismaService } from '../src/database/prisma.service';
 
+const timestamp = new Date('2026-07-10T12:00:00.000Z');
 const baseBook = {
-  createdAt: new Date('2026-07-10T12:00:00.000Z'),
+  createdAt: timestamp,
   googleBooksError: null,
-  googleBooksRawPayload: null,
-  googleBooksSyncStatus: GoogleBooksSyncStatus.PENDING,
-  googleBooksSyncedAt: null,
-  googleBooksVolumeId: null,
+  googleBooksRawPayload: googlePayload('The Test Book', 'Ada Author'),
+  googleBooksSyncStatus: GoogleBooksSyncStatus.SYNCED,
+  googleBooksSyncedAt: timestamp,
+  googleBooksVolumeId: 'google-source',
   id: '11111111-1111-4111-8111-111111111111',
   isbn10: null,
-  isbn13: null,
+  isbn13: '9780000000001',
   normalizedPrimaryAuthor: 'ada author',
   normalizedTitle: 'the test book',
-  openLibraryEditionKey: null,
-  openLibraryWorkKey: '/works/OL111W',
-  primaryAuthor: 'Ada Author',
   rawProviderPayload: null,
   seriesEntries: [],
-  sourceId: 'works:OL111W',
-  sourceProvider: BookProvider.OPEN_LIBRARY,
-  sourceUrl: 'https://openlibrary.org/works/OL111W',
-  title: 'The Test Book',
-  updatedAt: new Date('2026-07-10T12:00:00.000Z'),
+  sourceId: 'isbn13:9780000000001',
+  sourceProvider: BookProvider.GOOGLE_BOOKS,
+  sourceUrl: 'https://books.google.com/books?id=google-source',
+  updatedAt: timestamp,
 };
 
 describe('BookRelationsService', () => {
-  const timestamp = new Date('2026-07-10T12:00:00.000Z');
   const sourceBook = book({
-    id: '11111111-1111-4111-8111-111111111111',
-    normalizedPrimaryAuthor: 'ada author',
-    primaryAuthor: 'Ada Author',
-    title: 'The Test Book (Test Cycle, #1)',
+    googleBooksRawPayload: googlePayload('The Test Book (Test Cycle, #1)', 'Ada Author'),
+    normalizedTitle: 'the test book test cycle 1',
   });
   const sequelBook = book({
+    googleBooksRawPayload: googlePayload('The Sequel (Test Cycle, #2)', 'Ada Author'),
+    googleBooksVolumeId: 'google-sequel',
     id: '22222222-2222-4222-8222-222222222222',
-    normalizedPrimaryAuthor: 'ada author',
-    primaryAuthor: 'Ada Author',
-    sourceId: 'works:OL222W',
-    title: 'The Sequel (Test Cycle, #2)',
+    isbn13: '9780000000002',
+    normalizedTitle: 'the sequel test cycle 2',
+    sourceId: 'isbn13:9780000000002',
   });
   const series = {
     confidence: 88,
@@ -52,35 +46,23 @@ describe('BookRelationsService', () => {
     name: 'Test Cycle',
     normalizedName: 'test cycle',
     sourceId: sourceBook.sourceId,
-    sourceProvider: BookProvider.OPEN_LIBRARY,
+    sourceProvider: BookProvider.GOOGLE_BOOKS,
     updatedAt: timestamp,
   };
   const prisma = {
-    book: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-    },
-    bookRelation: {
-      upsert: jest.fn(),
-    },
-    bookSeries: {
-      upsert: jest.fn(),
-    },
+    book: { findMany: jest.fn(), findUnique: jest.fn() },
+    bookRelation: { upsert: jest.fn() },
+    bookSeries: { upsert: jest.fn() },
     bookSeriesEntry: {
       findFirst: jest.fn(),
       findMany: jest.fn(),
       upsert: jest.fn(),
     },
   };
-  const bookPersistence = {
-    persistOpenLibraryBooks: jest.fn(),
-  } as unknown as BookPersistenceService;
-  const openLibraryClient = {
-    searchBooks: jest.fn(),
-  } as unknown as OpenLibraryClientService;
-  const openLibraryNormalizer = {
-    normalizeSearch: jest.fn(),
-  } as unknown as OpenLibraryNormalizerService;
+  const persistGoogleBooksVolumes = jest.fn();
+  const bookPersistence = { persistGoogleBooksVolumes } as unknown as BookPersistenceService;
+  const searchVolumes = jest.fn();
+  const googleBooksClient = { searchVolumes } as unknown as GoogleBooksClientService;
   let service: BookRelationsService;
 
   beforeEach(() => {
@@ -92,13 +74,12 @@ describe('BookRelationsService', () => {
     prisma.bookRelation.upsert.mockResolvedValue({});
     service = new BookRelationsService(
       bookPersistence,
-      openLibraryClient,
-      openLibraryNormalizer,
+      googleBooksClient,
       prisma as unknown as PrismaService,
     );
   });
 
-  it('detects and returns a book series from title metadata', async () => {
+  it('detects and returns a book series from Google-backed title metadata', async () => {
     prisma.bookSeriesEntry.findMany.mockResolvedValue([
       seriesEntry(sourceBook, 1, 'Book 1'),
       seriesEntry(sequelBook, 2, 'Book 2'),
@@ -107,78 +88,81 @@ describe('BookRelationsService', () => {
     await expect(service.getSeries(sourceBook.id)).resolves.toEqual({
       bookId: sourceBook.id,
       entries: [
-        expect.objectContaining({
-          book: expect.objectContaining({ id: sourceBook.id, title: sourceBook.title }),
-          position: 1,
-          positionLabel: 'Book 1',
-        }),
-        expect.objectContaining({
-          book: expect.objectContaining({ id: sequelBook.id, title: sequelBook.title }),
-          position: 2,
-          positionLabel: 'Book 2',
-        }),
+        expect.objectContaining({ position: 1, positionLabel: 'Book 1' }),
+        expect.objectContaining({ position: 2, positionLabel: 'Book 2' }),
       ],
       seriesName: 'Test Cycle',
     });
     expect(prisma.bookSeries.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ where: { normalizedName: 'test cycle' } }),
     );
-    expect(prisma.bookSeriesEntry.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        create: expect.objectContaining({ bookId: sourceBook.id, position: 1 }),
-      }),
-    );
   });
 
-  it('scores same-author related books without provider seeding when local candidates fill the limit', async () => {
+  it('scores local Google books without provider seeding when candidates fill the limit', async () => {
     prisma.book.findMany.mockResolvedValue([sequelBook]);
 
     await expect(service.getRelatedBooks(sourceBook.id, 1)).resolves.toEqual({
       bookId: sourceBook.id,
       items: [
         expect.objectContaining({
-          book: expect.objectContaining({ id: sequelBook.id, title: sequelBook.title }),
           reasons: expect.arrayContaining(['Same author']),
           score: expect.any(Number),
         }),
       ],
     });
-    expect(openLibraryClient.searchBooks).not.toHaveBeenCalled();
-    expect(prisma.bookRelation.upsert).toHaveBeenCalledWith(
+    expect(searchVolumes).not.toHaveBeenCalled();
+  });
+
+  it('seeds missing related candidates through Google Books queries', async () => {
+    prisma.book.findMany.mockResolvedValue([]);
+    searchVolumes.mockResolvedValue({
+      items: [
+        {
+          authors: ['Ada Author'],
+          categories: ['Fantasy'],
+          description: null,
+          ebookAccess: null,
+          id: 'google-candidate',
+          infoLink: null,
+          isbn10: null,
+          isbn13: '9780000000003',
+          isReadableOnline: false,
+          pageCount: null,
+          publishedDate: '2025',
+          publisher: null,
+          rawPayload: googlePayload('Another Test Book', 'Ada Author'),
+          subtitle: null,
+          thumbnailUrl: null,
+          title: 'Another Test Book',
+        },
+      ],
+      rawPayload: {},
+      totalItems: 1,
+    });
+    persistGoogleBooksVolumes.mockResolvedValue([]);
+
+    await expect(service.getRelatedBooks(sourceBook.id, 2)).resolves.toEqual({
+      bookId: sourceBook.id,
+      items: [],
+    });
+    expect(searchVolumes).toHaveBeenCalledWith(
       expect.objectContaining({
-        create: expect.objectContaining({
-          sourceBookId: sourceBook.id,
-          targetBookId: sequelBook.id,
-        }),
+        maxResults: 6,
+        orderBy: 'relevance',
+        printType: 'books',
+        startIndex: 0,
       }),
     );
+    expect(persistGoogleBooksVolumes).toHaveBeenCalled();
   });
 
   function book(overrides: Partial<typeof baseBook> = {}) {
-    const title = 'title' in overrides ? String(overrides.title) : 'The Test Book';
-    const primaryAuthor =
-      'primaryAuthor' in overrides ? String(overrides.primaryAuthor) : 'Ada Author';
-    const rawProviderPayload =
-      overrides.rawProviderPayload ??
-      ({
-        legacy: {
-          authors: [primaryAuthor],
-          genres: ['Fantasy'],
-          primaryAuthor,
-          publishedDate: '2026',
-          sourceUrl: overrides.sourceUrl ?? baseBook.sourceUrl,
-          title,
-        },
-      } as const);
-
     return {
       ...baseBook,
       ...overrides,
-      createdAt: overrides.createdAt ?? timestamp,
-      primaryAuthor,
-      rawProviderPayload,
-      title,
-      updatedAt: overrides.updatedAt ?? timestamp,
+      createdAt: timestamp,
+      seriesEntries: [],
+      updatedAt: timestamp,
     };
   }
 
@@ -196,8 +180,20 @@ describe('BookRelationsService', () => {
       position,
       positionLabel,
       seriesId: series.id,
-      sourceProvider: BookProvider.OPEN_LIBRARY,
+      sourceProvider: BookProvider.GOOGLE_BOOKS,
       updatedAt: timestamp,
     };
   }
 });
+
+function googlePayload(title: string, author: string) {
+  return {
+    id: `google-${title}`,
+    volumeInfo: {
+      authors: [author],
+      categories: ['Fantasy'],
+      publishedDate: '2026',
+      title,
+    },
+  };
+}

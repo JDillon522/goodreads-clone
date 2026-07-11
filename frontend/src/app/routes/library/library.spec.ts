@@ -12,15 +12,6 @@ function libraryItem(): LibraryItemResponse {
     book: {
       google: null,
       id: 'book-1',
-      openLibrary: {
-        coverUrl: null,
-        editionKey: null,
-        firstPublishDate: null,
-        raw: null,
-        sourceUrl: null,
-        subjects: ['Fantasy'],
-        workKey: null,
-      },
       summary: {
         authors: ['Ada Author'],
         averageRating: null,

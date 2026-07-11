@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   ActivityEventType,
-  BookProvider,
   LibraryItemStatus,
-  Prisma,
   ProgressTrackingMode,
+  Prisma,
   ThemePreference,
 } from '@prisma/client';
 import { existsSync, readFileSync } from 'node:fs';
@@ -16,7 +15,7 @@ import { guestOwnerContext } from '../common/owner/owner-context';
 import { createOpaqueToken, hashOpaqueToken } from '../common/security/opaque-token';
 import { defaultShelves, type DefaultShelfSlug } from '../common/shelves/default-shelves';
 import { PrismaService } from '../database/prisma.service';
-import { normalizeText, roundPercent } from '../library/library-rules';
+import { roundPercent } from '../library/library-rules';
 import { GuestSessionResponseDto } from './dto/guest-session-response.dto';
 
 /**
@@ -162,7 +161,6 @@ export class GuestService {
     sampleBook: SampleBook,
     index: number,
   ): Promise<void> {
-    const sourceId = this.sourceIdForSampleBook(sampleBook);
     const dedupeKey = this.dedupeKeyForSampleBook(sampleBook);
     const shelfSlug = this.shelfSlugForSeedIndex(index);
     const isRead = shelfSlug === 'read';
@@ -173,16 +171,6 @@ export class GuestService {
         ? Math.min(sampleBook.pageCount, Math.round((sampleBook.pageCount * currentPercent) / 100))
         : null;
 
-    await transaction.book.upsert({
-      create: this.sampleBookData(sampleBook, sourceId),
-      update: this.sampleBookData(sampleBook, sourceId),
-      where: {
-        sourceProvider_sourceId: {
-          sourceId,
-          sourceProvider: BookProvider.SAMPLE,
-        },
-      },
-    });
     const libraryItem = await transaction.libraryItem.create({
       data: {
         currentPage,
@@ -233,10 +221,18 @@ export class GuestService {
     return new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
   }
   /**
-   * Uses the sample source id as the guest demo dedupe key.
+   * Uses the ISBN identity as the guest demo dedupe key.
    */
   private dedupeKeyForSampleBook(book: SampleBook): string {
-    return this.sourceIdForSampleBook(book);
+    if (book.isbn13) {
+      return `isbn13:${book.isbn13}`;
+    }
+
+    if (book.isbn10) {
+      return `isbn10:${book.isbn10}`;
+    }
+
+    throw new Error(`Guest sample book "${book.title}" must have an ISBN.`);
   }
   /**
    * Reads the guest-session TTL setting with a seven-day default.
@@ -284,23 +280,6 @@ export class GuestService {
     return { id: shelf.id };
   }
   /**
-   * Maps sample JSON into the shared Book table shape.
-   */
-  private sampleBookData(
-    book: SampleBook,
-    sourceId: string,
-  ): Prisma.BookUncheckedCreateInput & Prisma.BookUncheckedUpdateInput {
-    return {
-      isbn10: book.isbn10 ?? null,
-      isbn13: book.isbn13 ?? null,
-      normalizedPrimaryAuthor: book.author ? normalizeText(book.author) : null,
-      normalizedTitle: normalizeText(book.title),
-      rawProviderPayload: { legacy: book },
-      sourceId,
-      sourceProvider: BookProvider.SAMPLE,
-    };
-  }
-  /**
    * Assigns deterministic demo progress: read books are complete, currently-reading books are in
    * progress, and want-to-read books have no progress.
    */
@@ -335,20 +314,6 @@ export class GuestService {
     }
 
     return 'want-to-read';
-  }
-  /**
-   * Builds a stable SAMPLE provider id, preferring ISBNs before normalized title/author fallback.
-   */
-  private sourceIdForSampleBook(book: SampleBook): string {
-    if (book.isbn13) {
-      return `isbn13:${book.isbn13}`;
-    }
-
-    if (book.isbn10) {
-      return `isbn10:${book.isbn10}`;
-    }
-
-    return `title-author:${normalizeText(book.title)}:${normalizeText(book.author ?? 'unknown')}`;
   }
   /**
    * Resolves the sample-book data path for both repo-root and backend working directories.

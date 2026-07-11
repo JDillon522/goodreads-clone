@@ -20,7 +20,8 @@ export class BookCardResponseDto {
   primaryAuthor!: null | string;
 
   @ApiPropertyOptional({
-    example: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+    example:
+      'https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1',
     nullable: true,
     type: String,
   })
@@ -32,14 +33,14 @@ export class BookCardResponseDto {
   @ApiProperty({ example: ['Science fiction', 'Fiction'], isArray: true, type: String })
   genres!: string[];
 
-  @ApiProperty({ example: 'OPEN_LIBRARY' })
+  @ApiProperty({ example: 'GOOGLE_BOOKS' })
   sourceProvider!: string;
 
-  @ApiProperty({ example: 'works:OL262758W' })
+  @ApiProperty({ example: 'isbn13:9780441478125' })
   sourceId!: string;
 
   @ApiPropertyOptional({
-    example: 'https://openlibrary.org/works/OL262758W',
+    example: 'https://books.google.com/books?id=zyTCAlFPjgYC',
     nullable: true,
     type: String,
   })

@@ -29,15 +29,6 @@ function testBook(title = 'The Test Book'): LibraryItemResponse['book'] {
       },
     },
     id: 'book-1',
-    openLibrary: {
-      coverUrl: null,
-      editionKey: null,
-      firstPublishDate: null,
-      raw: null,
-      sourceUrl: null,
-      subjects: ['Fantasy'],
-      workKey: null,
-    },
     summary: {
       authors: ['Ada Author'],
       averageRating: null,
@@ -332,9 +323,9 @@ describe('BookDetail', () => {
             ...testBook().summary,
             coverImages: {
               ...testBook().summary.coverImages,
-              detail: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+              detail: 'https://books.google.com/books/content?id=google-book-1&img=1&zoom=1',
             },
-            coverUrl: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+            coverUrl: 'https://books.google.com/books/content?id=google-book-1&img=1&zoom=1',
           },
         },
       }),

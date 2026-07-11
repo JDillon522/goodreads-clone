@@ -1,9 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { BookProvider, GoogleBooksSyncStatus, PrismaClient } from '@prisma/client';
 import { config as loadEnv } from 'dotenv';
-import path from 'node:path';
+import { resolve } from 'node:path';
 
-loadEnv({ path: path.resolve(__dirname, '../../.env') });
+loadEnv({ path: resolve(__dirname, '../../.env') });
 
 type JsonBody = Record<string, unknown>;
 
@@ -24,7 +24,9 @@ type ShelfResponse = {
 
 type LibraryItemResponse = {
   book: {
+    id: string;
     summary: {
+      googleBooksVolumeId: null | string;
       pageCount: null | number;
     };
   };
@@ -37,6 +39,20 @@ type LibraryItemResponse = {
     id: string;
     slug: string;
   }[];
+};
+
+type BookMetadataResponse = {
+  google: Record<string, unknown> | null;
+  id: string;
+  summary: {
+    googleBooksVolumeId: null | string;
+    title: string;
+  };
+};
+
+type RelatedBooksResponse = {
+  bookId: string;
+  items: { book: { id: string }; score: number }[];
 };
 
 type DeleteShelfResponse = {
@@ -204,6 +220,19 @@ describe('Bookshelf API workflows', () => {
 
     expect(added.status).toBe('WANT_TO_READ');
     expect(added.shelves.map((shelf) => shelf.slug)).toEqual(['unshelved']);
+
+    const cachedDetail = await request<BookMetadataResponse>(
+      `/books/google/${added.book.summary.googleBooksVolumeId}`,
+    );
+
+    expect(cachedDetail.id).toBe(added.book.id);
+    expect(cachedDetail.summary.title).toBe('The Left Hand of Darkness');
+    expect(cachedDetail).not.toHaveProperty('openLibrary');
+
+    const related = await request<RelatedBooksResponse>(`/books/${added.book.id}/related?limit=1`);
+
+    expect(related.bookId).toBe(added.book.id);
+    expect(related.items).toHaveLength(1);
 
     const duplicateAdd = await request<LibraryItemResponse>('/library', {
       body: { isbn10, isbn13, googleBooksVolumeId: `e2e-google-${runId}` },
@@ -484,24 +513,6 @@ async function seedE2eBookCache(input: {
         isbn13: input.isbn13,
         normalizedPrimaryAuthor: 'ursula k le guin',
         normalizedTitle: 'the left hand of darkness',
-        rawProviderPayload: {
-          google: {
-            accessInfo: { viewability: 'NO_PAGES' },
-            id: `e2e-google-${input.isbn13}`,
-            volumeInfo: {
-              authors: ['Ursula K. Le Guin'],
-              categories: ['Science fiction'],
-              industryIdentifiers: [
-                { identifier: input.isbn10, type: 'ISBN_10' },
-                { identifier: input.isbn13, type: 'ISBN_13' },
-              ],
-              pageCount: 304,
-              publishedDate: '1969',
-              publisher: 'Ace Books',
-              title: 'The Left Hand of Darkness',
-            },
-          },
-        },
         sourceId: input.sourceId,
         sourceProvider: BookProvider.GOOGLE_BOOKS,
       },

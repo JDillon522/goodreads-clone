@@ -9,7 +9,7 @@ import { ThemePreferenceResponseDto } from './dto/theme-preference-response.dto'
 import { UpdateThemePreferenceRequestDto } from './dto/update-theme-preference-request.dto';
 import { ThemePaletteService } from './theme-palette.service';
 import {
-  isAllowedOpenLibraryCoverUrl,
+  isAllowedGoogleBooksCoverUrl,
   normalizeThemePalette,
   type ThemePalette,
 } from './theme-palette-rules';
@@ -171,7 +171,7 @@ export class PreferencesService {
         .filter((item) => {
           const coverUrl = this.themeCoverUrl(item);
 
-          return Boolean(coverUrl && isAllowedOpenLibraryCoverUrl(coverUrl));
+          return Boolean(coverUrl && isAllowedGoogleBooksCoverUrl(coverUrl));
         })
         .sort(compareThemeItems)[0] ?? null
     );
@@ -217,7 +217,7 @@ export class PreferencesService {
   private paletteFor(item: ThemeLibraryItem): Promise<ThemePalette> {
     const coverUrl = this.themeCoverUrl(item);
 
-    if (!coverUrl || !isAllowedOpenLibraryCoverUrl(coverUrl)) {
+    if (!coverUrl || !isAllowedGoogleBooksCoverUrl(coverUrl)) {
       throw new UnprocessableEntityException('This book does not have a usable cover.');
     }
 

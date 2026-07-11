@@ -121,7 +121,7 @@ export class StatsBookHighlightResponseDto {
   estimatedPages!: number;
 
   @ApiProperty({
-    example: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
+    example: 'https://books.google.com/books/content?id=zyTCAlFPjgYC&img=1&zoom=1',
     nullable: true,
     type: String,
   })

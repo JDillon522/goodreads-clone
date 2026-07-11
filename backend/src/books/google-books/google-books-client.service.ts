@@ -1,4 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type {
@@ -6,7 +12,6 @@ import type {
   GoogleBookOrderBy,
   GoogleBookPrintType,
 } from '../dto/book-search-query.dto';
-import type { NormalizedBookDto } from '../dto/normalized-book.dto';
 import type { JsonObject } from '../types/json-object';
 
 /**
@@ -64,24 +69,6 @@ export class GoogleBooksClientService {
     this.requestTimeoutMs = configService.get<number>('GOOGLE_BOOKS_REQUEST_TIMEOUT_MS') ?? 8000;
   }
   /**
-   * Finds the strongest Google Books volume candidate for one Open Library-normalized book.
-   */
-  public async findBestVolume(
-    book: Pick<NormalizedBookDto, 'isbn10' | 'isbn13' | 'primaryAuthor' | 'title'>,
-  ): Promise<GoogleBooksVolumeCandidate | null> {
-    const queries = googleQueriesForBook(book);
-
-    for (const query of queries) {
-      const volume = await this.searchFirstVolume(query);
-
-      if (volume) {
-        return volume;
-      }
-    }
-
-    return null;
-  }
-  /**
    * Fetches a single Google Books volume by provider id for the info-only detail page.
    */
   public async getVolume(volumeId: string): Promise<GoogleBooksVolumeCandidate | null> {
@@ -116,69 +103,6 @@ export class GoogleBooksClientService {
     };
   }
   /**
-   * Converts a normalized Google Books candidate into the public Bookshelf book DTO.
-   */
-  public toNormalizedBook(volume: GoogleBooksVolumeCandidate): NormalizedBookDto {
-    const title = volume.title ?? 'Untitled book';
-    const authors = uniqueStrings(volume.authors);
-    const primaryAuthor = authors[0] ?? null;
-    const providerKey = `google:${volume.id}`;
-
-    return {
-      authors,
-      coverUrl: volume.thumbnailUrl,
-      dedupeKey: dedupeKeyForBook(volume.isbn13, volume.isbn10, providerKey, title, primaryAuthor),
-      description: volume.description,
-      ebookAccess: volume.ebookAccess,
-      genres: uniqueStrings(volume.categories).slice(0, 12),
-      googleBooksVolumeId: volume.id,
-      isbn10: volume.isbn10,
-      isbn13: volume.isbn13,
-      isReadableOnline: volume.isReadableOnline,
-      openLibraryEditionKey: null,
-      openLibraryWorkKey: null,
-      pageCount: volume.pageCount,
-      primaryAuthor,
-      provider: 'GOOGLE_BOOKS',
-      providerKey,
-      publishedDate: volume.publishedDate,
-      publisher: volume.publisher,
-      sourceId: providerKey,
-      sourceUrl: volume.infoLink,
-      subtitle: volume.subtitle,
-      title,
-    };
-  }
-  /**
-   * Searches Google Books and normalizes the first volume result that has usable volumeInfo data.
-   */
-  private async searchFirstVolume(query: string): Promise<GoogleBooksVolumeCandidate | null> {
-    const url = new URL(`${this.baseUrl}/volumes`);
-    url.searchParams.set('q', query);
-    url.searchParams.set('maxResults', '5');
-    url.searchParams.set('printType', 'books');
-    url.searchParams.set('projection', 'full');
-
-    if (this.apiKey) {
-      url.searchParams.set('key', this.apiKey);
-    }
-
-    const payload = await this.fetchJson(url.toString());
-    if (!Array.isArray(payload['items'])) {
-      return null;
-    }
-
-    for (const item of payload['items']) {
-      const candidate = normalizeGoogleVolume(item);
-
-      if (candidate) {
-        return candidate;
-      }
-    }
-
-    return null;
-  }
-  /**
    * Fetches JSON from either a configured-relative Google path or a complete URL.
    */
   private async fetchJson(pathOrUrl: string): Promise<JsonObject> {
@@ -201,49 +125,29 @@ export class GoogleBooksClientService {
       });
     } catch (error) {
       this.logger.warn(`Google Books request failed: ${describeFetchFailure(error)}`);
-      throw error;
+      throw new ServiceUnavailableException('Google Books request failed.');
+    }
+
+    if (response.status === 404) {
+      throw new NotFoundException('Google Books volume was not found.');
+    }
+
+    if (response.status === 429) {
+      throw new HttpException('Google Books rate limit reached.', 429);
     }
 
     if (!response.ok) {
-      throw new Error(`Google Books returned ${response.status}.`);
+      throw new ServiceUnavailableException('Google Books returned an unavailable response.');
     }
 
     const payload: unknown = await response.json();
 
     if (!isRecord(payload)) {
-      throw new Error('Google Books returned an invalid response.');
+      throw new ServiceUnavailableException('Google Books returned an invalid response.');
     }
 
     return payload;
   }
-}
-
-/**
- * Builds high-confidence ISBN queries before falling back to a title/author query.
- */
-function googleQueriesForBook(
-  book: Pick<NormalizedBookDto, 'isbn10' | 'isbn13' | 'primaryAuthor' | 'title'>,
-): string[] {
-  const queries = new Set<string>();
-
-  if (book.isbn13) {
-    queries.add(`isbn:${book.isbn13}`);
-  }
-
-  if (book.isbn10) {
-    queries.add(`isbn:${book.isbn10}`);
-  }
-
-  const title = book.title.trim();
-  const author = book.primaryAuthor?.trim();
-
-  if (title && author) {
-    queries.add(`intitle:${title} inauthor:${author}`);
-  } else if (title) {
-    queries.add(`intitle:${title}`);
-  }
-
-  return [...queries];
 }
 
 /**
@@ -290,24 +194,6 @@ function normalizeGoogleVolume(value: unknown): GoogleBooksVolumeCandidate | nul
   };
 }
 
-function dedupeKeyForBook(
-  isbn13: null | string,
-  isbn10: null | string,
-  providerKey: string,
-  title: string,
-  primaryAuthor: null | string,
-): string {
-  if (isbn13) {
-    return `isbn13:${isbn13}`;
-  }
-
-  if (isbn10) {
-    return `isbn10:${isbn10}`;
-  }
-
-  return `google:${providerKey}:${normalizeText(title)}:${normalizeText(primaryAuthor ?? 'unknown')}`;
-}
-
 function describeFetchFailure(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown fetch failure';
 }
@@ -320,16 +206,6 @@ function isVolumeCandidate(
   value: GoogleBooksVolumeCandidate | null,
 ): value is GoogleBooksVolumeCandidate {
   return value !== null;
-}
-
-function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .replace(/\s+/g, ' ');
 }
 
 function positiveIntegerValue(value: unknown): null | number {
@@ -374,24 +250,6 @@ function readStringArray(value: unknown): string[] {
     .filter((item): item is string => typeof item === 'string')
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-function uniqueStrings(values: readonly string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-
-  for (const value of values) {
-    const normalized = normalizeText(value);
-
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-
-    seen.add(normalized);
-    result.push(value);
-  }
-
-  return result;
 }
 
 function trimTrailingSlash(value: string): string {

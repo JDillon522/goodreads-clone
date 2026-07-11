@@ -166,7 +166,7 @@ export class BookDetail {
     return book.primaryAuthor ?? book.authors[0] ?? 'Unknown author';
   }
   /**
-   * Shows the stored description or the no-description fallback for sparse Open Library records.
+   * Shows the stored description or the no-description fallback for sparse Google Books records.
    */
   protected description(): string {
     const item = this.item();

@@ -1,19 +1,24 @@
 import {
   createThemePaletteFromRgbaImage,
-  isAllowedOpenLibraryCoverUrl,
+  isAllowedGoogleBooksCoverUrl,
   isThemePalette,
 } from '../src/preferences/theme-palette-rules';
 
 describe('theme palette rules', () => {
-  it('allows only normalized Open Library cover URLs', () => {
-    expect(isAllowedOpenLibraryCoverUrl('https://covers.openlibrary.org/b/id/9255566-L.jpg')).toBe(
+  it('allows only normalized Google Books cover URLs', () => {
+    expect(
+      isAllowedGoogleBooksCoverUrl(
+        'https://books.google.com/books/content?id=zyTCAlFPjgYC&img=1&zoom=1',
+      ),
+    ).toBe(true);
+    expect(isAllowedGoogleBooksCoverUrl('https://books.googleusercontent.com/cover.jpg')).toBe(
       true,
     );
-    expect(isAllowedOpenLibraryCoverUrl('https://covers.openlibrary.org/b/isbn/123-L.jpg')).toBe(
+    expect(isAllowedGoogleBooksCoverUrl('https://covers.openlibrary.org/b/id/9255566-L.jpg')).toBe(
       false,
     );
-    expect(isAllowedOpenLibraryCoverUrl('https://example.com/b/id/9255566-L.jpg')).toBe(false);
-    expect(isAllowedOpenLibraryCoverUrl('not-a-url')).toBe(false);
+    expect(isAllowedGoogleBooksCoverUrl('https://example.com/books/content?id=1')).toBe(false);
+    expect(isAllowedGoogleBooksCoverUrl('not-a-url')).toBe(false);
   });
 
   it('generates complete light and dark token sets from cover pixels', () => {

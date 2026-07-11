@@ -13,7 +13,7 @@ This is no longer the stock challenge starter. The repo is now a working Nest + 
 - Account signup, sign-in, refresh, sign-out, password reset token flow, and username-or-email admin login.
 - Guest sessions with seeded demo data from `data/sample-books.json`.
 - Google Books search, provider normalization, permanent book metadata caching, response-backed pagination, availability filters, print-type controls, and relevance/newest sorting.
-- Open Library enrichment for missing metadata, subjects, work keys, related/series signals, alternate cover context, and first-publish context.
+- Google-only metadata caching, related-book discovery, series signals, cover theming, and explicit sparse-data fallbacks.
 - ISBN-owned user library rows: personal state lives on `LibraryItem`, while reusable metadata lives in the shared `Book` cache.
 - User library management with duplicate detection, progress tracking, ratings, notes, and explicit reading status.
 - Multi-shelf membership: a book can be on more than one shelf, and every owner has a protected `Unshelved` shelf.
@@ -45,7 +45,7 @@ Backend ownership flows use a shared owner context so authenticated users and gu
 
 - Backend: Nest 11, Prisma 7, Postgres 16
 - Frontend: Angular 22 standalone routes, signals, signal forms
-- External data: Google Books first, Open Library enrichment
+- External data: Google Books only
 - Local runtime: Docker Compose, nginx proxy
 - API contracts: Swagger/OpenAPI at `/docs` and `/docs-json`, with generated frontend types
 - Tooling: npm workspaces plus `bin/run`
@@ -72,6 +72,12 @@ Install dependencies:
 
 ```sh
 npm install
+```
+
+The committed guest/demo metadata cache can be refreshed explicitly from Google Books:
+
+```sh
+npm run books:snapshot:refresh
 ```
 
 Start the full local stack:

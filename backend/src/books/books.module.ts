@@ -6,25 +6,14 @@ import { BookRelationsService } from './book-relations.service';
 import { BooksController } from './books.controller';
 import { BooksService } from './books.service';
 import { GoogleBooksClientService } from './google-books/google-books-client.service';
-import { OpenLibraryCacheService } from './open-library/open-library-cache.service';
-import { OpenLibraryClientService } from './open-library/open-library-client.service';
-import { OpenLibraryNormalizerService } from './open-library/open-library-normalizer.service';
 
 /**
- * Wires Google-first search/detail endpoints plus Open Library enrichment collaborators.
+ * Wires the Google Books search/detail, cache, and related-book collaborators.
  */
 @Module({
   controllers: [BooksController],
   exports: [BookPersistenceService],
   imports: [DatabaseModule],
-  providers: [
-    BookPersistenceService,
-    BookRelationsService,
-    BooksService,
-    GoogleBooksClientService,
-    OpenLibraryCacheService,
-    OpenLibraryClientService,
-    OpenLibraryNormalizerService,
-  ],
+  providers: [BookPersistenceService, BookRelationsService, BooksService, GoogleBooksClientService],
 })
 export class BooksModule {}

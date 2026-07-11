@@ -36,8 +36,6 @@ describe('BooksService', () => {
     isbn13: '9780807083697',
     normalizedPrimaryAuthor: 'octavia e butler',
     normalizedTitle: 'kindred',
-    openLibraryEditionKey: null,
-    openLibraryWorkKey: null,
     rawProviderPayload: { google: volume.rawPayload },
     sourceId: 'isbn13:9780807083697',
     sourceProvider: BookProvider.GOOGLE_BOOKS,
@@ -47,15 +45,6 @@ describe('BooksService', () => {
   const metadataBook = {
     google: volume.rawPayload,
     id: 'book-id',
-    openLibrary: {
-      coverUrl: null,
-      editionKey: null,
-      firstPublishDate: null,
-      raw: null,
-      sourceUrl: null,
-      subjects: [],
-      workKey: null,
-    },
     summary: {
       authors: ['Octavia E. Butler'],
       averageRating: null,

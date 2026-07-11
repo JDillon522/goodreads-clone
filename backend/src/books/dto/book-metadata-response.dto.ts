@@ -116,41 +116,6 @@ export class BookSummaryDto {
   externalLinks!: BookExternalLinksDto;
 }
 
-export class BookOpenLibraryMetadataDto {
-  @ApiPropertyOptional({ example: '/works/OL262758W', nullable: true, type: String })
-  workKey!: null | string;
-
-  @ApiPropertyOptional({ example: '/books/OL24631830M', nullable: true, type: String })
-  editionKey!: null | string;
-
-  @ApiPropertyOptional({
-    example: 'https://openlibrary.org/works/OL262758W',
-    nullable: true,
-    type: String,
-  })
-  sourceUrl!: null | string;
-
-  @ApiProperty({ example: ['Science fiction', 'Fiction'], isArray: true, type: String })
-  subjects!: string[];
-
-  @ApiPropertyOptional({ example: '1969', nullable: true, type: String })
-  firstPublishDate!: null | string;
-
-  @ApiPropertyOptional({
-    example: 'https://covers.openlibrary.org/b/id/9255566-L.jpg',
-    nullable: true,
-    type: String,
-  })
-  coverUrl!: null | string;
-
-  @ApiPropertyOptional({
-    additionalProperties: true,
-    nullable: true,
-    type: 'object',
-  })
-  raw!: JsonObject | null;
-}
-
 export class BookSyncDto {
   @ApiProperty({ enum: GoogleBooksSyncStatus, example: GoogleBooksSyncStatus.SYNCED })
   googleBooksStatus!: GoogleBooksSyncStatus;
@@ -180,9 +145,6 @@ export class BookMetadataResponseDto {
 
   @ApiProperty({ type: BookSummaryDto })
   summary!: BookSummaryDto;
-
-  @ApiProperty({ type: BookOpenLibraryMetadataDto })
-  openLibrary!: BookOpenLibraryMetadataDto;
 
   @ApiProperty({ type: BookSyncDto })
   sync!: BookSyncDto;

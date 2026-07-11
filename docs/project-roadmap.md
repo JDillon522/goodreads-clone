@@ -12,7 +12,8 @@ Authoritative v1 defaults:
 - Use Nest-owned database auth with bearer tokens unless later changed.
 - Use Prisma with the Postgres driver adapter for schema, migrations, generated types, and DB access.
 - Use `data/sample-books.json` for guest/demo data.
-- Use Google Books as the primary book search/detail provider; use Open Library as enrichment for missing metadata, subjects, work keys, covers, related-book signals, and first-publish context.
+- Use Google Books as the sole book metadata provider for search, detail, caching, related-book discovery, series signals, covers, and theme palettes.
+- Prewarm guest/demo metadata from the committed raw Google Books snapshot; refresh it explicitly with `npm run books:snapshot:refresh` rather than calling Google during guest-session creation.
 - Keep reusable book metadata in the `Book` cache table. Library items own ISBNs and personal reading state, not required copied book metadata.
 - Do not rely on `starter/tailwind.css` or `data/sample-books.csv`; both were intentionally removed.
 - Defer stretch goals and differentiators until the core backend/data foundation is stable.
@@ -163,9 +164,11 @@ Authoritative v1 defaults:
 | 2026-07-09 | Source documentation standard                              | Runtime TS/JS files should carry a useful top-of-file overview after imports and JSDoc for meaningful functions/methods; generated files, specs, and routine HTML/CSS stay comment-light.                                                              |
 | 2026-07-09 | Flow Ninja-inspired visual direction                       | Borrow Flow Ninja's sharper product polish: stronger contrast, deliberate hover/focus motion, raised panels, tactile navigation, and metric-forward stats without copying agency-site structure.                                                       |
 | 2026-07-09 | Book-cover palette theming                                 | Theme preferences now support default, automatic top-book, and custom-book cover palettes; generated palettes store both light and dark CSS token sets and only override accent/highlight-style variables.                                             |
-| 2026-07-10 | Google-first book lookup                                   | Google Books is the primary search/detail provider using Google-native pagination, filters, sort, and print type controls; Open Library fills missing fields and provider-specific metadata after Google cache writes.                                  |
-| 2026-07-10 | ISBN-owned library items                                   | `LibraryItem` stores `isbn13`, `isbn10`, and personal state; reusable metadata lives in `Book`, keyed by ISBN where possible and Google volume id for info-only cache rows.                                                                             |
+| 2026-07-10 | Google-first book lookup                                   | Superseded on 2026-07-11 by Google-only metadata. Google-native pagination, filters, sort, print type controls, and permanent cache behavior remain.                                                                                                   |
+| 2026-07-10 | ISBN-owned library items                                   | `LibraryItem` stores `isbn13`, `isbn10`, and personal state; reusable metadata lives in `Book`, keyed by ISBN where possible and Google volume id for info-only cache rows.                                                                            |
 | 2026-07-10 | Info-only versus saved detail routes                       | Search results route to `/app/book-info/google/:volumeId`; saved library entries keep `/app/book/:libraryItemId`. ISBN-less Google results can be viewed but cannot be saved.                                                                          |
+| 2026-07-11 | Google Books-only metadata                                 | Remove all active Open Library code, config, schema fields, cache tables, response members, and frontend fixtures. Google Books is authoritative; missing fields remain nullable and use UI placeholders.                                              |
+| 2026-07-11 | Deterministic Google demo snapshot                         | `data/google-books-snapshot.json` stores 45 raw Google volumes refreshed by `npm run books:snapshot:refresh`; database seed prewarms shared cache rows and guest-session creation makes no provider calls.                                             |
 
 ## Open Questions
 
@@ -249,10 +252,18 @@ Authoritative v1 defaults:
 
 ### 2026-07-10
 
-- Refactored book lookup to Google-first search/detail with Open Library enrichment after cache writes, replacing Open Library dynamic search facets with Google-native availability, sort, and print-type controls.
+- Refactored book lookup to Google-first search/detail with enrichment after cache writes, replacing the former provider's dynamic search facets with Google-native availability, sort, and print-type controls. This intermediate design was superseded by Google-only metadata on 2026-07-11.
 - Repurposed `Book` as the permanent metadata cache and migrated `LibraryItem` to own ISBNs plus user state instead of a required `bookId` relation.
 - Added a one-time migration that backfills library ISBNs, fails loudly when legacy saved items lack an ISBN, drops the old required library-to-book relation, and clears legacy metadata cache rows for rebuild.
 - Added `/api/books/google/:id` for info-only book detail, disabled save actions for ISBN-less Google results, and updated add-to-library APIs to require at least one ISBN.
 - Updated search UX so result clicks open `/app/book-info/google/:volumeId`, pagination and filters stay URL-driven, and saved-book detail still uses `/app/book/:libraryItemId`.
 - Regenerated frontend OpenAPI types and added/updated focused backend and frontend tests for Google query composition, cache/enrichment precedence, ISBN-required saves, search navigation, filters, and disabled ISBN-less save warnings.
 - Verified with backend typecheck, backend Jest, backend Docker e2e, Prisma validate, OpenAPI type regeneration, frontend app typecheck, frontend unit tests, format check, and Docker frontend production build. Host `npm run build:frontend` still aborts with exit 134 before diagnostics, while the same Angular production build passes inside Docker.
+
+### 2026-07-11
+
+- Removed the active Open Library client, cache, normalizer, schema fields, provider enum value, environment settings, Docker wiring, response envelope, frontend fixtures, and cover-palette allowance.
+- Made raw Google volumes authoritative for summaries, covers, categories, dates, external links, related-book candidate searches, and series detection; Google failures now map to documented 404/429/503 responses.
+- Added a resumable `npm run books:snapshot:refresh` workflow and committed 45 raw Google volumes; database seed prewarms Google cache rows while guest-session creation remains network-free.
+- Applied the forward migration to the populated local database, preserved 189 library items, rebuilt 45 Google cache rows, and verified the full nine-migration history against a temporary clean schema.
+- Regenerated the Angular OpenAPI types and verified backend lint/typecheck/unit/build, frontend unit tests, Docker Angular production build, backend e2e workflows, and a live Google search through `/api/books/search`.

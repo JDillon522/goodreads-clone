@@ -34,15 +34,6 @@ function item(id: string, title: string, shelves: LibraryItemResponse['shelves']
         },
       },
       id: `${id}-book`,
-      openLibrary: {
-        coverUrl: null,
-        editionKey: null,
-        firstPublishDate: null,
-        raw: null,
-        sourceUrl: null,
-        subjects: [],
-        workKey: null,
-      },
       summary: {
         authors: ['Author'],
         averageRating: null,

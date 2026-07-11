@@ -27,6 +27,7 @@
     "build": "npm run build --workspaces --if-present",
     "build:backend": "npm run build -w backend",
     "build:frontend": "npm run build -w bookshelf-frontend",
+    "books:snapshot:refresh": "node scripts/refresh-google-books-snapshot.mjs",
     "api:types": "openapi-typescript http://localhost:3000/docs-json -o frontend/src/app/core/api/bookshelf-api.types.ts",
     "db:generate": "npm run prisma:generate -w backend",
     "db:migrate:dev": "docker compose run --rm backend npm run db:migrate:dev -w backend",

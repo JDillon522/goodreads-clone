@@ -12,7 +12,11 @@ RUN npm install
 
 COPY . .
 
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 npm run prisma:generate -w backend
+# Prisma loads prisma.config.ts during generation even though it does not connect to Postgres.
+# Compose injects the real DATABASE_URL only when the container starts, so use a non-secret,
+# syntactically valid build-only URL here and keep strict runtime configuration validation intact.
+RUN if [ -f /app/certs/local-ca.pem ]; then export NODE_EXTRA_CA_CERTS=/app/certs/local-ca.pem; fi; \
+    DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma?schema=public npm run prisma:generate -w backend
 
 EXPOSE 3000
 
@@ -24,7 +28,8 @@ RUN npm ci
 
 COPY . .
 
-RUN NODE_TLS_REJECT_UNAUTHORIZED=0 npm run prisma:generate -w backend && npm run build -w backend
+RUN if [ -f /app/certs/local-ca.pem ]; then export NODE_EXTRA_CA_CERTS=/app/certs/local-ca.pem; fi; \
+    DATABASE_URL=postgresql://prisma:prisma@localhost:5432/prisma?schema=public npm run prisma:generate -w backend && npm run build -w backend
 
 FROM base AS production
 
