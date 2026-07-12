@@ -10,177 +10,117 @@
     <p class="error-message" role="alert">{{ error() }}</p>
   } @else if (item()) {
     <article class="book-detail">
-      <div class="cover-stack">
-        <div class="book-cover">
-          @if (coverUrl()) {
-            <img [src]="coverUrl()" [alt]="item()!.book.summary.title + ' cover'" />
-          } @else {
-            <i class="ph ph-book-open-text" aria-hidden="true"></i>
-          }
-        </div>
-        @if (coverUrl()) {
-          <button
-            class="secondary-button cover-theme-button"
-            type="button"
-            (click)="useCoverAsTheme()"
-            [disabled]="applyingTheme()"
-          >
-            <i class="ph ph-palette" aria-hidden="true"></i>
-            <span>{{ applyingTheme() ? 'Generating...' : 'Use cover as theme' }}</span>
-          </button>
-        }
-      </div>
-
-      <div class="book-copy">
-        <p class="eyebrow">{{ shelfListLabel() }}</p>
-        <h1>{{ item()!.book.summary.title }}</h1>
-        @if (authorSearchQuery(); as author) {
-          <a class="author author-link" routerLink="/app/search" [queryParams]="{ query: author }">
-            {{ author }}
-          </a>
-        } @else {
-          <p class="author">{{ primaryAuthor() }}</p>
-        }
-        <p class="description">{{ description() }}</p>
-
-        <dl class="metadata-grid">
-          <div>
-            <dt>Published</dt>
-            <dd>{{ item()!.book.summary.publishedDate || 'Unknown' }}</dd>
-          </div>
-          <div>
-            <dt>Publisher</dt>
-            <dd>{{ item()!.book.summary.publisher || 'Unknown' }}</dd>
-          </div>
-          <div>
-            <dt>Pages</dt>
-            <dd>{{ item()!.book.summary.pageCount || 'Unknown' }}</dd>
-          </div>
-          <div>
-            <dt>ISBN</dt>
-            <dd>{{ item()!.book.summary.isbn13 || item()!.book.summary.isbn10 || 'Missing' }}</dd>
-          </div>
-          <div>
-            <dt>Readable</dt>
-            <dd>{{ item()!.book.summary.isReadableOnline ? 'Online preview' : 'No preview' }}</dd>
-          </div>
-          <div>
-            <dt>Source</dt>
-            <dd>{{ item()!.book.sync.googleBooksStatus }}</dd>
-          </div>
-        </dl>
-
-        @if (item()!.book.summary.genres.length > 0) {
-          <ul class="chip-list" aria-label="Genres">
-            @for (genre of item()!.book.summary.genres; track genre) {
-              <li>{{ genre }}</li>
+      <section class="book-overview-card" aria-labelledby="book-detail-title">
+        <div class="cover-stack">
+          <div class="book-cover">
+            @if (coverUrl()) {
+              <img [src]="coverUrl()" [alt]="item()!.book.summary.title + ' cover'" />
+            } @else {
+              <i class="ph ph-book-open-text" aria-hidden="true"></i>
             }
-          </ul>
-        }
-
-        <div class="actions">
-          @if (item()!.book.summary.externalLinks.preview) {
-            <a
-              class="secondary-button"
-              [href]="item()!.book.summary.externalLinks.preview"
-              target="_blank"
-              rel="noreferrer"
+          </div>
+          @if (coverUrl()) {
+            <button
+              class="secondary-button cover-theme-button"
+              type="button"
+              (click)="useCoverAsTheme()"
+              [disabled]="applyingTheme()"
             >
-              <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
-              <span>Preview</span>
-            </a>
+              <i class="ph ph-palette" aria-hidden="true"></i>
+              <span>{{ applyingTheme() ? 'Generating...' : 'Use cover as theme' }}</span>
+            </button>
           }
-          @if (item()!.book.summary.externalLinks.info) {
-            <a
-              class="secondary-button"
-              [href]="item()!.book.summary.externalLinks.info"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
-              <span>Google Books</span>
-            </a>
-          }
-          <button
-            class="danger-button"
-            type="button"
-            (click)="deleteBook()"
-            [disabled]="deletingBook()"
-          >
-            <i class="ph ph-trash" aria-hidden="true"></i>
-            <span>{{ deletingBook() ? 'Removing...' : 'Remove from library' }}</span>
-          </button>
         </div>
 
-        @if (isLoadingRelations()) {
-          <p class="muted">Loading related books...</p>
-        }
-
-        @if (series(); as bookSeries) {
-          @if (bookSeries.entries.length > 0) {
-            <section class="detail-panel detail-panel--wide discovery-panel" aria-labelledby="series-heading">
-              <div class="panel-heading-row">
-                <h2 id="series-heading">{{ bookSeries.seriesName }}</h2>
-                <span class="panel-count">{{ bookSeries.entries.length }}</span>
-              </div>
-              <ul class="series-list">
-                @for (entry of bookSeries.entries; track entry.book.id) {
-                  <li [class.is-current]="entry.book.id === item()!.book.id">
-                    <span class="series-position">
-                      {{ entry.positionLabel || (entry.position ? 'Book ' + entry.position : '--') }}
-                    </span>
-                    <a
-                      routerLink="/app/search"
-                      [queryParams]="{ query: searchQueryForBook(entry.book) }"
-                    >
-                      <span>{{ entry.book.title }}</span>
-                      <small>{{ cardAuthor(entry.book) }}</small>
-                    </a>
-                  </li>
-                }
-              </ul>
-            </section>
+        <div class="book-copy">
+          <p class="eyebrow">{{ shelfListLabel() }}</p>
+          <h1 id="book-detail-title">{{ item()!.book.summary.title }}</h1>
+          @if (authorSearchQuery(); as author) {
+            <a
+              class="author author-link"
+              routerLink="/app/search"
+              [queryParams]="{ query: author }"
+            >
+              {{ author }}
+            </a>
+          } @else {
+            <p class="author">{{ primaryAuthor() }}</p>
           }
-        }
+          <p class="description">{{ description() }}</p>
 
-        @if (relatedBooks().length > 0) {
-          <section class="detail-panel detail-panel--wide discovery-panel" aria-labelledby="related-heading">
-            <div class="panel-heading-row">
-              <h2 id="related-heading">Related books</h2>
-              <span class="panel-count">{{ relatedBooks().length }}</span>
+          <dl class="metadata-grid">
+            <div>
+              <dt>Published</dt>
+              <dd>{{ item()!.book.summary.publishedDate || 'Unknown' }}</dd>
             </div>
-            <ul class="related-list">
-              @for (related of relatedBooks(); track related.book.id) {
-                <li>
-                  <a
-                    class="related-card"
-                    routerLink="/app/search"
-                    [queryParams]="{ query: searchQueryForBook(related.book) }"
-                  >
-                    <span class="related-cover" aria-hidden="true">
-                      @if (related.book.coverUrl) {
-                        <img [src]="related.book.coverUrl" [alt]="" />
-                      } @else {
-                        <i class="ph ph-book-open-text"></i>
-                      }
-                    </span>
-                    <span class="related-copy">
-                      <strong>{{ related.book.title }}</strong>
-                      <small>{{ cardAuthor(related.book) }}</small>
-                      <span class="related-reasons">{{ related.reasons.join(' | ') }}</span>
-                    </span>
-                  </a>
-                </li>
+            <div>
+              <dt>Publisher</dt>
+              <dd>{{ item()!.book.summary.publisher || 'Unknown' }}</dd>
+            </div>
+            <div>
+              <dt>Pages</dt>
+              <dd>{{ item()!.book.summary.pageCount || 'Unknown' }}</dd>
+            </div>
+            <div>
+              <dt>ISBN</dt>
+              <dd>{{ item()!.book.summary.isbn13 || item()!.book.summary.isbn10 || 'Missing' }}</dd>
+            </div>
+            <div>
+              <dt>Readable</dt>
+              <dd>{{ item()!.book.summary.isReadableOnline ? 'Online preview' : 'No preview' }}</dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd>{{ item()!.book.sync.googleBooksStatus }}</dd>
+            </div>
+          </dl>
+
+          @if (item()!.book.summary.genres.length > 0) {
+            <ul class="chip-list" aria-label="Genres">
+              @for (genre of item()!.book.summary.genres; track genre) {
+                <li>{{ genre }}</li>
               }
             </ul>
-          </section>
-        }
+          }
 
-        @if (relationsError()) {
-          <p class="muted">{{ relationsError() }}</p>
-        }
+          <div class="actions">
+            @if (item()!.book.summary.externalLinks.preview) {
+              <a
+                class="secondary-button"
+                [href]="item()!.book.summary.externalLinks.preview"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+                <span>Preview</span>
+              </a>
+            }
+            @if (item()!.book.summary.externalLinks.info) {
+              <a
+                class="secondary-button"
+                [href]="item()!.book.summary.externalLinks.info"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+                <span>Google Books</span>
+              </a>
+            }
+            <button
+              class="danger-button"
+              type="button"
+              (click)="deleteBook()"
+              [disabled]="deletingBook()"
+            >
+              <i class="ph ph-trash" aria-hidden="true"></i>
+              <span>{{ deletingBook() ? 'Removing...' : 'Remove from library' }}</span>
+            </button>
+          </div>
+        </div>
+      </section>
 
-        <form class="detail-panel" (submit)="submitStatus($event)">
+      <aside class="book-controls" aria-label="Library controls">
+        <form class="detail-panel status-panel" (submit)="submitStatus($event)">
           <h2>Status</h2>
           <app-form-control label="Reading status" kind="select" [control]="statusForm.status">
             <option value="WANT_TO_READ">Want to read</option>
@@ -192,7 +132,7 @@
           </button>
         </form>
 
-        <section class="detail-panel" aria-labelledby="book-shelves-heading">
+        <section class="detail-panel shelves-panel" aria-labelledby="book-shelves-heading">
           <h2 id="book-shelves-heading">Shelves</h2>
           <ul class="shelf-chip-list">
             @for (shelf of itemShelves(); track shelf.id) {
@@ -227,7 +167,7 @@
           }
         </section>
 
-        <form class="detail-panel" (submit)="submitProgress($event)">
+        <form class="detail-panel progress-panel" (submit)="submitProgress($event)">
           <h2>Progress</h2>
           <app-form-control label="Mode" kind="select" [control]="progressForm.trackingMode">
             <option value="PAGE">Pages</option>
@@ -250,8 +190,171 @@
             {{ progressForm().submitting() ? 'Saving...' : 'Save progress' }}
           </button>
         </form>
+      </aside>
 
-        <form class="detail-panel detail-panel--wide" (submit)="submitReview($event)">
+      <div class="detail-grid">
+        @if (isLoadingRelations()) {
+          <p class="muted detail-message">Loading related books...</p>
+        }
+
+        @if (series(); as bookSeries) {
+          @if (bookSeries.entries.length > 0) {
+            <section
+              class="detail-panel detail-panel--wide discovery-panel series-panel"
+              aria-labelledby="series-heading"
+            >
+              <div class="panel-heading-row">
+                <h2 id="series-heading">{{ bookSeries.seriesName }}</h2>
+                <span class="panel-count">{{ bookSeries.entries.length }}</span>
+              </div>
+              <ul class="series-list">
+                @for (entry of bookSeries.entries; track entry.book.id) {
+                  <li [class.is-current]="entry.book.id === item()!.book.id">
+                    <span class="series-position">
+                      {{
+                        entry.positionLabel || (entry.position ? 'Book ' + entry.position : '--')
+                      }}
+                    </span>
+                    @if (googleVolumeId(entry.book); as volumeId) {
+                      <a [routerLink]="['/app/book-info/google', volumeId]">
+                        <span>{{ entry.book.title }}</span>
+                        <small>{{ cardAuthor(entry.book) }}</small>
+                      </a>
+                    } @else {
+                      <span class="series-copy">
+                        <span>{{ entry.book.title }}</span>
+                        <small>{{ cardAuthor(entry.book) }}</small>
+                      </span>
+                    }
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        }
+
+        @if (relatedBooks().length > 0) {
+          <section
+            class="detail-panel detail-panel--wide discovery-panel related-panel"
+            aria-labelledby="related-heading"
+          >
+            <div class="panel-heading-row">
+              <h2 id="related-heading">Related books</h2>
+              <span class="panel-count">{{ relatedBooks().length }}</span>
+            </div>
+            <ul class="related-list">
+              @for (related of relatedBooks(); track related.book.id) {
+                <li>
+                  @if (googleVolumeId(related.book); as volumeId) {
+                    <a
+                      class="related-card"
+                      [routerLink]="['/app/book-info/google', volumeId]"
+                      [attr.aria-label]="'View exact edition of ' + related.book.title"
+                    >
+                      <span class="related-cover" aria-hidden="true">
+                        @if (related.book.coverUrl) {
+                          <img [src]="related.book.coverUrl" [alt]="" />
+                        } @else {
+                          <i class="ph ph-book-open-text"></i>
+                        }
+                      </span>
+                      <span class="related-copy">
+                        <strong>{{ related.book.title }}</strong>
+                        <small>{{ cardAuthor(related.book) }}</small>
+                        <span class="related-reasons">{{ related.reasons.join(' | ') }}</span>
+                      </span>
+                    </a>
+                  } @else {
+                    <div class="related-card related-card--unavailable">
+                      <span class="related-cover" aria-hidden="true">
+                        @if (related.book.coverUrl) {
+                          <img [src]="related.book.coverUrl" [alt]="" />
+                        } @else {
+                          <i class="ph ph-book-open-text"></i>
+                        }
+                      </span>
+                      <span class="related-copy">
+                        <strong>{{ related.book.title }}</strong>
+                        <small>{{ cardAuthor(related.book) }}</small>
+                        <span class="related-reasons">Exact edition unavailable</span>
+                      </span>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (!isLoadingRelations()) {
+          <section
+            class="detail-panel detail-panel--wide discovery-panel related-panel editions-panel"
+            aria-labelledby="editions-heading"
+          >
+            <div class="panel-heading-row">
+              <h2 id="editions-heading">Similar editions</h2>
+              <span class="panel-count">{{ similarEditions().length }}</span>
+            </div>
+            <p class="edition-warning">
+              Replacing an edition keeps your shelves, status, rating, and notes, but resets reading
+              progress.
+            </p>
+            @if (similarEditions().length > 0) {
+              <ul class="edition-list">
+                @for (edition of similarEditions(); track edition.id) {
+                  <li class="edition-card">
+                    @if (edition.summary.googleBooksVolumeId; as volumeId) {
+                      <a
+                        class="edition-cover"
+                        [routerLink]="['/app/book-info/google', volumeId]"
+                        [attr.aria-label]="'View exact edition of ' + edition.summary.title"
+                      >
+                        @if (
+                          edition.summary.coverImages.card || edition.summary.coverUrl;
+                          as cover
+                        ) {
+                          <img [src]="cover" [alt]="" />
+                        } @else {
+                          <i class="ph ph-book-open-text" aria-hidden="true"></i>
+                        }
+                      </a>
+                    }
+                    <div class="edition-copy">
+                      <strong>{{ edition.summary.title }}</strong>
+                      <small>{{ editionAuthor(edition) }}</small>
+                      <span>
+                        {{ edition.summary.publisher || 'Unknown publisher' }}
+                        @if (edition.summary.publishedDate) {
+                          · {{ edition.summary.publishedDate }}
+                        }
+                      </span>
+                      <button
+                        class="secondary-button edition-replace-button"
+                        type="button"
+                        (click)="replaceEdition(edition)"
+                        [disabled]="replacingEditionId() !== null"
+                      >
+                        {{
+                          replacingEditionId() === edition.summary.googleBooksVolumeId
+                            ? 'Replacing...'
+                            : 'Use this edition'
+                        }}
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="muted">No alternate Google Books editions were found.</p>
+            }
+          </section>
+        }
+
+        @if (relationsError()) {
+          <p class="muted detail-message">{{ relationsError() }}</p>
+        }
+
+        <form class="detail-panel detail-panel--wide review-panel" (submit)="submitReview($event)">
           <h2>Rating and notes</h2>
           <app-form-control label="Rating" kind="select" [control]="reviewForm.rating">
             @for (rating of ratingOptions; track rating) {

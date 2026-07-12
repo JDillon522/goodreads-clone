@@ -131,6 +131,20 @@ class MockLibrary {
       return this.currentItem;
     },
   );
+  public readonly replaceEdition = vi.fn(
+    async (_id: string, _request: { googleBooksVolumeId: string }) => {
+      const replacement = testBook('The Test Book: Deluxe Edition');
+      replacement.id = 'book-edition';
+      replacement.summary.googleBooksVolumeId = 'google-edition';
+      replacement.summary.publisher = 'Deluxe Press';
+      this.currentItem = {
+        ...this.currentItem,
+        book: replacement,
+        currentPage: undefined,
+      };
+      return this.currentItem;
+    },
+  );
 }
 
 class MockShelves {
@@ -152,11 +166,12 @@ class MockBooks {
           authors: ['Ada Author'],
           coverUrl: null,
           genres: ['Fantasy'],
+          googleBooksVolumeId: 'google-book-1',
           id: 'book-1',
           primaryAuthor: 'Ada Author',
           publishedDate: '2026',
-          sourceId: 'sample:1',
-          sourceProvider: 'SAMPLE',
+          sourceId: 'isbn13:9780441478125',
+          sourceProvider: 'GOOGLE_BOOKS',
           sourceUrl: null,
           subtitle: null,
           title: 'The Test Book',
@@ -170,11 +185,12 @@ class MockBooks {
           authors: ['Ada Author'],
           coverUrl: null,
           genres: ['Fantasy'],
+          googleBooksVolumeId: 'google-book-2',
           id: 'book-2',
           primaryAuthor: 'Ada Author',
           publishedDate: '2027',
-          sourceId: 'sample:2',
-          sourceProvider: 'SAMPLE',
+          sourceId: 'isbn13:9780441478126',
+          sourceProvider: 'GOOGLE_BOOKS',
           sourceUrl: null,
           subtitle: null,
           title: 'The Sequel',
@@ -194,11 +210,12 @@ class MockBooks {
           authors: ['Ada Author'],
           coverUrl: null,
           genres: ['Fantasy'],
+          googleBooksVolumeId: 'google-book-2',
           id: 'book-2',
           primaryAuthor: 'Ada Author',
           publishedDate: '2027',
-          sourceId: 'sample:2',
-          sourceProvider: 'SAMPLE',
+          sourceId: 'isbn13:9780441478126',
+          sourceProvider: 'GOOGLE_BOOKS',
           sourceUrl: null,
           subtitle: null,
           title: 'The Sequel',
@@ -208,6 +225,15 @@ class MockBooks {
       },
     ],
   }));
+  public readonly similarEditions = vi.fn(async () => {
+    const edition = testBook('The Test Book: Deluxe Edition');
+    edition.id = 'book-edition';
+    edition.summary.googleBooksVolumeId = 'google-edition';
+    edition.summary.isbn13 = '9780441478996';
+    edition.summary.publisher = 'Deluxe Press';
+
+    return { bookId: 'book-1', items: [edition] };
+  });
 }
 
 describe('BookDetail', () => {
@@ -255,10 +281,49 @@ describe('BookDetail', () => {
     expect(element.textContent).toContain('The Sequel');
     expect(books.series).toHaveBeenCalledWith('book-1');
     expect(books.related).toHaveBeenCalledWith('book-1', 12);
+    expect(books.similarEditions).toHaveBeenCalledWith('book-1', 6);
     expect(authorLink?.textContent?.trim()).toBe('Ada Author');
     expect(authorLink?.getAttribute('href')).toBe('/app/search?query=Ada%20Author');
+    expect(element.querySelector<HTMLAnchorElement>('.related-card')?.getAttribute('href')).toBe(
+      '/app/book-info/google/google-book-2',
+    );
     expect(element.querySelector<HTMLSelectElement>('select')?.value).toBe('READING');
     expect(element.querySelector<HTMLTextAreaElement>('textarea')?.value).toBe('Original note');
+  });
+
+  it('keeps the book identity together in a bounded overview card with controls beside it', async () => {
+    const fixture = TestBed.createComponent(BookDetail);
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const overview = element.querySelector<HTMLElement>('.book-overview-card')!;
+    const controls = element.querySelector<HTMLElement>('.book-controls')!;
+
+    expect(overview.querySelector('.cover-stack')).not.toBeNull();
+    expect(overview.querySelector('.book-copy')).not.toBeNull();
+    expect(overview.querySelector('.metadata-grid')).not.toBeNull();
+    expect(overview.querySelector('.actions')).not.toBeNull();
+    expect(getComputedStyle(overview).maxInlineSize).toBe('64rem');
+    expect(controls.querySelector('.status-panel')).not.toBeNull();
+    expect(controls.querySelector('.shelves-panel')).not.toBeNull();
+    expect(controls.querySelector('.progress-panel')).not.toBeNull();
+  });
+
+  it('replaces the saved edition while keeping the library item route', async () => {
+    const fixture = TestBed.createComponent(BookDetail);
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Similar editions');
+    expect(element.textContent).toContain('Deluxe Press');
+
+    element.querySelector<HTMLButtonElement>('.edition-replace-button')!.click();
+    await fixture.whenStable();
+
+    expect(library.replaceEdition).toHaveBeenCalledWith('item-1', {
+      googleBooksVolumeId: 'google-edition',
+    });
+    expect(element.textContent).toContain('Reading progress was reset.');
   });
 
   it('updates status, shelf membership, progress, and review fields through the UI', async () => {
@@ -350,7 +415,9 @@ describe('BookDetail', () => {
     const fixture = TestBed.createComponent(BookDetail);
     await fixture.whenStable();
 
-    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.danger-button')!.click();
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('.danger-button')!
+      .click();
     await fixture.whenStable();
 
     expect(library.delete).toHaveBeenCalledWith('item-1');

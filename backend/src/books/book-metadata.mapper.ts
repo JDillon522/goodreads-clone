@@ -50,6 +50,7 @@ export function toBookCardResponse(book: BookMetadataRecord): BookCardResponseDt
     authors: summary.authors,
     coverUrl: summary.coverUrl,
     genres: summary.genres,
+    googleBooksVolumeId: summary.googleBooksVolumeId,
     id: book.id,
     primaryAuthor: summary.primaryAuthor,
     publishedDate: summary.publishedDate,

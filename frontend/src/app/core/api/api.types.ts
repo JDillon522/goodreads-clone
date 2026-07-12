@@ -48,6 +48,7 @@ export type BookSeriesResponse = Schema<'BookSeriesResponseDto'>;
 export type NormalizedBook = BookMetadataResponse;
 export type RelatedBookResponse = Schema<'RelatedBookResponseDto'>;
 export type RelatedBooksResponse = Schema<'RelatedBooksResponseDto'>;
+export type SimilarEditionsResponse = Schema<'SimilarEditionsResponseDto'>;
 
 export type AddLibraryItemRequest = Schema<'AddLibraryItemRequestDto'>;
 export type AddLibraryItemShelfRequest = Schema<'AddLibraryItemShelfRequestDto'>;
@@ -55,6 +56,7 @@ export type LibraryBookResponse = Schema<'LibraryBookResponseDto'>;
 export type LibraryItemResponse = Schema<'LibraryItemResponseDto'>;
 export type LibraryItemStatus = LibraryItemResponse['status'];
 export type MoveLibraryItemRequest = Schema<'MoveLibraryItemRequestDto'>;
+export type ReplaceLibraryItemEditionRequest = Schema<'ReplaceLibraryItemEditionRequestDto'>;
 export type UpdateLibraryItemRequest = Schema<'UpdateLibraryItemRequestDto'>;
 export type UpdateProgressRequest = Schema<'UpdateProgressRequestDto'>;
 

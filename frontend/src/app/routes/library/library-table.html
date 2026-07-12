@@ -1,0 +1,132 @@
+<div class="library-table-shell">
+  <table class="library-table">
+    <thead>
+      <tr>
+        <th scope="col">Title</th>
+        <th scope="col">Author</th>
+        <th scope="col">Status</th>
+        <th scope="col">Shelves</th>
+        <th scope="col">Progress</th>
+        <th scope="col">Added</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of items(); track item.id) {
+        <tr
+          class="library-table__row"
+          [class.is-expanded]="expandedItemId() === item.id"
+          (click)="itemToggled.emit(item.id)"
+        >
+          <td>
+            <button
+              class="row-toggle"
+              type="button"
+              (click)="$event.stopPropagation(); itemToggled.emit(item.id)"
+              [attr.aria-expanded]="expandedItemId() === item.id"
+              [attr.aria-controls]="'library-row-details-' + item.id"
+            >
+              <i
+                class="ph"
+                [class.ph-caret-down]="expandedItemId() === item.id"
+                [class.ph-caret-right]="expandedItemId() !== item.id"
+                aria-hidden="true"
+              ></i>
+              <span>{{ item.book.summary.title }}</span>
+            </button>
+          </td>
+          <td>{{ primaryAuthor(item) }}</td>
+          <td>{{ statusLabel(item) }}</td>
+          <td>{{ shelfLabel(item) }}</td>
+          <td>{{ progressLabel(item) }}</td>
+          <td>{{ dateAddedLabel(item) }}</td>
+        </tr>
+        @if (expandedItemId() === item.id) {
+          <tr class="library-table__details-row">
+            <td colspan="6">
+              <article
+                class="table-book-overview"
+                [id]="'library-row-details-' + item.id"
+                [attr.aria-labelledby]="'library-row-title-' + item.id"
+              >
+                <header>
+                  <div class="table-book-overview__identity">
+                    <div class="table-book-overview__cover">
+                      @if (coverUrl(item)) {
+                        <img
+                          [src]="coverUrl(item)"
+                          [alt]="item.book.summary.title + ' cover'"
+                          loading="lazy"
+                        />
+                      } @else {
+                        <i class="ph ph-book-open-text" aria-hidden="true"></i>
+                      }
+                    </div>
+                    <div>
+                      <p class="eyebrow">{{ shelfLabel(item) }}</p>
+                      <h2 [id]="'library-row-title-' + item.id">{{ item.book.summary.title }}</h2>
+                      <p class="table-book-overview__author">{{ primaryAuthor(item) }}</p>
+                    </div>
+                  </div>
+                  <a class="primary-button" [routerLink]="['/app/book', item.id]">View details</a>
+                </header>
+
+                <p class="table-book-overview__description">{{ description(item) }}</p>
+
+                <dl class="table-book-overview__metadata">
+                  <div>
+                    <dt>Published</dt>
+                    <dd>{{ item.book.summary.publishedDate || 'Unknown' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Publisher</dt>
+                    <dd>{{ item.book.summary.publisher || 'Unknown' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Pages</dt>
+                    <dd>{{ item.book.summary.pageCount || 'Unknown' }}</dd>
+                  </div>
+                  <div>
+                    <dt>ISBN</dt>
+                    <dd>{{ isbnLabel(item) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Readable</dt>
+                    <dd>
+                      {{ item.book.summary.isReadableOnline ? 'Online preview' : 'No preview' }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd>{{ item.book.sync.googleBooksStatus }}</dd>
+                  </div>
+                </dl>
+
+                @if (item.book.summary.genres.length > 0) {
+                  <ul class="overview-genres" aria-label="Genres">
+                    @for (genre of item.book.summary.genres; track genre) {
+                      <li>{{ genre }}</li>
+                    }
+                  </ul>
+                }
+              </article>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+
+<nav class="pagination" aria-label="Library table pagination">
+  <button type="button" (click)="pageChanged.emit(page() - 1)" [disabled]="page() === 1">
+    <i class="ph ph-arrow-left" aria-hidden="true"></i>
+    Previous
+  </button>
+  <p aria-live="polite">
+    Showing {{ rangeStart() }}-{{ rangeEnd() }} · Page {{ page() }} of {{ totalPages() }}
+  </p>
+  <button type="button" (click)="pageChanged.emit(page() + 1)" [disabled]="page() === totalPages()">
+    Next
+    <i class="ph ph-arrow-right" aria-hidden="true"></i>
+  </button>
+</nav>

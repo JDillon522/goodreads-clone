@@ -19,6 +19,9 @@ export class BookCardResponseDto {
   @ApiPropertyOptional({ example: 'Ursula K. Le Guin', nullable: true, type: String })
   primaryAuthor!: null | string;
 
+  @ApiPropertyOptional({ example: 'zyTCAlFPjgYC', nullable: true, type: String })
+  googleBooksVolumeId!: null | string;
+
   @ApiPropertyOptional({
     example:
       'https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1',

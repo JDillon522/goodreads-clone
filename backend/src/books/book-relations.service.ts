@@ -12,6 +12,7 @@ import { BookPersistenceService } from './book-persistence.service';
 import { BookSeriesResponseDto } from './dto/book-series-response.dto';
 import { RelatedBookResponseDto } from './dto/related-book-response.dto';
 import { RelatedBooksResponseDto } from './dto/related-books-response.dto';
+import { SimilarEditionsResponseDto } from './dto/similar-editions-response.dto';
 import { GoogleBooksClientService } from './google-books/google-books-client.service';
 
 /**
@@ -108,6 +109,69 @@ export class BookRelationsService {
     return {
       bookId,
       items: items.map(toRelatedBookResponse),
+    };
+  }
+
+  /**
+   * Searches Google Books by the source title and returns ISBN-distinct, closely matching volumes.
+   * Results are stored through the same shared Google cache used by search and detail routes.
+   */
+  public async getSimilarEditions(
+    bookId: string,
+    limit: number,
+  ): Promise<SimilarEditionsResponseDto> {
+    const book = await this.getBook(bookId);
+    const source = bookSummary(book as BookMetadataRecord);
+    const query = [
+      `intitle:${quoteGooglePhrase(editionSearchTitle(source.title))}`,
+      source.primaryAuthor ? `inauthor:${quoteGooglePhrase(source.primaryAuthor)}` : null,
+    ]
+      .filter(isString)
+      .join(' ');
+    const providerLimit = Math.min(Math.max(limit * 4, 20), 40);
+    const result = await this.googleBooksClient.searchVolumes({
+      maxResults: providerLimit,
+      orderBy: 'relevance',
+      printType: 'books',
+      query,
+      startIndex: 0,
+    });
+    const seen = new Set<string>();
+    const candidates = result.items
+      .map((candidate) => ({
+        candidate,
+        score: titleSimilarity(source.title, candidate.title),
+      }))
+      .filter(({ candidate, score }) => {
+        if (
+          score < 0.65 ||
+          candidate.id === book.googleBooksVolumeId ||
+          (!candidate.isbn13 && !candidate.isbn10) ||
+          (candidate.isbn13 !== null && candidate.isbn13 === book.isbn13) ||
+          (candidate.isbn10 !== null && candidate.isbn10 === book.isbn10)
+        ) {
+          return false;
+        }
+
+        const identity = candidate.isbn13
+          ? `isbn13:${candidate.isbn13}`
+          : `isbn10:${candidate.isbn10}`;
+
+        if (seen.has(identity)) {
+          return false;
+        }
+
+        seen.add(identity);
+        return true;
+      })
+      .sort((left, right) => right.score - left.score)
+      .slice(0, limit)
+      .map(({ candidate }) => candidate);
+    const cachedBooks = await this.bookPersistence.persistGoogleBooksVolumes(candidates);
+
+    return {
+      bookId,
+      items: cachedBooks.map((candidate) => this.bookPersistence.toBookMetadata(candidate)),
     };
   }
   /**
@@ -682,6 +746,51 @@ function toRelatedBookResponse(scored: ScoredBook): RelatedBookResponseDto {
  */
 function quoteGooglePhrase(value: string): string {
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+/** Scores normalized title closeness while ignoring common edition-only labels. */
+function titleSimilarity(sourceTitle: string, candidateTitle: null | string): number {
+  const source = editionTitleTokens(sourceTitle);
+  const candidate = editionTitleTokens(candidateTitle ?? '');
+
+  if (source.length === 0 || candidate.length === 0) {
+    return 0;
+  }
+
+  if (source.join(' ') === candidate.join(' ')) {
+    return 1;
+  }
+
+  const sourceSet = new Set(source);
+  const candidateSet = new Set(candidate);
+  const intersection = [...sourceSet].filter((token) => candidateSet.has(token)).length;
+  const union = new Set([...sourceSet, ...candidateSet]).size;
+
+  return union === 0 ? 0 : intersection / union;
+}
+
+function editionSearchTitle(value: string): string {
+  return value.replace(/\([^)]*\)\s*$/, '').trim() || value.trim();
+}
+
+function editionTitleTokens(value: string): string[] {
+  const ignored = new Set([
+    'anniversary',
+    'collectors',
+    'deluxe',
+    'edition',
+    'ebook',
+    'hardcover',
+    'illustrated',
+    'paperback',
+    'revised',
+    'unabridged',
+    'updated',
+  ]);
+
+  return normalizeText(editionSearchTitle(value))
+    .split(' ')
+    .filter((token) => token && !ignored.has(token));
 }
 
 function describeError(error: unknown): string {

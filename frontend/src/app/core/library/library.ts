@@ -6,6 +6,7 @@ import type {
   AddLibraryItemShelfRequest,
   LibraryItemResponse,
   MoveLibraryItemRequest,
+  ReplaceLibraryItemEditionRequest,
   UpdateLibraryItemRequest,
   UpdateProgressRequest,
 } from '../api/api.types';
@@ -108,6 +109,21 @@ export class Library {
   ): Promise<LibraryItemResponse> {
     const response = await this.api.post<LibraryItemResponse, UpdateProgressRequest>(
       `/api/library/${id}/progress`,
+      request,
+    );
+    this.markChanged();
+    this.session.markGuestChanged();
+    return response;
+  }
+  /**
+   * Swaps the ISBN-owned edition while retaining the owner's personal library state.
+   */
+  public async replaceEdition(
+    id: string,
+    request: ReplaceLibraryItemEditionRequest,
+  ): Promise<LibraryItemResponse> {
+    const response = await this.api.patch<LibraryItemResponse, ReplaceLibraryItemEditionRequest>(
+      `/api/library/${id}/edition`,
       request,
     );
     this.markChanged();

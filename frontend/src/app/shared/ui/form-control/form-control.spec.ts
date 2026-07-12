@@ -50,4 +50,16 @@ describe('UiFormControl', () => {
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Name is required.');
   });
+
+  it('keeps full-width native controls within the form-control host', async () => {
+    const fixture = TestBed.createComponent(FormControlHost);
+    await fixture.whenStable();
+
+    const formControl = fixture.nativeElement.querySelector('app-form-control') as HTMLElement;
+    const input = formControl.querySelector('input') as HTMLInputElement;
+
+    expect(getComputedStyle(formControl).minInlineSize).toBe('0px');
+    expect(getComputedStyle(input).boxSizing).toBe('border-box');
+    expect(getComputedStyle(input).maxInlineSize).toBe('100%');
+  });
 });

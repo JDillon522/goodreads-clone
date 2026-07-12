@@ -60,7 +60,11 @@ describe('BookRelationsService', () => {
     },
   };
   const persistGoogleBooksVolumes = jest.fn();
-  const bookPersistence = { persistGoogleBooksVolumes } as unknown as BookPersistenceService;
+  const toBookMetadata = jest.fn();
+  const bookPersistence = {
+    persistGoogleBooksVolumes,
+    toBookMetadata,
+  } as unknown as BookPersistenceService;
   const searchVolumes = jest.fn();
   const googleBooksClient = { searchVolumes } as unknown as GoogleBooksClientService;
   let service: BookRelationsService;
@@ -156,6 +160,64 @@ describe('BookRelationsService', () => {
     expect(persistGoogleBooksVolumes).toHaveBeenCalled();
   });
 
+  it('returns only ISBN-distinct Google volumes with closely matching titles', async () => {
+    const exactEdition = volumeCandidate({
+      id: 'google-exact-edition',
+      isbn13: '9780000000010',
+      publisher: 'New Press',
+      title: 'The Test Book',
+    });
+    const deluxeEdition = volumeCandidate({
+      id: 'google-deluxe-edition',
+      isbn13: '9780000000011',
+      publisher: 'Fancy Press',
+      title: 'The Test Book Deluxe Edition',
+    });
+    const unrelatedBook = volumeCandidate({
+      id: 'google-unrelated',
+      isbn13: '9780000000012',
+      title: 'A Completely Different Novel',
+    });
+    const sameIsbn = volumeCandidate({
+      id: 'google-same-isbn',
+      isbn13: sourceBook.isbn13,
+      title: 'The Test Book',
+    });
+    const persisted = [
+      book({
+        googleBooksVolumeId: exactEdition.id,
+        id: '44444444-4444-4444-8444-444444444444',
+        isbn13: exactEdition.isbn13,
+      }),
+      book({
+        googleBooksVolumeId: deluxeEdition.id,
+        id: '55555555-5555-4555-8555-555555555555',
+        isbn13: deluxeEdition.isbn13,
+      }),
+    ];
+
+    searchVolumes.mockResolvedValue({
+      items: [unrelatedBook, exactEdition, sameIsbn, deluxeEdition],
+      rawPayload: {},
+      totalItems: 4,
+    });
+    persistGoogleBooksVolumes.mockResolvedValue(persisted);
+    toBookMetadata.mockImplementation((candidate: { id: string }) => ({ id: candidate.id }));
+
+    await expect(service.getSimilarEditions(sourceBook.id, 6)).resolves.toEqual({
+      bookId: sourceBook.id,
+      items: [{ id: persisted[0].id }, { id: persisted[1].id }],
+    });
+    expect(searchVolumes).toHaveBeenCalledWith({
+      maxResults: 24,
+      orderBy: 'relevance',
+      printType: 'books',
+      query: 'intitle:"The Test Book" inauthor:"Ada Author"',
+      startIndex: 0,
+    });
+    expect(persistGoogleBooksVolumes).toHaveBeenCalledWith([exactEdition, deluxeEdition]);
+  });
+
   function book(overrides: Partial<typeof baseBook> = {}) {
     return {
       ...baseBook,
@@ -185,6 +247,36 @@ describe('BookRelationsService', () => {
     };
   }
 });
+
+function volumeCandidate(
+  overrides: Partial<{
+    id: string;
+    isbn13: null | string;
+    publisher: null | string;
+    title: null | string;
+  }> = {},
+) {
+  const title = overrides.title ?? 'The Test Book';
+
+  return {
+    authors: ['Ada Author'],
+    categories: ['Fantasy'],
+    description: null,
+    ebookAccess: null,
+    id: overrides.id ?? 'google-edition',
+    infoLink: null,
+    isbn10: null,
+    isbn13: overrides.isbn13 ?? '9780000000010',
+    isReadableOnline: false,
+    pageCount: 320,
+    publishedDate: '2025',
+    publisher: overrides.publisher ?? null,
+    rawPayload: googlePayload(title ?? 'Untitled book', 'Ada Author'),
+    subtitle: null,
+    thumbnailUrl: null,
+    title,
+  };
+}
 
 function googlePayload(title: string, author: string) {
   return {

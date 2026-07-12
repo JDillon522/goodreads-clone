@@ -18,6 +18,8 @@ import { BookSeriesResponseDto } from './dto/book-series-response.dto';
 import { BookMetadataResponseDto } from './dto/book-metadata-response.dto';
 import { RelatedBooksQueryDto } from './dto/related-books-query.dto';
 import { RelatedBooksResponseDto } from './dto/related-books-response.dto';
+import { SimilarEditionsQueryDto } from './dto/similar-editions-query.dto';
+import { SimilarEditionsResponseDto } from './dto/similar-editions-response.dto';
 
 /**
  * Exposes Google-first search/detail endpoints with normalized Bookshelf response shapes.
@@ -94,5 +96,21 @@ export class BooksController {
     @Query() query: RelatedBooksQueryDto,
   ): Promise<RelatedBooksResponseDto> {
     return this.bookRelationsService.getRelatedBooks(id, query.limit);
+  }
+
+  /**
+   * Returns replaceable Google Books editions with the same or a closely matching title.
+   */
+  @Get(':id/similar-editions')
+  @ApiOperation({ summary: 'Return similar Google Books editions for a persisted book.' })
+  @ApiParam({ example: '5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5', format: 'uuid', name: 'id' })
+  @ApiOkResponse({ type: SimilarEditionsResponseDto })
+  @ApiBadRequestResponse({ description: 'Book id or limit is invalid.' })
+  @ApiNotFoundResponse({ description: 'Book was not found.' })
+  public getSimilarEditions(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Query() query: SimilarEditionsQueryDto,
+  ): Promise<SimilarEditionsResponseDto> {
+    return this.bookRelationsService.getSimilarEditions(id, query.limit);
   }
 }

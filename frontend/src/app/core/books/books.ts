@@ -6,6 +6,7 @@ import type {
   BookSeriesResponse,
   NormalizedBook,
   RelatedBooksResponse,
+  SimilarEditionsResponse,
 } from '../api/api.types';
 
 /**
@@ -58,5 +59,14 @@ export class Books {
     return this.api.get<RelatedBooksResponse>(`/api/books/${encodeURIComponent(bookId)}/related`, {
       limit,
     });
+  }
+  /**
+   * Loads alternate Google Books editions that closely match one persisted book.
+   */
+  public similarEditions(bookId: string, limit = 6): Promise<SimilarEditionsResponse> {
+    return this.api.get<SimilarEditionsResponse>(
+      `/api/books/${encodeURIComponent(bookId)}/similar-editions`,
+      { limit },
+    );
   }
 }

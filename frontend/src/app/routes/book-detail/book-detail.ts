@@ -16,6 +16,7 @@ import type {
   BookSeriesResponse,
   LibraryItemResponse,
   LibraryItemStatus,
+  NormalizedBook,
   RelatedBookResponse,
   ShelfResponse,
   ShelfSummaryResponse,
@@ -72,8 +73,10 @@ export class BookDetail {
   protected readonly deletingBook = signal(false);
   protected readonly series = signal<BookSeriesResponse | null>(null);
   protected readonly relatedBooks = signal<RelatedBookResponse[]>([]);
+  protected readonly similarEditions = signal<NormalizedBook[]>([]);
   protected readonly isLoadingRelations = signal(false);
   protected readonly relationsError = signal<string | null>(null);
+  protected readonly replacingEditionId = signal<string | null>(null);
   protected readonly ratingOptions: readonly RatingFormValue[] = ['none', '1', '2', '3', '4', '5'];
   protected readonly itemShelves = computed<ShelfSummaryResponse[]>(() => {
     const item = this.item();
@@ -153,17 +156,60 @@ export class BookDetail {
     return author === 'Unknown author' ? null : author;
   }
   /**
-   * Builds a search query for related/series books because those shared Book rows may not be in the
-   * current user's library yet.
+   * Returns the exact Google Books identity used by the provider-detail route.
    */
-  protected searchQueryForBook(book: BookCardResponse): string {
-    return [book.title, book.primaryAuthor].filter(Boolean).join(' ');
+  protected googleVolumeId(book: BookCardResponse): null | string {
+    return book.googleBooksVolumeId ?? null;
   }
   /**
    * Returns a compact author label for book cards.
    */
   protected cardAuthor(book: BookCardResponse): string {
     return book.primaryAuthor ?? book.authors[0] ?? 'Unknown author';
+  }
+  /**
+   * Returns a compact author label for a full Google metadata response.
+   */
+  protected editionAuthor(book: NormalizedBook): string {
+    return book.summary.primaryAuthor ?? book.summary.authors[0] ?? 'Unknown author';
+  }
+  /**
+   * Replaces the saved ISBN identity while the backend retains personal state and clears progress.
+   */
+  protected async replaceEdition(edition: NormalizedBook): Promise<void> {
+    const item = this.item();
+    const volumeId = edition.summary.googleBooksVolumeId;
+
+    if (!item || !volumeId) {
+      return;
+    }
+
+    this.error.set(null);
+    this.status.set(null);
+    this.replacingEditionId.set(volumeId);
+
+    try {
+      const updated = await this.library.replaceEdition(item.id, {
+        googleBooksVolumeId: volumeId,
+      });
+      this.item.set(updated);
+      this.statusModel.set({ status: updated.status });
+      this.progressModel.set({ trackingMode: 'PAGE', currentPage: 0, currentPercent: 0 });
+      this.reviewModel.set({
+        notes: updated.notes ?? '',
+        rating:
+          typeof updated.rating === 'number' ? (`${updated.rating}` as RatingFormValue) : 'none',
+      });
+      this.ensureSelectedMembershipShelf();
+      this.status.set(
+        `Edition replaced with ${updated.book.summary.title}. Reading progress was reset.`,
+      );
+      void this.loadBookRelations(updated.book.id);
+    } catch {
+      this.error.set('That edition could not replace the current library book.');
+    } finally {
+      this.replacingEditionId.set(null);
+    }
   }
   /**
    * Shows the stored description or the no-description fallback for sparse Google Books records.
@@ -441,17 +487,19 @@ export class BookDetail {
     }
   }
   /**
-   * Loads series and related-book enrichment without blocking the editable library item form.
+   * Loads series, related books, and similar editions without blocking the editable forms.
    */
   private async loadBookRelations(bookId: string): Promise<void> {
     this.isLoadingRelations.set(true);
     this.relationsError.set(null);
     this.series.set(null);
     this.relatedBooks.set([]);
+    this.similarEditions.set([]);
 
-    const [seriesResult, relatedResult] = await Promise.allSettled([
+    const [seriesResult, relatedResult, editionsResult] = await Promise.allSettled([
       this.books.series(bookId),
       this.books.related(bookId, 12),
+      this.books.similarEditions(bookId, 6),
     ]);
     const currentBookId = this.item()?.book.id;
 
@@ -469,6 +517,12 @@ export class BookDetail {
       this.relatedBooks.set(relatedResult.value.items);
     } else {
       this.relationsError.set('Related books could not be loaded.');
+    }
+
+    if (editionsResult.status === 'fulfilled') {
+      this.similarEditions.set(editionsResult.value.items);
+    } else {
+      this.relationsError.set('Similar editions could not be loaded.');
     }
 
     this.isLoadingRelations.set(false);

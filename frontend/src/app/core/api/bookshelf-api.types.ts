@@ -404,6 +404,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/books/{id}/similar-editions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return similar Google Books editions for a persisted book. */
+        get: operations["getSimilarEditions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/goals/current": {
         parameters: {
             query?: never;
@@ -525,6 +542,23 @@ export interface paths {
         head?: never;
         /** Update rating and notes for a library item. */
         patch: operations["updateLibraryItem"];
+        trace?: never;
+    };
+    "/api/library/{id}/edition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Replace a saved book with another Google Books edition. */
+        patch: operations["replaceLibraryItemEdition"];
         trace?: never;
     };
     "/api/library/{id}/shelf": {
@@ -1084,6 +1118,8 @@ export interface components {
             authors: string[];
             /** @example Ursula K. Le Guin */
             primaryAuthor?: string | null;
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId?: string | null;
             /** @example https://books.google.com/books/content?id=zyTCAlFPjgYC&printsec=frontcover&img=1&zoom=1 */
             coverUrl?: string | null;
             /** @example 1969 */
@@ -1140,6 +1176,14 @@ export interface components {
              */
             bookId: string;
             items: components["schemas"]["RelatedBookResponseDto"][];
+        };
+        SimilarEditionsResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            bookId: string;
+            items: components["schemas"]["BookMetadataResponseDto"][];
         };
         GoalStatsResponseDto: {
             /** @example 6 */
@@ -1368,6 +1412,10 @@ export interface components {
              * @enum {string}
              */
             status?: "READ" | "READING" | "WANT_TO_READ";
+        };
+        ReplaceLibraryItemEditionRequestDto: {
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId: string;
         };
         MoveLibraryItemRequestDto: {
             /**
@@ -2411,6 +2459,41 @@ export interface operations {
             };
         };
     };
+    getSimilarEditions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarEditionsResponseDto"];
+                };
+            };
+            /** @description Book id or limit is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Book was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getCurrentGoal: {
         parameters: {
             query?: never;
@@ -2648,6 +2731,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
                 };
+            };
+        };
+    };
+    replaceLibraryItemEdition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplaceLibraryItemEditionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+            /** @description The replacement edition is already in this library. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -22,45 +22,185 @@
       <a class="secondary-button" routerLink="/app/search">Search books</a>
     </div>
   } @else {
-    <div class="book-grid">
-      @for (item of items(); track item.id) {
-        <article
-          class="book-card-shell"
-          (mouseenter)="scheduleDeleteReveal(item.id)"
-          (mouseleave)="hideDeleteControl(item.id)"
-          (focusin)="showDeleteControl(item.id)"
-          (focusout)="hideDeleteControlAfterFocusLeaves(item.id, $event)"
-        >
-          <a class="book-card" [routerLink]="['/app/book', item.id]">
-            <div class="book-card__cover">
-              @if (coverUrl(item)) {
-                <img
-                  [src]="coverUrl(item)"
-                  [alt]="item.book.summary.title + ' cover'"
-                  loading="lazy"
-                />
-              } @else {
-                <i class="ph ph-book-open-text" aria-hidden="true"></i>
+    <section class="catalog-tools" aria-labelledby="catalog-tools-heading">
+      <header class="catalog-tools__header">
+        <div>
+          <h2 id="catalog-tools-heading">Find and display</h2>
+          <p>Search only the books already saved in this library.</p>
+        </div>
+        <p class="result-count" aria-live="polite">
+          {{ filteredItems().length }} of {{ items().length }} books
+        </p>
+      </header>
+
+      <form class="library-filter" (submit)="$event.preventDefault()">
+        <app-form-control
+          label="Search by title, author, ISBN, or subject"
+          type="search"
+          autocomplete="off"
+          [control]="filterForm.query"
+          (input)="resetFilteredView()"
+        />
+        @if (filterForm.query().value()) {
+          <button class="secondary-button" type="button" (click)="clearFilter()">Clear</button>
+        }
+      </form>
+
+      <div class="display-options">
+        <section class="option-group" aria-labelledby="view-option-heading">
+          <h3 id="view-option-heading">View</h3>
+          <div class="segmented-control" role="group" aria-label="Library view">
+            <button
+              type="button"
+              (click)="setDisplayMode('CARDS')"
+              [class.is-active]="displayMode() === 'CARDS'"
+              [attr.aria-pressed]="displayMode() === 'CARDS'"
+            >
+              <i class="ph ph-squares-four" aria-hidden="true"></i>
+              Cards
+            </button>
+            <button
+              type="button"
+              (click)="setDisplayMode('TABLE')"
+              [class.is-active]="displayMode() === 'TABLE'"
+              [attr.aria-pressed]="displayMode() === 'TABLE'"
+            >
+              <i class="ph ph-table" aria-hidden="true"></i>
+              Table
+            </button>
+          </div>
+        </section>
+
+        @if (displayMode() === 'CARDS') {
+          <section class="option-group" aria-labelledby="density-option-heading">
+            <h3 id="density-option-heading">Card density</h3>
+            <div class="segmented-control" role="group" aria-label="Card density">
+              @for (density of densityOptions; track density) {
+                <button
+                  type="button"
+                  (click)="setCardDensity(density)"
+                  [class.is-active]="cardDensity() === density"
+                  [attr.aria-pressed]="cardDensity() === density"
+                >
+                  {{ density === 'DENSE' ? 'Dense' : density === 'MEDIUM' ? 'Medium' : 'Expanded' }}
+                </button>
               }
             </div>
-            <div class="book-card__body">
-              <p class="book-card__title">{{ item.book.summary.title }}</p>
-              <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
-              <p class="book-card__shelf">{{ shelfLabel(item) }} · {{ progressLabel(item) }}</p>
-            </div>
-          </a>
-          <button
-            class="book-delete-button"
-            type="button"
-            [class.is-visible]="visibleDeleteItemId() === item.id"
-            [disabled]="deletingItemId() === item.id"
-            [attr.aria-label]="'Remove ' + item.book.summary.title + ' from library'"
-            (click)="deleteBook(item)"
+          </section>
+        }
+      </div>
+    </section>
+
+    @if (filteredItems().length === 0) {
+      <div class="empty-state empty-state--filtered">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <h2>No library books match</h2>
+        <p>Try a different title, author, ISBN, or subject.</p>
+        <button class="secondary-button" type="button" (click)="clearFilter()">Clear filter</button>
+      </div>
+    } @else if (displayMode() === 'CARDS') {
+      <div
+        class="book-grid"
+        [class.book-grid--dense]="cardDensity() === 'DENSE'"
+        [class.book-grid--medium]="cardDensity() === 'MEDIUM'"
+        [class.book-grid--expanded]="cardDensity() === 'EXPANDED'"
+      >
+        @for (item of filteredItems(); track item.id) {
+          <article
+            class="book-card-shell"
+            (mouseenter)="scheduleDeleteReveal(item.id)"
+            (mouseleave)="hideDeleteControl(item.id)"
+            (focusin)="showDeleteControl(item.id)"
+            (focusout)="hideDeleteControlAfterFocusLeaves(item.id, $event)"
           >
-            <i class="ph ph-trash" aria-hidden="true"></i>
-          </button>
-        </article>
-      }
-    </div>
+            <a class="book-card" [routerLink]="['/app/book', item.id]">
+              <div class="book-card__cover">
+                @if (coverUrl(item)) {
+                  <img
+                    [src]="coverUrl(item)"
+                    [alt]="item.book.summary.title + ' cover'"
+                    loading="lazy"
+                  />
+                } @else {
+                  <i class="ph ph-book-open-text" aria-hidden="true"></i>
+                }
+              </div>
+              <div class="book-card__body">
+                <p class="book-card__title">{{ item.book.summary.title }}</p>
+                @if (cardDensity() !== 'DENSE' && item.book.summary.subtitle) {
+                  <p class="book-card__subtitle">{{ item.book.summary.subtitle }}</p>
+                }
+                <p class="book-card__meta">{{ primaryAuthor(item) }}</p>
+                <p class="book-card__shelf">{{ shelfLabel(item) }} · {{ progressLabel(item) }}</p>
+
+                @if (cardDensity() !== 'DENSE') {
+                  <p class="book-card__publication">
+                    {{ publicationLabel(item) || 'Publication details unavailable' }}
+                  </p>
+                  <p class="book-card__status">
+                    {{ statusLabel(item) }}
+                    @if (item.book.summary.pageCount) {
+                      · {{ item.book.summary.pageCount }} pages
+                    }
+                  </p>
+                  @if (item.book.summary.genres.length > 0) {
+                    <ul class="book-card__genres" aria-label="Genres">
+                      @for (
+                        genre of item.book.summary.genres.slice(
+                          0,
+                          cardDensity() === 'EXPANDED' ? 5 : 3
+                        );
+                        track genre
+                      ) {
+                        <li>{{ genre }}</li>
+                      }
+                    </ul>
+                  }
+                }
+
+                @if (cardDensity() === 'EXPANDED') {
+                  <p class="book-card__description">{{ description(item) }}</p>
+                  <dl class="book-card__details">
+                    <div>
+                      <dt>ISBN</dt>
+                      <dd>{{ isbnLabel(item) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Rating</dt>
+                      <dd>{{ ratingLabel(item) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Language</dt>
+                      <dd>{{ item.book.summary.language || 'Unknown' }}</dd>
+                    </div>
+                  </dl>
+                }
+              </div>
+            </a>
+            <button
+              class="book-delete-button"
+              type="button"
+              [class.is-visible]="visibleDeleteItemId() === item.id"
+              [disabled]="deletingItemId() === item.id"
+              [attr.aria-label]="'Remove ' + item.book.summary.title + ' from library'"
+              (click)="deleteBook(item)"
+            >
+              <i class="ph ph-trash" aria-hidden="true"></i>
+            </button>
+          </article>
+        }
+      </div>
+    } @else {
+      <app-library-table
+        [items]="tableItems()"
+        [page]="tablePage()"
+        [totalPages]="tableTotalPages()"
+        [rangeStart]="tableRangeStart()"
+        [rangeEnd]="tableRangeEnd()"
+        [expandedItemId]="expandedTableItemId()"
+        (itemToggled)="toggleTableRow($event)"
+        (pageChanged)="goToTablePage($event)"
+      />
+    }
   }
 </section>

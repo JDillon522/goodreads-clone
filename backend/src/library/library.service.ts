@@ -21,6 +21,7 @@ import { LibraryBookResponseDto } from './dto/library-book-response.dto';
 import { LibraryItemResponseDto } from './dto/library-item-response.dto';
 import { LibraryQueryDto } from './dto/library-query.dto';
 import { MoveLibraryItemRequestDto } from './dto/move-library-item-request.dto';
+import { ReplaceLibraryItemEditionRequestDto } from './dto/replace-library-item-edition-request.dto';
 import { ShelfSummaryResponseDto } from './dto/shelf-summary-response.dto';
 import { UpdateLibraryItemRequestDto } from './dto/update-library-item-request.dto';
 import { UpdateProgressRequestDto } from './dto/update-progress-request.dto';
@@ -389,6 +390,69 @@ export class LibraryService {
       }
 
       return updated;
+    });
+
+    return this.toLibraryItemResponse(owner, updatedItem);
+  }
+  /**
+   * Replaces only the ISBN-owned edition identity. Shelves, status, dates, rating, and notes stay
+   * intact; page-based progress and its history are reset because page counts are edition-specific.
+   */
+  public async replaceLibraryItemEdition(
+    owner: OwnerContext,
+    libraryItemId: string,
+    dto: ReplaceLibraryItemEditionRequestDto,
+  ): Promise<LibraryItemResponseDto> {
+    const item = await this.getOwnedLibraryItem(owner, libraryItemId);
+    const volumeId = dto.googleBooksVolumeId.trim();
+    const replacementBook = await this.bookPersistence.getOrSyncGoogleVolume(volumeId);
+
+    if (!replacementBook || replacementBook.googleBooksVolumeId !== volumeId) {
+      throw new NotFoundException('Replacement Google Books edition was not found.');
+    }
+
+    const replacementSummary = this.bookPersistence.toBookMetadata(replacementBook).summary;
+    const identity: BookIdentity = {
+      googleBooksVolumeId: volumeId,
+      isbn10: this.cleanIsbn(replacementSummary.isbn10),
+      isbn13: this.cleanIsbn(replacementSummary.isbn13),
+    };
+    const dedupeKey = this.dedupeKeyForIdentity(identity);
+
+    if (dedupeKey === item.dedupeKey) {
+      return this.toLibraryItemResponse(owner, item);
+    }
+
+    const updatedItem = await this.prisma.$transaction(async (transaction) => {
+      const duplicate = await transaction.libraryItem.findFirst({
+        select: { id: true },
+        where: {
+          ...this.ownerWhere(owner),
+          dedupeKey,
+          id: { not: item.id },
+        },
+      });
+
+      if (duplicate) {
+        throw new ConflictException('That edition is already in this library.');
+      }
+
+      await transaction.readingProgressEntry.deleteMany({
+        where: { libraryItemId: item.id },
+      });
+
+      return transaction.libraryItem.update({
+        data: {
+          currentPage: null,
+          currentPercent: null,
+          dedupeKey,
+          isbn10: identity.isbn10 ?? null,
+          isbn13: identity.isbn13 ?? null,
+          progressUpdatedAt: null,
+        },
+        include: libraryItemInclude,
+        where: { id: item.id },
+      });
     });
 
     return this.toLibraryItemResponse(owner, updatedItem);

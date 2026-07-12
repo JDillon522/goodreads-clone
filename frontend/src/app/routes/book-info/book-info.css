@@ -1,7 +1,7 @@
 .page {
   display: grid;
   gap: var(--space-5);
-  max-inline-size: var(--library-max-width);
+  max-inline-size: var(--page-max-width);
 }
 
 .book-info {

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -27,6 +28,7 @@ import { AddLibraryItemRequestDto } from './dto/add-library-item-request.dto';
 import { LibraryItemResponseDto } from './dto/library-item-response.dto';
 import { LibraryQueryDto } from './dto/library-query.dto';
 import { MoveLibraryItemRequestDto } from './dto/move-library-item-request.dto';
+import { ReplaceLibraryItemEditionRequestDto } from './dto/replace-library-item-edition-request.dto';
 import { UpdateLibraryItemRequestDto } from './dto/update-library-item-request.dto';
 import { UpdateProgressRequestDto } from './dto/update-progress-request.dto';
 import { LibraryService } from './library.service';
@@ -103,6 +105,20 @@ export class LibraryController {
     @Body() dto: UpdateLibraryItemRequestDto,
   ): Promise<LibraryItemResponseDto> {
     return this.libraryService.updateLibraryItem(owner, libraryItemId, dto);
+  }
+  /**
+   * Replaces the saved ISBN edition while retaining the owner's personal library state.
+   */
+  @Patch(':id/edition')
+  @ApiOperation({ summary: 'Replace a saved book with another Google Books edition.' })
+  @ApiOkResponse({ type: LibraryItemResponseDto })
+  @ApiConflictResponse({ description: 'The replacement edition is already in this library.' })
+  public replaceLibraryItemEdition(
+    @CurrentOwner() owner: OwnerContext,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
+    @Body() dto: ReplaceLibraryItemEditionRequestDto,
+  ): Promise<LibraryItemResponseDto> {
+    return this.libraryService.replaceLibraryItemEdition(owner, libraryItemId, dto);
   }
   /**
    * Legacy route that adds a shelf membership to a library item.
