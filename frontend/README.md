@@ -2,6 +2,12 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.4.
 
+The signed-in `/app/bookshelves` route owns shelf-photo upload, synchronous analysis review,
+Google Books candidate correction, library add/edition actions, and the authenticated saved-photo
+gallery. Guest sessions are redirected to the library because the backend scan and media endpoints
+require a user access token. Gemini performs stateless visual extraction; Google Books remains the
+authoritative source for every candidate edition and ISBN.
+
 ## Development server
 
 To start a local development server, run:

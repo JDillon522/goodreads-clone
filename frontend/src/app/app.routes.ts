@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { adminGuard } from './core/session/admin.guard';
 import { sessionGuard } from './core/session/session.guard';
+import { signedInUserGuard } from './core/session/signed-in-user.guard';
 
 /**
  * Lazy route map for the public auth screens and protected app shell.
@@ -65,6 +66,13 @@ export const routes: Routes = [
         path: 'search',
         loadComponent: () => import('./routes/search/search').then((m) => m.Search),
         title: 'Search - Bookshelf',
+      },
+      {
+        path: 'bookshelves',
+        canActivate: [signedInUserGuard],
+        loadComponent: () =>
+          import('./routes/bookshelves/bookshelves').then((m) => m.BookshelvesPage),
+        title: 'Bookshelves - Bookshelf',
       },
       {
         path: 'book/:id',

@@ -14,6 +14,12 @@
         <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
         <span>Search</span>
       </a>
+      @if (session.isSignedIn()) {
+        <a routerLink="/app/bookshelves" routerLinkActive="is-active">
+          <i class="ph ph-camera" aria-hidden="true"></i>
+          <span>Bookshelves</span>
+        </a>
+      }
       <a routerLink="/app/goals" routerLinkActive="is-active">
         <i class="ph ph-target" aria-hidden="true"></i>
         <span>Goals</span>

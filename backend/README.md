@@ -29,6 +29,9 @@ Run those commands from the repo root. The backend reads runtime config from the
 - Shelves: `GET /api/shelves`, `POST /api/shelves`, `PATCH /api/shelves/:id`, `DELETE /api/shelves/:id`, `PUT /api/shelves/order`
 - Library: `GET /api/library`, `POST /api/library`, `GET /api/library/:id`, `PATCH /api/library/:id`, `DELETE /api/library/:id`
 - Library movement/progress: `PATCH /api/library/:id/shelf`, `POST /api/library/:id/progress`
+- Shelf-photo analysis: `POST /api/bookshelf-scans/analyze`, `GET /api/bookshelf-scans/search`
+- Saved shelf photos: `GET|POST /api/bookshelf-photos`, detail/image/thumbnail/rename/delete routes,
+  and `PATCH /api/bookshelf-photos/:photoId/detections/:detectionId`
 - Reading goals: `GET /api/goals/current`, `GET /api/goals/:year`, `PUT /api/goals/:year`
 - Swagger UI: `GET /docs`
 - OpenAPI JSON: `GET /docs-json`
@@ -43,6 +46,15 @@ Shelves, library items, progress, ratings, notes, and goals require bearer auth.
 
 Guest sessions are temporary, session-scoped demo libraries. A guest token expires after `GUEST_SESSION_TTL_DAYS` days, defaulting to 7. Expired tokens are rejected immediately. Deleting expired `GuestSession` records cascades guest shelves, library items, progress entries, goals, preferences, and activity events; shared `Book` records remain.
 
+Bookshelf scans require a signed-in user access token; guest tokens are rejected. The backend sends
+one validated JPEG, PNG, or WebP image to the Gemini Interactions API with `store: false`, then
+resolves extracted spine text through Google Books. Analysis results are ephemeral. A photo and
+its normalized spine coordinates are stored as Postgres bytes only after the user explicitly saves
+the reviewed scan. Authenticated image endpoints keep the binary data out of JSON and public URLs.
+Gemini responses use SSE streaming: provider lines and the full raw response are emitted through
+Nest debug logging outside production, while text deltas are reassembled before strict
+application-side validation.
+
 Runtime settings live in the root `.env` and are grouped by app area. Backend-specific values include:
 
 ```bash
@@ -50,6 +62,10 @@ GUEST_SESSION_TTL_DAYS=7
 GOOGLE_BOOKS_API_KEY=
 GOOGLE_BOOKS_BASE_URL=https://www.googleapis.com/books/v1
 GOOGLE_BOOKS_REQUEST_TIMEOUT_MS=8000
+GEMINI_API_KEY=
+GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+GEMINI_MODEL=gemini-3.5-flash
+GEMINI_REQUEST_TIMEOUT_MS=90000
 ```
 
 If local Google Books requests fail with `SELF_SIGNED_CERT_IN_CHAIN`, the machine/network is intercepting HTTPS with an untrusted local certificate. Put the trusted CA at `certs/local-ca.pem`; `npm run dev:backend` and `npm run docker:up` will automatically set `NODE_EXTRA_CA_CERTS` for backend startup. Direct `docker compose up` also points the backend at `/app/certs/local-ca.pem` through the development override. You can still override the path manually with `NODE_EXTRA_CA_CERTS=/path/to/local-ca.pem`. Do not make `NODE_TLS_REJECT_UNAUTHORIZED=0` a runtime default.

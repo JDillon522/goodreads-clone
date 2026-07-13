@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { BookProvider, GoogleBooksSyncStatus, PrismaClient } from '@prisma/client';
 import { config as loadEnv } from 'dotenv';
+import { encode } from 'jpeg-js';
 import { resolve } from 'node:path';
 
 loadEnv({ path: resolve(__dirname, '../../.env') });
@@ -107,6 +108,13 @@ type YearInReviewResponse = {
 type SessionStatusResponse = {
   authenticated: true;
   ownerType: 'GUEST' | 'USER';
+};
+
+type BookshelfPhotoResponse = {
+  associatedDetectionCount: number;
+  detectionCount: number;
+  id: string;
+  label: string;
 };
 
 /**
@@ -436,6 +444,99 @@ describe('Bookshelf API workflows', () => {
     await requestExpect(`/library/${firstGuestLibrary[0].id}`, 404, {
       token: secondGuest.guestToken,
     });
+  });
+
+  it('keeps bookshelf photos signed-in-only and persists only an explicit save', async () => {
+    const runId = Date.now();
+    const email = `e2e-bookshelf-photo-${runId}@example.com`;
+    const accessToken = (
+      await request<AuthResponse>('/auth/signup', {
+        body: {
+          displayName: 'Shelf Scanner',
+          email,
+          password: 'SmokeTest123!',
+        },
+        method: 'POST',
+      })
+    ).accessToken;
+    createdEmails.push(email);
+
+    const guest = await request<GuestResponse>('/guest/session', { method: 'POST' });
+    createdGuestSessionIds.push(guest.sessionId);
+    await requestExpect('/bookshelf-photos', 401, { token: guest.guestToken });
+    await requestExpect('/bookshelf-scans/analyze', 400, {
+      method: 'POST',
+      token: accessToken,
+    });
+
+    const pixels = Buffer.alloc(12 * 8 * 4, 80);
+    const jpeg = encode({ data: pixels, height: 8, width: 12 }, 80).data;
+    const upload = new FormData();
+    upload.append('image', new Blob([Uint8Array.from(jpeg)], { type: 'image/jpeg' }), 'shelf.jpg');
+    upload.append('label', 'E2E office shelf');
+    upload.append(
+      'manifest',
+      JSON.stringify({
+        detections: [
+          {
+            boundingBox: { height: 800, rotationDegrees: 0, width: 100, x: 100, y: 50 },
+            confidence: 75,
+            libraryItemId: null,
+            observedAuthors: [],
+            observedIsbn10: null,
+            observedIsbn13: null,
+            observedPublisher: null,
+            observedSpineText: 'UNRESOLVED TEST SPINE',
+            observedTitle: null,
+            position: 0,
+            selectedGoogleBooksVolumeId: null,
+          },
+        ],
+      }),
+    );
+
+    const savedResponse = await fetch(`${apiBaseUrl}/bookshelf-photos`, {
+      body: upload,
+      headers: { authorization: `Bearer ${accessToken}` },
+      method: 'POST',
+    });
+    const savedText = await savedResponse.text();
+    if (savedResponse.status !== 201) {
+      throw new Error(`Photo save failed ${savedResponse.status}: ${savedText}`);
+    }
+    const saved = JSON.parse(savedText) as BookshelfPhotoResponse;
+    expect(saved).toEqual(
+      expect.objectContaining({
+        associatedDetectionCount: 0,
+        detectionCount: 1,
+        label: 'E2E office shelf',
+      }),
+    );
+
+    const photos = await request<BookshelfPhotoResponse[]>('/bookshelf-photos', {
+      token: accessToken,
+    });
+    expect(photos.map((photo) => photo.id)).toContain(saved.id);
+
+    const image = await fetch(`${apiBaseUrl}/bookshelf-photos/${saved.id}/thumbnail`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    expect(image.status).toBe(200);
+    expect(image.headers.get('content-type')).toContain('image/webp');
+    expect((await image.arrayBuffer()).byteLength).toBeGreaterThan(0);
+
+    const renamed = await request<BookshelfPhotoResponse>(`/bookshelf-photos/${saved.id}`, {
+      body: { label: 'Renamed E2E shelf' },
+      method: 'PATCH',
+      token: accessToken,
+    });
+    expect(renamed.label).toBe('Renamed E2E shelf');
+
+    await request<void>(`/bookshelf-photos/${saved.id}`, {
+      method: 'DELETE',
+      token: accessToken,
+    });
+    await requestExpect(`/bookshelf-photos/${saved.id}`, 404, { token: accessToken });
   });
 });
 

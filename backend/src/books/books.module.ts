@@ -12,7 +12,7 @@ import { GoogleBooksClientService } from './google-books/google-books-client.ser
  */
 @Module({
   controllers: [BooksController],
-  exports: [BookPersistenceService],
+  exports: [BookPersistenceService, BooksService],
   imports: [DatabaseModule],
   providers: [BookPersistenceService, BookRelationsService, BooksService, GoogleBooksClientService],
 })

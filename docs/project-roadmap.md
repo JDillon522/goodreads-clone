@@ -17,6 +17,8 @@ Authoritative v1 defaults:
 - Keep reusable book metadata in the `Book` cache table. Library items own ISBNs and personal reading state, not required copied book metadata.
 - Do not rely on `starter/tailwind.css` or `data/sample-books.csv`; both were intentionally removed.
 - Defer stretch goals and differentiators until the core backend/data foundation is stable.
+- The AI bookshelf-photo feature intentionally deviates from the old Stage 11 deferral: Gemini reads
+  visible spine text and coordinates, while Google Books remains the sole metadata authority.
 
 ## Stage Plan
 
@@ -169,12 +171,18 @@ Authoritative v1 defaults:
 | 2026-07-10 | Info-only versus saved detail routes                       | Search results route to `/app/book-info/google/:volumeId`; saved library entries keep `/app/book/:libraryItemId`. ISBN-less Google results can be viewed but cannot be saved.                                                                          |
 | 2026-07-11 | Google Books-only metadata                                 | Remove all active Open Library code, config, schema fields, cache tables, response members, and frontend fixtures. Google Books is authoritative; missing fields remain nullable and use UI placeholders.                                              |
 | 2026-07-11 | Deterministic Google demo snapshot                         | `data/google-books-snapshot.json` stores 45 raw Google volumes refreshed by `npm run books:snapshot:refresh`; database seed prewarms shared cache rows and guest-session creation makes no provider calls.                                             |
+| 2026-07-12 | AI bookshelf-photo extraction                              | Signed-in users can synchronously analyze one JPEG/PNG/WebP shelf photo with `gemini-3.5-flash`; Gemini extracts visible text and normalized coordinates only, and Google Books resolves authoritative editions.                                        |
+| 2026-07-12 | Explicit photo retention                                   | Unsaved scans remain ephemeral. Users may explicitly save original/thumbnail bytes plus reviewed detections in Postgres, manage them through `/app/bookshelves`, and delete them at any time.                                                          |
+| 2026-07-12 | Physical location hierarchy                                | Saved detections link optionally to stable library items and retain physical Google-volume snapshots. Nullable parent/grid-region fields are reserved for future wall-photo → shelf-photo mapping without exposing unfinished grid UI.                 |
+| 2026-07-12 | Scan access and spend                                      | Gemini-backed scan/photo routes require authenticated user access tokens, reject guests, and rely on provider limits rather than an application quota.                                                                                                 |
 
 ## Open Questions
 
 - Decide deployment target details after local Docker and backend contracts are stable.
 - Decide when to add real email delivery for password reset tokens.
 - Decide whether to add richer global series/import jobs after the Google-first cache model stabilizes.
+- Design the wall overview, automatic shelf-region segmentation, grid labels, and book-finding UI on
+  top of the saved photo hierarchy after single-shelf recognition has real-world accuracy data.
 
 ## Session Notes
 
@@ -267,3 +275,10 @@ Authoritative v1 defaults:
 - Added a resumable `npm run books:snapshot:refresh` workflow and committed 45 raw Google volumes; database seed prewarms Google cache rows while guest-session creation remains network-free.
 - Applied the forward migration to the populated local database, preserved 189 library items, rebuilt 45 Google cache rows, and verified the full nine-migration history against a temporary clean schema.
 - Regenerated the Angular OpenAPI types and verified backend lint/typecheck/unit/build, frontend unit tests, Docker Angular production build, backend e2e workflows, and a live Google search through `/api/books/search`.
+
+### 2026-07-12
+
+- Added signed-in AI bookshelf-photo scanning with Gemini structured extraction, inline image input, explicit `store: false` provider non-storage, Google Books candidate resolution, and owner-library edition comparison.
+- Replaced the original OpenAI visual provider with the stable `gemini-3.5-flash` Interactions API while preserving all scan, review, and saved-photo contracts.
+- Added user-owned Postgres photo/detection storage, authenticated image and thumbnail endpoints, explicit save semantics, nullable wall/grid extension fields, and stable library-item location associations.
+- Added `/app/bookshelves` with upload/review overlays, three suggested editions, manual correction search, batch shelf adds, keep-or-replace edition actions, and saved-photo management.

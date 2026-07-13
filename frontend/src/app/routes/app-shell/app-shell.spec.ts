@@ -12,7 +12,12 @@ import { AppShell } from './app-shell';
 
 const timestamp = '2026-07-08T12:00:00.000Z';
 
-function shelf(id: string, name: string, position: number, slug = name.toLowerCase()): ShelfResponse {
+function shelf(
+  id: string,
+  name: string,
+  position: number,
+  slug = name.toLowerCase(),
+): ShelfResponse {
   return {
     createdAt: timestamp,
     deactivatedAt: null,
@@ -40,11 +45,16 @@ class MockSessionStore {
   public readonly guestHasUnsavedChanges = signal(false);
   public readonly isAdmin = signal(false);
   public readonly isGuest = signal(false);
+  public readonly isSignedIn = signal(true);
 }
 
 class MockShelves {
   private readonly revision = signal(0);
-  private currentShelves = [shelf('unshelved', 'Unshelved', 0, 'unshelved'), shelf('read', 'Read', 1, 'read'), shelf('fantasy', 'Fantasy', 2, 'fantasy')];
+  private currentShelves = [
+    shelf('unshelved', 'Unshelved', 0, 'unshelved'),
+    shelf('read', 'Read', 1, 'read'),
+    shelf('fantasy', 'Fantasy', 2, 'fantasy'),
+  ];
 
   public readonly version = this.revision.asReadonly();
   public readonly list = vi.fn(async () => this.currentShelves);

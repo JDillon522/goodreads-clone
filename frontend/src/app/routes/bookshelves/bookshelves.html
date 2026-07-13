@@ -1,0 +1,496 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <p class="eyebrow">Physical library</p>
+      <h1>Your bookshelves</h1>
+      <p class="muted">Scan a shelf, verify the matches, and remember where each book lives.</p>
+    </div>
+    <button class="primary-button" type="button" (click)="openScan()">
+      <i class="ph ph-camera" aria-hidden="true"></i>
+      Scan bookshelf
+    </button>
+  </header>
+
+  @if (pageStatus()) {
+    <p class="status-message" role="status">{{ pageStatus() }}</p>
+  }
+  @if (pageError()) {
+    <p class="error-message" role="alert">{{ pageError() }}</p>
+  }
+
+  @if (isLoadingPhotos()) {
+    <p class="muted">Loading saved shelves...</p>
+  } @else if (photos().length === 0) {
+    <section class="empty-state">
+      <i class="ph ph-camera" aria-hidden="true"></i>
+      <h2>No saved shelf photos</h2>
+      <p>Analyze a photograph first. Bookshelf only stores it if you explicitly save it.</p>
+      <button class="secondary-button" type="button" (click)="openScan()">Scan a shelf</button>
+    </section>
+  } @else {
+    <div class="photo-grid">
+      @for (photo of photos(); track photo.id) {
+        <button class="photo-card" type="button" (click)="openPhoto(photo)">
+          <img [src]="photo.thumbnailUrl" [alt]="photo.label" />
+          <span class="photo-card__body">
+            <strong>{{ photo.label }}</strong>
+            <span>{{ formatDate(photo.createdAt) }}</span>
+            <span>
+              {{ photo.associatedDetectionCount }} of {{ photo.detectionCount }} books associated
+            </span>
+          </span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+<dialog #scanDialog class="dialog scan-dialog">
+  <section class="dialog__body">
+    <header class="dialog__header">
+      <div>
+        <p class="eyebrow">AI shelf scan</p>
+        <h2>
+          {{
+            step() === 'UPLOAD'
+              ? 'Choose a photograph'
+              : step() === 'ANALYZING'
+                ? 'Reading book spines'
+                : 'Review detected books'
+          }}
+        </h2>
+      </div>
+      <button class="icon-button" type="button" (click)="closeScan()" aria-label="Close scanner">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (scanError()) {
+      <p class="error-message" role="alert">{{ scanError() }}</p>
+    }
+
+    @if (step() === 'UPLOAD') {
+      <label class="upload-zone">
+        <i class="ph ph-image-square" aria-hidden="true"></i>
+        <strong>{{ selectedFile()?.name ?? 'Choose a shelf photo' }}</strong>
+        <span>JPEG, PNG, or WebP · maximum 10 MiB</span>
+        <input type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseFile($event)" />
+      </label>
+
+      @if (previewUrl()) {
+        <img class="upload-preview" [src]="previewUrl()" alt="Selected bookshelf preview" />
+      }
+
+      <p class="privacy-note">
+        The image is sent to Gemini for visual analysis. Bookshelf does not retain it unless you
+        choose Save photo after reviewing the results.
+      </p>
+
+      <footer class="dialog__actions">
+        <button class="secondary-button" type="button" (click)="closeScan()">Cancel</button>
+        <button
+          class="primary-button"
+          type="button"
+          [disabled]="!selectedFile()"
+          (click)="analyze()"
+        >
+          Analyze photo
+        </button>
+      </footer>
+    } @else if (step() === 'ANALYZING') {
+      <div class="analysis-progress" role="status" aria-live="polite" aria-busy="true">
+        <span class="analysis-progress__spinner" aria-hidden="true">
+          <i class="ph ph-books"></i>
+        </span>
+        <h3>{{ analysisStatus() }}</h3>
+        <p>
+          This can take up to 90 seconds for a crowded shelf. Elapsed:
+          {{ analysisElapsedSeconds() }}s
+        </p>
+        <span class="analysis-progress__track" aria-hidden="true"><span></span></span>
+        <small>Keep this dialog open while the photograph is analyzed.</small>
+      </div>
+      @if (previewUrl()) {
+        <img
+          class="upload-preview upload-preview--dimmed"
+          [src]="previewUrl()"
+          alt="Bookshelf being analyzed"
+        />
+      }
+    } @else {
+      <div class="review-summary" aria-live="polite">
+        <span>{{ analysis().length }} detected</span>
+        <span>{{ newBookCount() }} new</span>
+        <span>{{ unresolvedCount() }} unresolved</span>
+        <small>Analyzed with {{ model() }}</small>
+      </div>
+
+      <div class="scan-workspace">
+        <div class="image-stage">
+          @if (previewUrl()) {
+            <img [src]="previewUrl()" alt="Analyzed bookshelf with selectable spine regions" />
+            @for (detection of analysis(); track detection.id) {
+              <button
+                class="spine-region"
+                type="button"
+                [class.is-active]="activeDetectionId() === detection.id"
+                [style.left.%]="detection.boundingBox.x / 10"
+                [style.top.%]="detection.boundingBox.y / 10"
+                [style.width.%]="detection.boundingBox.width / 10"
+                [style.height.%]="detection.boundingBox.height / 10"
+                [style.rotate]="detection.boundingBox.rotationDegrees + 'deg'"
+                [attr.aria-label]="'Review detected spine ' + (detection.position + 1)"
+                (click)="focusDetection(detection.id)"
+              >
+                {{ detection.position + 1 }}
+              </button>
+            }
+          }
+        </div>
+
+        <div class="detection-list">
+          @for (detection of analysis(); track detection.id) {
+            <article
+              class="detection-card"
+              [class.is-active]="activeDetectionId() === detection.id"
+              (click)="focusDetection(detection.id)"
+            >
+              <header>
+                <span class="detection-number">{{ detection.position + 1 }}</span>
+                <div>
+                  <h3>{{ detection.observedTitle || detection.observedSpineText }}</h3>
+                  <p>{{ detection.observedAuthors.join(', ') || 'Author unreadable' }}</p>
+                </div>
+                <span class="confidence">{{ detection.confidence }}%</span>
+              </header>
+
+              @if (detection.candidates.length > 0) {
+                <div class="candidate-list" role="group" aria-label="Likely Google Books matches">
+                  @for (candidate of detection.candidates; track candidate.book.id) {
+                    <button
+                      class="candidate-option"
+                      type="button"
+                      [class.is-selected]="candidateSelected(detection, candidate)"
+                      [attr.aria-pressed]="candidateSelected(detection, candidate)"
+                      (click)="selectCandidate(detection, candidate); $event.stopPropagation()"
+                    >
+                      @if (cover(candidate.book.summary)) {
+                        <img [src]="cover(candidate.book.summary)" alt="" />
+                      }
+                      <span>
+                        <strong>{{ candidate.book.summary.title }}</strong>
+                        <small>{{
+                          candidate.book.summary.primaryAuthor || 'Unknown author'
+                        }}</small>
+                        <small
+                          >{{ candidate.matchScore }}% match · {{ candidate.classification }}</small
+                        >
+                      </span>
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="muted">No reliable Google Books match yet.</p>
+              }
+
+              @if (selectedCandidate(detection); as candidate) {
+                @if (resolution(detection.id); as applied) {
+                  <p class="resolution-message" role="status">
+                    <i class="ph ph-check-circle" aria-hidden="true"></i>
+                    {{ applied.message }}
+                  </p>
+                } @else if (candidate.classification === 'NEW') {
+                  <label class="include-book">
+                    <input
+                      type="checkbox"
+                      [checked]="includedNewBooks()[detection.id]"
+                      (change)="toggleNewBook(detection.id, $event)"
+                    />
+                    Add this edition to the selected shelf
+                  </label>
+                } @else if (candidate.classification === 'EXACT_EDITION') {
+                  <p class="resolution-message">
+                    <i class="ph ph-books" aria-hidden="true"></i>
+                    Already in your library; its location will be associated when saved.
+                  </p>
+                } @else {
+                  <p class="edition-warning">
+                    The physical edition differs. Replacing keeps shelves, status, rating, and
+                    notes, but resets edition-specific reading progress.
+                  </p>
+                  @for (item of candidate.libraryMatches; track item.id) {
+                    <div class="edition-comparison">
+                      <div>
+                        @if (cover(item.book.summary)) {
+                          <img [src]="cover(item.book.summary)" alt="Current edition cover" />
+                        }
+                        <span
+                          ><small>Current</small
+                          ><strong>{{ item.book.summary.title }}</strong></span
+                        >
+                      </div>
+                      <i class="ph ph-arrow-right" aria-hidden="true"></i>
+                      <div>
+                        @if (cover(candidate.book.summary)) {
+                          <img [src]="cover(candidate.book.summary)" alt="Detected edition cover" />
+                        }
+                        <span
+                          ><small>Detected</small
+                          ><strong>{{
+                            candidate.book.summary.publisher || 'Unknown publisher'
+                          }}</strong></span
+                        >
+                      </div>
+                      <footer>
+                        <button
+                          class="secondary-button"
+                          type="button"
+                          (click)="useLibraryEdition(detection, item, false)"
+                        >
+                          Keep current + associate
+                        </button>
+                        <button
+                          class="primary-button"
+                          type="button"
+                          (click)="useLibraryEdition(detection, item, true)"
+                        >
+                          Replace + associate
+                        </button>
+                      </footer>
+                    </div>
+                  }
+                }
+              }
+
+              <button class="text-button" type="button" (click)="openSearchForScan(detection.id)">
+                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+                Search for the correct book
+              </button>
+            </article>
+          } @empty {
+            <div class="empty-state empty-state--compact">
+              <h3>No readable spines found</h3>
+              <p>Try a closer, sharper photograph with less glare.</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (searchContext()?.kind === 'SCAN') {
+        <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
+      }
+
+      <section class="apply-panel">
+        @if (newBookCount() > 0 && shelves().length > 0) {
+          <app-form-control
+            label="Shelf for selected new books"
+            kind="select"
+            [control]="scanForm.shelfId"
+          >
+            @for (shelf of shelves(); track shelf.id) {
+              <option [value]="shelf.id">{{ shelf.name }}</option>
+            }
+          </app-form-control>
+          <button
+            class="secondary-button"
+            type="button"
+            [disabled]="applyingBooks()"
+            (click)="addSelectedBooks()"
+          >
+            {{ applyingBooks() ? 'Adding selected...' : 'Add selected new books' }}
+          </button>
+        }
+        <app-form-control
+          label="Saved photo name"
+          hint="Optional; defaults to the file name or scan date."
+          [control]="scanForm.label"
+        />
+        <button
+          class="primary-button"
+          type="button"
+          [disabled]="savingPhoto()"
+          (click)="savePhoto()"
+        >
+          {{ savingPhoto() ? 'Saving photo...' : 'Save photo and locations' }}
+        </button>
+      </section>
+
+      <footer class="dialog__actions">
+        <button class="secondary-button" type="button" (click)="closeScan()">
+          Close without saving photo
+        </button>
+      </footer>
+    }
+  </section>
+</dialog>
+
+<dialog #detailDialog class="dialog scan-dialog">
+  <section class="dialog__body">
+    <header class="dialog__header">
+      <div>
+        <p class="eyebrow">Saved shelf</p>
+        <h2>{{ selectedPhoto()?.label || 'Loading photo' }}</h2>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        (click)="closePhoto()"
+        aria-label="Close saved photo"
+      >
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    @if (detailError()) {
+      <p class="error-message" role="alert">{{ detailError() }}</p>
+    }
+    @if (detailStatus()) {
+      <p class="status-message" role="status">{{ detailStatus() }}</p>
+    }
+
+    @if (loadingDetail()) {
+      <p class="muted">Loading saved shelf...</p>
+    } @else if (selectedPhoto(); as photo) {
+      <div class="saved-photo-layout">
+        <div class="image-stage">
+          @if (selectedPhotoUrl()) {
+            <img [src]="selectedPhotoUrl()" [alt]="photo.label" />
+            @for (detection of photo.detections; track detection.id) {
+              <button
+                class="spine-region"
+                type="button"
+                [class.is-active]="selectedSavedDetectionId() === detection.id"
+                [style.left.%]="detection.boundingBox.x / 10"
+                [style.top.%]="detection.boundingBox.y / 10"
+                [style.width.%]="detection.boundingBox.width / 10"
+                [style.height.%]="detection.boundingBox.height / 10"
+                (click)="selectedSavedDetectionId.set(detection.id)"
+              >
+                {{ detection.position + 1 }}
+              </button>
+            }
+          }
+        </div>
+
+        <ol class="saved-detections">
+          @for (detection of photo.detections; track detection.id) {
+            <li [class.is-active]="selectedSavedDetectionId() === detection.id">
+              <span>{{ detection.position + 1 }}</span>
+              <div>
+                <strong>{{
+                  detection.selectedBook?.title ||
+                    detection.observedTitle ||
+                    detection.observedSpineText
+                }}</strong>
+                <small>
+                  {{ detection.libraryItemId ? 'Associated with library' : 'Needs association' }}
+                </small>
+              </div>
+              <button class="text-button" type="button" (click)="openSearchForSaved(detection.id)">
+                {{ detection.libraryItemId ? 'Change' : 'Find book' }}
+              </button>
+            </li>
+          }
+        </ol>
+      </div>
+
+      @if (searchContext()?.kind === 'SAVED') {
+        <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
+      }
+
+      <div class="photo-management">
+        <app-form-control label="Photo name" [control]="scanForm.detailLabel" />
+        <button class="secondary-button" type="button" (click)="renamePhoto()">Rename</button>
+        <button class="danger-button" type="button" (click)="deletePhoto()">Delete photo</button>
+      </div>
+    }
+  </section>
+</dialog>
+
+<ng-template #searchPanel>
+  <section class="manual-search" aria-labelledby="manual-search-heading">
+    <header>
+      <div>
+        <p class="eyebrow">Manual match</p>
+        <h3 id="manual-search-heading">Search Google Books</h3>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        (click)="searchContext.set(null)"
+        aria-label="Close book search"
+      >
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </header>
+    <form (submit)="searchBooks($event)">
+      <app-form-control
+        label="Title, author, or ISBN"
+        type="search"
+        [control]="scanForm.searchQuery"
+      />
+      <button class="primary-button" type="submit" [disabled]="searching()">
+        {{ searching() ? 'Searching...' : 'Search' }}
+      </button>
+    </form>
+    @if (searchError()) {
+      <p class="error-message" role="alert">{{ searchError() }}</p>
+    }
+    <div class="manual-results">
+      @for (candidate of searchResults(); track candidate.book.id) {
+        <article class="manual-result">
+          @if (cover(candidate.book.summary)) {
+            <img [src]="cover(candidate.book.summary)" alt="" />
+          }
+          <div>
+            <strong>{{ candidate.book.summary.title }}</strong>
+            <small>{{ candidate.book.summary.primaryAuthor || 'Unknown author' }}</small>
+            <small>{{ candidate.book.summary.publisher || 'Unknown publisher' }}</small>
+          </div>
+          @if (searchContext()?.kind === 'SCAN') {
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="chooseSearchCandidate(candidate)"
+            >
+              Use this book
+            </button>
+          } @else if (candidate.classification === 'NEW') {
+            <button
+              class="primary-button"
+              type="button"
+              (click)="associateSavedCandidate(candidate, null, false)"
+            >
+              Add + associate
+            </button>
+          } @else {
+            @for (item of candidate.libraryMatches; track item.id) {
+              <div class="manual-result__actions">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  (click)="associateSavedCandidate(candidate, item, false)"
+                >
+                  Keep current + associate
+                </button>
+                @if (candidate.classification !== 'EXACT_EDITION') {
+                  <button
+                    class="primary-button"
+                    type="button"
+                    (click)="associateSavedCandidate(candidate, item, true)"
+                  >
+                    Replace + associate
+                  </button>
+                }
+              </div>
+            }
+          }
+        </article>
+      } @empty {
+        @if (!searching() && formModel().searchQuery) {
+          <p class="muted">No ISBN-backed Google Books results found.</p>
+        }
+      }
+    </div>
+  </section>
+</ng-template>

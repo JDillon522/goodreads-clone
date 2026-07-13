@@ -22,6 +22,8 @@ This is no longer the stock challenge starter. The repo is now a working Nest + 
 - Session-status guard at app load so stale user or guest tokens redirect to sign-in.
 - Current-year stats and year-in-review summary for authenticated users and guests.
 - Read-only Postgres MCP server for inspecting the Docker database.
+- Signed-in bookshelf-photo scanning with Gemini visual extraction, Google Books candidate review,
+  edition comparison, explicit Postgres photo storage, and saved physical-location associations.
 
 ## Architecture
 
@@ -41,11 +43,17 @@ The browser normally talks to the nginx proxy on `localhost:8080`. The proxy sen
 
 Backend ownership flows use a shared owner context so authenticated users and guest sessions hit the same library, shelf, goals, and stats APIs. Authenticated users are identified by access tokens; guests use an opaque guest bearer token stored on the client.
 
+Bookshelf-photo scanning is intentionally signed-in-only because it spends a server-owned Gemini
+API key and stores user-owned media. Gemini identifies visible spine text and normalized image
+coordinates; Google Books remains the sole authority for ISBNs, editions, covers, and reusable book
+metadata. Unsaved scan images remain browser-held and are not written to Postgres.
+
 ## Tech Stack
 
 - Backend: Nest 11, Prisma 7, Postgres 16
 - Frontend: Angular 22 standalone routes, signals, signal forms
 - External data: Google Books only
+- Visual extraction: Gemini Interactions API (`gemini-3.5-flash` by default)
 - Local runtime: Docker Compose, nginx proxy
 - API contracts: Swagger/OpenAPI at `/docs` and `/docs-json`, with generated frontend types
 - Tooling: npm workspaces plus `bin/run`
@@ -67,6 +75,11 @@ Create your local root environment file:
 ```sh
 cp .env.example .env
 ```
+
+Set `GEMINI_API_KEY` to enable signed-in shelf-photo scanning. The default API root is
+`https://generativelanguage.googleapis.com/v1beta`; stateless scans set `store: false` and use a
+90-second timeout because dense shelf photographs require substantially more processing than
+ordinary metadata requests.
 
 Install dependencies:
 

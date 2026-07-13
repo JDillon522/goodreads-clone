@@ -41,6 +41,11 @@ enum BookRelationType {
   SAME_SUBJECT
 }
 
+enum BookshelfPhotoKind {
+  SHELF
+  WALL
+}
+
 enum ProgressTrackingMode {
   PAGE
   PERCENT
@@ -80,6 +85,7 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   activityEvents      ActivityEvent[]
+  bookshelfPhotos     BookshelfPhoto[]
   libraryItems        LibraryItem[]
   passwordResetTokens PasswordResetToken[]
   preferences         UserPreference?
@@ -182,27 +188,28 @@ model Shelf {
 }
 
 model LibraryItem {
-  id                String                 @id @default(uuid()) @db.Uuid
-  userId            String?                @db.Uuid
-  guestSessionId    String?                @db.Uuid
-  isbn10            String?
-  isbn13            String?
-  dedupeKey         String
-  status            LibraryItemStatus      @default(WANT_TO_READ)
-  rating            Int?
-  notes             String?
-  currentPage       Int?
-  currentPercent    Decimal?               @db.Decimal(5, 2)
-  progressUpdatedAt DateTime?
-  dateAdded         DateTime               @default(now())
-  dateFinished      DateTime?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-  activityEvents    ActivityEvent[]
-  guestSession      GuestSession?          @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
-  progressEntries   ReadingProgressEntry[]
-  shelves           LibraryItemShelf[]
-  user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String                 @id @default(uuid()) @db.Uuid
+  userId              String?                @db.Uuid
+  guestSessionId      String?                @db.Uuid
+  isbn10              String?
+  isbn13              String?
+  dedupeKey           String
+  status              LibraryItemStatus      @default(WANT_TO_READ)
+  rating              Int?
+  notes               String?
+  currentPage         Int?
+  currentPercent      Decimal?               @db.Decimal(5, 2)
+  progressUpdatedAt   DateTime?
+  dateAdded           DateTime               @default(now())
+  dateFinished        DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  activityEvents      ActivityEvent[]
+  bookshelfDetections BookshelfDetection[]
+  guestSession        GuestSession?          @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  progressEntries     ReadingProgressEntry[]
+  shelves             LibraryItemShelf[]
+  user                User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, dedupeKey])
   @@unique([guestSessionId, dedupeKey])
@@ -211,6 +218,61 @@ model LibraryItem {
   @@index([isbn13])
   @@index([rating])
   @@index([status])
+}
+
+model BookshelfPhoto {
+  id                String               @id @default(uuid()) @db.Uuid
+  userId            String               @db.Uuid
+  parentPhotoId     String?              @db.Uuid
+  kind              BookshelfPhotoKind   @default(SHELF)
+  label             String
+  imageData         Bytes                @db.ByteA
+  imageMimeType     String
+  imageWidth        Int
+  imageHeight       Int
+  thumbnailData     Bytes                @db.ByteA
+  thumbnailMimeType String               @default("image/webp")
+  parentRegion      Json?
+  gridColumnLabel   String?
+  gridRowLabel      String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  childPhotos       BookshelfPhoto[]     @relation("BookshelfPhotoHierarchy")
+  detections        BookshelfDetection[]
+  parentPhoto       BookshelfPhoto?      @relation("BookshelfPhotoHierarchy", fields: [parentPhotoId], references: [id], onDelete: SetNull)
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([parentPhotoId])
+}
+
+model BookshelfDetection {
+  id                          String         @id @default(uuid()) @db.Uuid
+  photoId                     String         @db.Uuid
+  libraryItemId               String?        @db.Uuid
+  position                    Int
+  observedSpineText           String
+  observedTitle               String?
+  observedAuthors             String[]
+  observedPublisher           String?
+  observedIsbn10              String?
+  observedIsbn13              String?
+  confidence                  Int
+  x                           Int
+  y                           Int
+  width                       Int
+  height                      Int
+  rotationDegrees             Float          @default(0)
+  selectedGoogleBooksVolumeId String?
+  selectedBookSnapshot        Json?
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
+  libraryItem                 LibraryItem?   @relation(fields: [libraryItemId], references: [id], onDelete: SetNull)
+  photo                       BookshelfPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([photoId, position])
+  @@index([libraryItemId])
+  @@index([selectedGoogleBooksVolumeId])
 }
 
 model LibraryItemShelf {

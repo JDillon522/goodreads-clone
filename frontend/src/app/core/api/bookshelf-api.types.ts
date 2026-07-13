@@ -421,42 +421,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/goals/current": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the current year reading goal and pace stats. */
-        get: operations["getCurrentGoal"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/goals/{year}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a reading goal and pace stats for a year. */
-        get: operations["getGoalForYear"];
-        /** Create or replace a reading goal for a year. */
-        put: operations["updateGoal"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/guest/session": {
+    "/api/bookshelf-scans/analyze": {
         parameters: {
             query?: never;
             header?: never;
@@ -465,23 +430,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a temporary guest session with seeded demo library data. */
-        post: operations["createSession"];
+        /** Analyze one bookshelf photo and resolve likely Google Books matches. */
+        post: operations["analyze"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/health": {
+    "/api/bookshelf-scans/search": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Check backend service health */
-        get: operations["getHealth"];
+        /** Search Google Books and compare results with the signed-in library. */
+        get: operations["search"];
         put?: never;
         post?: never;
         delete?: never;
@@ -490,21 +455,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/health/ready": {
+    "/api/bookshelf-photos": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Check backend readiness, including database connectivity */
-        get: operations["getReadiness"];
+        /** List saved bookshelf photos without returning binary image data. */
+        get: operations["list"];
+        put?: never;
+        /** Explicitly save a reviewed bookshelf photo and detection manifest. */
+        post: operations["save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookshelf-photos/{id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return the authenticated owner’s original bookshelf image. */
+        get: operations["image"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/bookshelf-photos/{id}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return the authenticated owner’s bookshelf gallery thumbnail. */
+        get: operations["thumbnail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookshelf-photos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return one saved bookshelf photo and its reviewed detections. */
+        get: operations["get"];
+        put?: never;
+        post?: never;
+        /** Delete one saved bookshelf photo and all of its detections. */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        /** Rename one saved bookshelf photo. */
+        patch: operations["rename"];
+        trace?: never;
+    };
+    "/api/bookshelf-photos/{photoId}/detections/{detectionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Associate or clear one saved spine detection. */
+        patch: operations["associate"];
         trace?: never;
     };
     "/api/library": {
@@ -623,6 +659,92 @@ export interface paths {
         put?: never;
         /** Append a progress update and update completion state. */
         post: operations["updateProgress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/goals/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the current year reading goal and pace stats. */
+        get: operations["getCurrentGoal"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/goals/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a reading goal and pace stats for a year. */
+        get: operations["getGoalForYear"];
+        /** Create or replace a reading goal for a year. */
+        put: operations["updateGoal"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/guest/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a temporary guest session with seeded demo library data. */
+        post: operations["createSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check backend service health */
+        get: operations["getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check backend readiness, including database connectivity */
+        get: operations["getReadiness"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1185,6 +1307,291 @@ export interface components {
             bookId: string;
             items: components["schemas"]["BookMetadataResponseDto"][];
         };
+        BookshelfBoundingBoxDto: {
+            /** @example 125 */
+            x: number;
+            /** @example 80 */
+            y: number;
+            /** @example 72 */
+            width: number;
+            /** @example 760 */
+            height: number;
+            /** @example 0 */
+            rotationDegrees: number;
+        };
+        LibraryBookResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            google?: {
+                [key: string]: unknown;
+            } | null;
+            summary: components["schemas"]["BookSummaryDto"];
+            sync: components["schemas"]["BookSyncDto"];
+        };
+        LibraryItemResponseDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            id: string;
+            /** @example isbn13:9780441478125 */
+            dedupeKey: string;
+            book: components["schemas"]["LibraryBookResponseDto"];
+            /**
+             * @example WANT_TO_READ
+             * @enum {string}
+             */
+            status: "READ" | "READING" | "WANT_TO_READ";
+            shelves: components["schemas"]["ShelfSummaryResponseDto"][];
+            /** @example 5 */
+            rating?: number | null;
+            /** @example Bleak, excellent, colder than my inbox. */
+            notes?: string | null;
+            /** @example 152 */
+            currentPage?: number | null;
+            /** @example 50 */
+            currentPercent?: number | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            progressUpdatedAt?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            dateAdded: string;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            dateFinished?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-06-29T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        BookshelfCandidateDto: {
+            book: components["schemas"]["BookMetadataResponseDto"];
+            /**
+             * @example NEW
+             * @enum {string}
+             */
+            classification: "DIFFERENT_EDITION" | "EXACT_EDITION" | "NEEDS_REVIEW" | "NEW";
+            /** @example 91 */
+            matchScore: number;
+            libraryMatches: components["schemas"]["LibraryItemResponseDto"][];
+        };
+        BookshelfScanDetectionDto: {
+            /**
+             * Format: uuid
+             * @example 77aa72ca-b879-4ea6-8b29-e702f0f10f3b
+             */
+            id: string;
+            /** @example 0 */
+            position: number;
+            /** @example THE LEFT HAND OF DARKNESS — URSULA K. LE GUIN */
+            observedSpineText: string;
+            /** @example The Left Hand of Darkness */
+            observedTitle?: string | null;
+            /**
+             * @example [
+             *       "Ursula K. Le Guin"
+             *     ]
+             */
+            observedAuthors: string[];
+            /** @example Ace Books */
+            observedPublisher?: string | null;
+            /** @example 0441478123 */
+            observedIsbn10?: string | null;
+            /** @example 9780441478125 */
+            observedIsbn13?: string | null;
+            /** @example 88 */
+            confidence: number;
+            boundingBox: components["schemas"]["BookshelfBoundingBoxDto"];
+            candidates: components["schemas"]["BookshelfCandidateDto"][];
+        };
+        BookshelfAnalysisResponseDto: {
+            detections: components["schemas"]["BookshelfScanDetectionDto"][];
+            /** @example gemini-3.5-flash */
+            model: string;
+            /** @example 8 */
+            count: number;
+        };
+        BookshelfCandidateSearchResponseDto: {
+            /** @example the left hand of darkness ursula le guin */
+            query: string;
+            items: components["schemas"]["BookshelfCandidateDto"][];
+        };
+        SaveBookshelfPhotoUploadDto: {
+            /** Format: binary */
+            image: string;
+            /** @example Office case, middle shelf */
+            label?: string;
+            /** @description JSON-encoded reviewed detection manifest. */
+            manifest: string;
+        };
+        BookshelfDetectionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example 0 */
+            position: number;
+            /** @example THE LEFT HAND OF DARKNESS — URSULA K. LE GUIN */
+            observedSpineText: string;
+            observedTitle?: string | null;
+            observedAuthors: string[];
+            observedPublisher?: string | null;
+            observedIsbn10?: string | null;
+            observedIsbn13?: string | null;
+            confidence: number;
+            boundingBox: components["schemas"]["BookshelfBoundingBoxDto"];
+            selectedGoogleBooksVolumeId?: string | null;
+            selectedBook?: components["schemas"]["BookSummaryDto"] | null;
+            /** Format: uuid */
+            libraryItemId?: string | null;
+        };
+        BookshelfPhotoDetailDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example Office case, middle shelf */
+            label: string;
+            /**
+             * @example SHELF
+             * @enum {string}
+             */
+            kind: "SHELF" | "WALL";
+            /** @example 4032 */
+            imageWidth: number;
+            /** @example 3024 */
+            imageHeight: number;
+            /** @example 18 */
+            detectionCount: number;
+            /** @example 14 */
+            associatedDetectionCount: number;
+            /**
+             * Format: date-time
+             * @example 2026-07-12T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-07-12T12:00:00.000Z
+             */
+            updatedAt: string;
+            detections: components["schemas"]["BookshelfDetectionResponseDto"][];
+        };
+        BookshelfPhotoSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example Office case, middle shelf */
+            label: string;
+            /**
+             * @example SHELF
+             * @enum {string}
+             */
+            kind: "SHELF" | "WALL";
+            /** @example 4032 */
+            imageWidth: number;
+            /** @example 3024 */
+            imageHeight: number;
+            /** @example 18 */
+            detectionCount: number;
+            /** @example 14 */
+            associatedDetectionCount: number;
+            /**
+             * Format: date-time
+             * @example 2026-07-12T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-07-12T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        UpdateBookshelfPhotoRequestDto: {
+            /** @example Office case, middle shelf */
+            label: string;
+        };
+        AssociateBookshelfDetectionRequestDto: {
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId?: string | null;
+            /** Format: uuid */
+            libraryItemId?: string | null;
+        };
+        AddLibraryItemRequestDto: {
+            /** @example 0441478123 */
+            isbn10?: string | null;
+            /** @example 9780441478125 */
+            isbn13?: string | null;
+            /**
+             * @description Google Books volume id from search/detail, used to warm the shared metadata cache.
+             * @example zyTCAlFPjgYC
+             */
+            googleBooksVolumeId?: string | null;
+            /**
+             * Format: uuid
+             * @description Initial target shelf membership. Defaults to the owner Unshelved shelf.
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            shelfId?: string;
+        };
+        UpdateLibraryItemRequestDto: {
+            /**
+             * @description Set a 1-5 rating or null to clear it.
+             * @example 5
+             */
+            rating?: number | null;
+            /**
+             * @description Set plain-text notes or null to clear them.
+             * @example Loved the worldbuilding.
+             */
+            notes?: string | null;
+            /**
+             * @description Set the manual reading status for this library item.
+             * @example READING
+             * @enum {string}
+             */
+            status?: "READ" | "READING" | "WANT_TO_READ";
+        };
+        ReplaceLibraryItemEditionRequestDto: {
+            /** @example zyTCAlFPjgYC */
+            googleBooksVolumeId: string;
+        };
+        MoveLibraryItemRequestDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            shelfId: string;
+        };
+        AddLibraryItemShelfRequestDto: {
+            /**
+             * Format: uuid
+             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
+             */
+            shelfId: string;
+        };
+        UpdateProgressRequestDto: {
+            /**
+             * @example PAGE
+             * @enum {string}
+             */
+            trackingMode: "PAGE" | "PERCENT";
+            /** @example 152 */
+            currentPage?: number;
+            /** @example 50 */
+            currentPercent?: number;
+        };
         GoalStatsResponseDto: {
             /** @example 6 */
             completedBooks: number;
@@ -1316,131 +1723,6 @@ export interface components {
             message: components["schemas"]["ReadinessUnavailableMessageDto"];
             /** @example Service Unavailable */
             error: string;
-        };
-        AddLibraryItemRequestDto: {
-            /** @example 0441478123 */
-            isbn10?: string | null;
-            /** @example 9780441478125 */
-            isbn13?: string | null;
-            /**
-             * @description Google Books volume id from search/detail, used to warm the shared metadata cache.
-             * @example zyTCAlFPjgYC
-             */
-            googleBooksVolumeId?: string | null;
-            /**
-             * Format: uuid
-             * @description Initial target shelf membership. Defaults to the owner Unshelved shelf.
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            shelfId?: string;
-        };
-        LibraryBookResponseDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            id: string;
-            google?: {
-                [key: string]: unknown;
-            } | null;
-            summary: components["schemas"]["BookSummaryDto"];
-            sync: components["schemas"]["BookSyncDto"];
-        };
-        LibraryItemResponseDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            id: string;
-            /** @example isbn13:9780441478125 */
-            dedupeKey: string;
-            book: components["schemas"]["LibraryBookResponseDto"];
-            /**
-             * @example WANT_TO_READ
-             * @enum {string}
-             */
-            status: "READ" | "READING" | "WANT_TO_READ";
-            shelves: components["schemas"]["ShelfSummaryResponseDto"][];
-            /** @example 5 */
-            rating?: number | null;
-            /** @example Bleak, excellent, colder than my inbox. */
-            notes?: string | null;
-            /** @example 152 */
-            currentPage?: number | null;
-            /** @example 50 */
-            currentPercent?: number | null;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            progressUpdatedAt?: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            dateAdded: string;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            dateFinished?: string | null;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            createdAt: string;
-            /**
-             * Format: date-time
-             * @example 2026-06-29T12:00:00.000Z
-             */
-            updatedAt: string;
-        };
-        UpdateLibraryItemRequestDto: {
-            /**
-             * @description Set a 1-5 rating or null to clear it.
-             * @example 5
-             */
-            rating?: number | null;
-            /**
-             * @description Set plain-text notes or null to clear them.
-             * @example Loved the worldbuilding.
-             */
-            notes?: string | null;
-            /**
-             * @description Set the manual reading status for this library item.
-             * @example READING
-             * @enum {string}
-             */
-            status?: "READ" | "READING" | "WANT_TO_READ";
-        };
-        ReplaceLibraryItemEditionRequestDto: {
-            /** @example zyTCAlFPjgYC */
-            googleBooksVolumeId: string;
-        };
-        MoveLibraryItemRequestDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            shelfId: string;
-        };
-        AddLibraryItemShelfRequestDto: {
-            /**
-             * Format: uuid
-             * @example 5e6121b5-bf5d-48cc-a0de-7b47fb04f7f5
-             */
-            shelfId: string;
-        };
-        UpdateProgressRequestDto: {
-            /**
-             * @example PAGE
-             * @enum {string}
-             */
-            trackingMode: "PAGE" | "PERCENT";
-            /** @example 152 */
-            currentPage?: number;
-            /** @example 50 */
-            currentPercent?: number;
         };
         ThemePaletteTokenSetDto: {
             /** @example #eef6f4 */
@@ -2494,7 +2776,105 @@ export interface operations {
             };
         };
     };
-    getCurrentGoal: {
+    analyze: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfAnalysisResponseDto"];
+                };
+            };
+            /** @description The uploaded image is missing, invalid, or unsupported. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A signed-in user access token is required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The image could not be analyzed safely. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The Gemini or Google Books rate limit was reached. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Image analysis is unavailable or misconfigured. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search: {
+        parameters: {
+            query: {
+                /** @description Search terms for title, author, ISBN, or subject. */
+                query: string;
+                page?: number;
+                limit?: number;
+                /** @description Google Books availability filter. */
+                filter?: "ebooks" | "free-ebooks" | "full" | "paid-ebooks";
+                /** @description Google Books print type. */
+                printType?: "all" | "books" | "magazines";
+                /** @description Google Books result ordering. */
+                orderBy?: "newest" | "relevance";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfCandidateSearchResponseDto"];
+                };
+            };
+            /** @description The manual search query is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list: {
         parameters: {
             query?: never;
             header?: never;
@@ -2508,17 +2888,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                    "application/json": components["schemas"]["BookshelfPhotoSummaryDto"][];
                 };
             };
         };
     };
-    getGoalForYear: {
+    save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["SaveBookshelfPhotoUploadDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfPhotoDetailDto"];
+                };
+            };
+        };
+    };
+    image: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                year: number;
+                id: string;
             };
             cookie?: never;
         };
@@ -2529,23 +2932,93 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                    "image/jpeg": string;
+                    "image/png": string;
+                    "image/webp": string;
                 };
             };
         };
     };
-    updateGoal: {
+    thumbnail: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                year: number;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfPhotoDetailDto"];
+                };
+            };
+            /** @description The photo is missing or belongs to another user. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateReadingGoalRequestDto"];
+                "application/json": components["schemas"]["UpdateBookshelfPhotoRequestDto"];
             };
         };
         responses: {
@@ -2554,73 +3027,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                    "application/json": components["schemas"]["BookshelfPhotoDetailDto"];
                 };
             };
         };
     };
-    createSession: {
+    associate: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                photoId: string;
+                detectionId: string;
+            };
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GuestSessionResponseDto"];
-                };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssociateBookshelfDetectionRequestDto"];
             };
         };
-    };
-    getHealth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthResponseDto"];
-                };
-            };
-        };
-    };
-    getReadiness: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReadinessResponseDto"];
-                };
-            };
-            /** @description The backend is running but at least one required dependency is unavailable. */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReadinessUnavailableResponseDto"];
+                    "application/json": components["schemas"]["BookshelfDetectionResponseDto"];
                 };
             };
         };
@@ -2859,6 +3292,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryItemResponseDto"];
+                };
+            };
+        };
+    };
+    getCurrentGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                };
+            };
+        };
+    };
+    getGoalForYear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                };
+            };
+        };
+    };
+    updateGoal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateReadingGoalRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingGoalResponseDto"];
+                };
+            };
+        };
+    };
+    createSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestSessionResponseDto"];
+                };
+            };
+        };
+    };
+    getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponseDto"];
+                };
+            };
+        };
+    };
+    getReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessResponseDto"];
+                };
+            };
+            /** @description The backend is running but at least one required dependency is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessUnavailableResponseDto"];
                 };
             };
         };

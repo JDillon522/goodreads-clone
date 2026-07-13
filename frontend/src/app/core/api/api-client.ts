@@ -44,6 +44,10 @@ export class ApiClient {
   public delete<TResponse = void>(path: string): Promise<TResponse> {
     return firstValueFrom(this.http.delete<TResponse>(path));
   }
+
+  public getBlob(path: string): Promise<Blob> {
+    return firstValueFrom(this.http.get(path, { responseType: 'blob' }));
+  }
   /**
    * Converts defined query values to HttpParams while omitting undefined filters.
    */
