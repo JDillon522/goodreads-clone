@@ -118,3 +118,30 @@ export class BookshelfPhotoDetailDto extends BookshelfPhotoSummaryDto {
   @ApiProperty({ isArray: true, type: BookshelfDetectionResponseDto })
   detections!: BookshelfDetectionResponseDto[];
 }
+
+/** One saved physical location for a library item. */
+export class BookshelfBookLocationDto {
+  @ApiProperty({ format: 'uuid' })
+  detectionId!: string;
+
+  @ApiProperty({ format: 'uuid' })
+  photoId!: string;
+
+  @ApiProperty({ example: 'Office case, middle shelf' })
+  photoLabel!: string;
+
+  @ApiProperty({ example: 4032 })
+  imageWidth!: number;
+
+  @ApiProperty({ example: 3024 })
+  imageHeight!: number;
+
+  @ApiProperty({ example: 4 })
+  position!: number;
+
+  @ApiProperty({ type: BookshelfBoundingBoxDto })
+  boundingBox!: BookshelfBoundingBoxDto;
+
+  @ApiProperty({ example: '2026-07-12T12:00:00.000Z', format: 'date-time' })
+  photoCreatedAt!: string;
+}

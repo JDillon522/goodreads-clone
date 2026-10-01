@@ -193,6 +193,50 @@
       </aside>
 
       <div class="detail-grid">
+        @if (isLoadingLocations()) {
+          <p class="muted detail-message">Loading physical bookshelf locations...</p>
+        } @else if (bookLocations().length > 0) {
+          <section
+            class="detail-panel detail-panel--wide locations-panel"
+            aria-labelledby="locations-heading"
+          >
+            <div class="panel-heading-row">
+              <h2 id="locations-heading">Physical bookshelf locations</h2>
+              <span class="panel-count">{{ bookLocations().length }}</span>
+            </div>
+            <div class="location-grid">
+              @for (location of bookLocations(); track location.detectionId) {
+                <a
+                  class="location-card"
+                  routerLink="/app/bookshelves"
+                  [queryParams]="{ photo: location.photoId, detection: location.detectionId }"
+                  [attr.aria-label]="'View ' + location.photoLabel + ' bookshelf details'"
+                >
+                  <span class="location-image">
+                    <img [src]="location.thumbnailUrl" [alt]="location.photoLabel" />
+                    <span
+                      class="location-region"
+                      [style.left.%]="location.boundingBox.x / 10"
+                      [style.top.%]="location.boundingBox.y / 10"
+                      [style.width.%]="location.boundingBox.width / 10"
+                      [style.height.%]="location.boundingBox.height / 10"
+                      [style.rotate]="location.boundingBox.rotationDegrees + 'deg'"
+                      aria-hidden="true"
+                    ></span>
+                  </span>
+                  <span class="location-copy">
+                    <strong>{{ location.photoLabel }}</strong>
+                    <small>Book {{ location.position + 1 }} in this photograph</small>
+                    <span>View bookshelf details</span>
+                  </span>
+                </a>
+              }
+            </div>
+          </section>
+        } @else if (locationsError()) {
+          <p class="muted detail-message">{{ locationsError() }}</p>
+        }
+
         @if (isLoadingRelations()) {
           <p class="muted detail-message">Loading related books...</p>
         }

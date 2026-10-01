@@ -8,11 +8,18 @@ import type { LibraryItemResponseDto } from '../library/dto/library-item-respons
 import { LibraryService } from '../library/library.service';
 import {
   BookshelfAnalysisResponseDto,
+  BookshelfCandidateMatchRequestDto,
+  BookshelfCandidateMatchResponseDto,
   BookshelfCandidateDto,
   BookshelfCandidateSearchResponseDto,
   BookshelfScanDetectionDto,
 } from './dto/bookshelf-scan-response.dto';
 import type { VisionBookshelfDetection } from './gemini-bookshelf-vision.service';
+
+type CandidateObservation = Pick<
+  VisionBookshelfDetection,
+  'authors' | 'isbn10' | 'isbn13' | 'publisher' | 'spineText' | 'title'
+>;
 
 /** Resolves visual observations against Google Books and compares them with one user's library. */
 @Injectable()
@@ -22,20 +29,38 @@ export class BookshelfCandidateService {
     private readonly libraryService: LibraryService,
   ) {}
 
-  public async buildAnalysis(
-    userId: string,
+  public buildAnalysis(
     model: string,
     observations: VisionBookshelfDetection[],
-  ): Promise<BookshelfAnalysisResponseDto> {
-    const library = await this.libraryService.listLibraryItems(userOwnerContext(userId), {});
-    const detections = await mapWithConcurrency(observations, 4, async (observation, position) =>
-      this.resolveObservation(observation, position, library),
+  ): BookshelfAnalysisResponseDto {
+    const detections = observations.map((observation, position) =>
+      scanDetection(observation, position, []),
     );
-
     return {
       count: detections.length,
       detections,
       model,
+      providerIssues: [],
+    };
+  }
+
+  public async match(
+    userId: string,
+    request: BookshelfCandidateMatchRequestDto,
+  ): Promise<BookshelfCandidateMatchResponseDto> {
+    const library = await this.libraryService.listLibraryItems(userOwnerContext(userId), {});
+    const observation: CandidateObservation = {
+      authors: request.observedAuthors,
+      isbn10: request.observedIsbn10,
+      isbn13: request.observedIsbn13,
+      publisher: request.observedPublisher,
+      spineText: request.observedSpineText,
+      title: request.observedTitle,
+    };
+
+    return {
+      candidates: await this.resolveCandidates(observation, library),
+      detectionId: request.detectionId,
     };
   }
 
@@ -54,11 +79,10 @@ export class BookshelfCandidateService {
     };
   }
 
-  private async resolveObservation(
-    observation: VisionBookshelfDetection,
-    position: number,
+  private async resolveCandidates(
+    observation: CandidateObservation,
     library: LibraryItemResponseDto[],
-  ): Promise<BookshelfScanDetectionDto> {
+  ): Promise<BookshelfCandidateDto[]> {
     const query = observationQuery(observation);
     let results = query ? await this.searchGoogle(query, 12) : [];
 
@@ -66,7 +90,7 @@ export class BookshelfCandidateService {
       results = await this.searchGoogle(observation.title, 12);
     }
 
-    const candidates = results
+    return results
       .filter(hasSavableIsbn)
       .map((book) => ({ book, score: observationScore(observation, book) }))
       .filter(({ score }) => score >= 35)
@@ -74,26 +98,6 @@ export class BookshelfCandidateService {
       .filter(uniqueBookIdentity())
       .slice(0, 3)
       .map(({ book, score }) => this.classifyCandidate(book, library, score));
-
-    return {
-      boundingBox: {
-        height: observation.height,
-        rotationDegrees: observation.rotationDegrees,
-        width: observation.width,
-        x: observation.x,
-        y: observation.y,
-      },
-      candidates,
-      confidence: observation.confidence,
-      id: randomUUID(),
-      observedAuthors: observation.authors,
-      observedIsbn10: observation.isbn10,
-      observedIsbn13: observation.isbn13,
-      observedPublisher: observation.publisher,
-      observedSpineText: observation.spineText,
-      observedTitle: observation.title,
-      position,
-    };
   }
 
   private classifyCandidate(
@@ -139,7 +143,33 @@ export class BookshelfCandidateService {
   }
 }
 
-function observationQuery(observation: VisionBookshelfDetection): string {
+function scanDetection(
+  observation: VisionBookshelfDetection,
+  position: number,
+  candidates: BookshelfCandidateDto[],
+): BookshelfScanDetectionDto {
+  return {
+    boundingBox: {
+      height: observation.height,
+      rotationDegrees: observation.rotationDegrees,
+      width: observation.width,
+      x: observation.x,
+      y: observation.y,
+    },
+    candidates,
+    confidence: observation.confidence,
+    id: randomUUID(),
+    observedAuthors: observation.authors,
+    observedIsbn10: observation.isbn10,
+    observedIsbn13: observation.isbn13,
+    observedPublisher: observation.publisher,
+    observedSpineText: observation.spineText,
+    observedTitle: observation.title,
+    position,
+  };
+}
+
+function observationQuery(observation: CandidateObservation): string {
   if (observation.isbn13 || observation.isbn10) {
     return `isbn:${observation.isbn13 ?? observation.isbn10}`;
   }
@@ -155,7 +185,7 @@ function observationQuery(observation: VisionBookshelfDetection): string {
 }
 
 function observationScore(
-  observation: VisionBookshelfDetection,
+  observation: CandidateObservation,
   book: BookMetadataResponseDto,
 ): number {
   const summary = book.summary;
@@ -244,24 +274,4 @@ function tokens(value: string): string[] {
 
 function quotePhrase(value: string): string {
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-}
-
-async function mapWithConcurrency<T, R>(
-  values: T[],
-  concurrency: number,
-  mapper: (value: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(values.length);
-  let nextIndex = 0;
-
-  const workers = Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-    while (nextIndex < values.length) {
-      const index = nextIndex;
-      nextIndex += 1;
-      results[index] = await mapper(values[index], index);
-    }
-  });
-
-  await Promise.all(workers);
-  return results;
 }

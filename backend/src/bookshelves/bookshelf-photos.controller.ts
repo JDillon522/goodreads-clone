@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Res,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -34,6 +35,7 @@ import { BookshelfImageService, maxBookshelfImageBytes } from './bookshelf-image
 import { BookshelfPhotoService } from './bookshelf-photo.service';
 import {
   AssociateBookshelfDetectionRequestDto,
+  BookshelfBookLocationDto,
   BookshelfDetectionResponseDto,
   BookshelfPhotoDetailDto,
   BookshelfPhotoSummaryDto,
@@ -74,6 +76,16 @@ export class BookshelfPhotosController {
     return this.photos.list(user.id);
   }
 
+  @Get('library-item/:libraryItemId/locations')
+  @ApiOperation({ summary: 'List saved physical shelf locations for one library item.' })
+  @ApiOkResponse({ isArray: true, type: BookshelfBookLocationDto })
+  public locations(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('libraryItemId', new ParseUUIDPipe({ version: '4' })) libraryItemId: string,
+  ): Promise<BookshelfBookLocationDto[]> {
+    return this.photos.locations(user.id, libraryItemId);
+  }
+
   @Get(':id/image')
   @ApiOperation({ summary: 'Return the authenticated owner’s original bookshelf image.' })
   @ApiProduces('image/jpeg', 'image/png', 'image/webp')
@@ -82,10 +94,13 @@ export class BookshelfPhotosController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<Buffer> {
+  ): Promise<StreamableFile> {
     const image = await this.photos.image(user.id, id, false);
-    setPrivateImageHeaders(response, image.mimeType);
-    return image.data;
+    setPrivateImageHeaders(response);
+    return new StreamableFile(image.data, {
+      length: image.data.byteLength,
+      type: image.mimeType,
+    });
   }
 
   @Get(':id/thumbnail')
@@ -96,10 +111,13 @@ export class BookshelfPhotosController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<Buffer> {
+  ): Promise<StreamableFile> {
     const image = await this.photos.image(user.id, id, true);
-    setPrivateImageHeaders(response, image.mimeType);
-    return image.data;
+    setPrivateImageHeaders(response);
+    return new StreamableFile(image.data, {
+      length: image.data.byteLength,
+      type: image.mimeType,
+    });
   }
 
   @Get(':id')
@@ -148,8 +166,7 @@ export class BookshelfPhotosController {
   }
 }
 
-function setPrivateImageHeaders(response: Response, mimeType: string): void {
+function setPrivateImageHeaders(response: Response): void {
   response.setHeader('Cache-Control', 'private, max-age=300');
-  response.setHeader('Content-Type', mimeType);
   response.setHeader('X-Content-Type-Options', 'nosniff');
 }

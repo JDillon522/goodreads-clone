@@ -122,8 +122,18 @@
         <span>{{ analysis().length }} detected</span>
         <span>{{ newBookCount() }} new</span>
         <span>{{ unresolvedCount() }} unresolved</span>
+        @if (matchingCandidateCount() > 0) {
+          <span>{{ matchingCandidateCount() }} matching</span>
+        }
         <small>Analyzed with {{ model() }}</small>
       </div>
+
+      @for (issue of providerIssues(); track issue.provider + issue.code) {
+        <p class="provider-warning" role="status">
+          <i class="ph ph-warning" aria-hidden="true"></i>
+          {{ issue.message }}
+        </p>
+      }
 
       <div class="scan-workspace">
         <div class="image-stage">
@@ -140,7 +150,7 @@
                 [style.height.%]="detection.boundingBox.height / 10"
                 [style.rotate]="detection.boundingBox.rotationDegrees + 'deg'"
                 [attr.aria-label]="'Review detected spine ' + (detection.position + 1)"
-                (click)="focusDetection(detection.id)"
+                (click)="focusDetection(detection.id, true)"
               >
                 {{ detection.position + 1 }}
               </button>
@@ -149,124 +159,184 @@
         </div>
 
         <div class="detection-list">
-          @for (detection of analysis(); track detection.id) {
-            <article
-              class="detection-card"
-              [class.is-active]="activeDetectionId() === detection.id"
-              (click)="focusDetection(detection.id)"
+          @for (group of detectionGroups(); track group.key) {
+            <section
+              class="detection-group"
+              [attr.aria-labelledby]="'detection-group-' + group.key"
             >
-              <header>
-                <span class="detection-number">{{ detection.position + 1 }}</span>
-                <div>
-                  <h3>{{ detection.observedTitle || detection.observedSpineText }}</h3>
-                  <p>{{ detection.observedAuthors.join(', ') || 'Author unreadable' }}</p>
-                </div>
-                <span class="confidence">{{ detection.confidence }}%</span>
+              <header class="detection-group__header">
+                <h3 [id]="'detection-group-' + group.key">{{ group.label }}</h3>
+                <span>{{ group.detections.length }}</span>
               </header>
 
-              @if (detection.candidates.length > 0) {
-                <div class="candidate-list" role="group" aria-label="Likely Google Books matches">
-                  @for (candidate of detection.candidates; track candidate.book.id) {
-                    <button
-                      class="candidate-option"
-                      type="button"
-                      [class.is-selected]="candidateSelected(detection, candidate)"
-                      [attr.aria-pressed]="candidateSelected(detection, candidate)"
-                      (click)="selectCandidate(detection, candidate); $event.stopPropagation()"
-                    >
-                      @if (cover(candidate.book.summary)) {
-                        <img [src]="cover(candidate.book.summary)" alt="" />
+              <div class="detection-group__items">
+                @for (detection of group.detections; track detection.id) {
+                  <article
+                    [id]="'detection-card-' + detection.id"
+                    class="detection-card"
+                    [class.is-active]="activeDetectionId() === detection.id"
+                    (click)="focusDetection(detection.id)"
+                  >
+                    <header>
+                      <span class="detection-number">{{ detection.position + 1 }}</span>
+                      <div>
+                        <h3>{{ detection.observedTitle || detection.observedSpineText }}</h3>
+                        <p>{{ detection.observedAuthors.join(', ') || 'Author unreadable' }}</p>
+                      </div>
+                      <span class="confidence">{{ detection.confidence }}%</span>
+                    </header>
+
+                    @if (candidateMatchState(detection.id) === 'LOADING') {
+                      <div
+                        class="candidate-skeleton-list"
+                        aria-label="Finding likely Google Books matches"
+                        aria-busy="true"
+                      >
+                        @for (slot of candidateSkeletonSlots; track slot) {
+                          <div class="candidate-skeleton" aria-hidden="true">
+                            <span class="candidate-skeleton__cover"></span>
+                            <span class="candidate-skeleton__copy">
+                              <span></span>
+                              <span></span>
+                              <span></span>
+                            </span>
+                          </div>
+                        }
+                      </div>
+                    } @else if (detection.candidates.length > 0) {
+                      <div
+                        class="candidate-list"
+                        role="group"
+                        aria-label="Likely Google Books matches"
+                      >
+                        @for (candidate of detection.candidates; track candidate.book.id) {
+                          <button
+                            class="candidate-option"
+                            type="button"
+                            [class.is-selected]="candidateSelected(detection, candidate)"
+                            [attr.aria-pressed]="candidateSelected(detection, candidate)"
+                            (click)="
+                              selectCandidate(detection, candidate); $event.stopPropagation()
+                            "
+                          >
+                            @if (cover(candidate.book.summary)) {
+                              <img [src]="cover(candidate.book.summary)" alt="" />
+                            }
+                            <span>
+                              <strong>{{ candidate.book.summary.title }}</strong>
+                              <small>{{
+                                candidate.book.summary.primaryAuthor || 'Unknown author'
+                              }}</small>
+                              <small
+                                >{{ candidate.matchScore }}% match ·
+                                {{ candidate.classification }}</small
+                              >
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    } @else if (candidateMatchError(detection.id); as matchError) {
+                      <p class="candidate-match-error" role="status">
+                        <i class="ph ph-warning" aria-hidden="true"></i>
+                        {{ matchError }}
+                      </p>
+                    } @else {
+                      <p class="muted">No reliable Google Books match yet.</p>
+                    }
+
+                    @if (selectedCandidate(detection); as candidate) {
+                      @if (resolution(detection.id); as applied) {
+                        <p class="resolution-message" role="status">
+                          <i class="ph ph-check-circle" aria-hidden="true"></i>
+                          {{ applied.message }}
+                        </p>
+                      } @else if (candidate.classification === 'NEW') {
+                        <label class="include-book">
+                          <input
+                            type="checkbox"
+                            [checked]="includedNewBooks()[detection.id]"
+                            (change)="toggleNewBook(detection.id, $event)"
+                          />
+                          Add this edition to the selected shelf
+                        </label>
+                      } @else if (candidate.classification === 'EXACT_EDITION') {
+                        <p class="resolution-message">
+                          <i class="ph ph-books" aria-hidden="true"></i>
+                          Already in your library; its location will be associated when saved.
+                        </p>
+                      } @else {
+                        <p class="edition-warning">
+                          The physical edition differs. Replacing keeps shelves, status, rating, and
+                          notes, but resets edition-specific reading progress.
+                        </p>
+                        @for (item of candidate.libraryMatches; track item.id) {
+                          <div class="edition-comparison">
+                            <div>
+                              @if (cover(item.book.summary)) {
+                                <img [src]="cover(item.book.summary)" alt="Current edition cover" />
+                              }
+                              <span
+                                ><small>Current</small
+                                ><strong>{{ item.book.summary.title }}</strong></span
+                              >
+                            </div>
+                            <i class="ph ph-arrow-right" aria-hidden="true"></i>
+                            <div>
+                              @if (cover(candidate.book.summary)) {
+                                <img
+                                  [src]="cover(candidate.book.summary)"
+                                  alt="Detected edition cover"
+                                />
+                              }
+                              <span
+                                ><small>Detected</small
+                                ><strong>{{
+                                  candidate.book.summary.publisher || 'Unknown publisher'
+                                }}</strong></span
+                              >
+                            </div>
+                            <footer>
+                              <button
+                                class="secondary-button"
+                                type="button"
+                                (click)="useLibraryEdition(detection, item, false)"
+                              >
+                                Keep current + associate
+                              </button>
+                              <button
+                                class="primary-button"
+                                type="button"
+                                (click)="useLibraryEdition(detection, item, true)"
+                              >
+                                Replace + associate
+                              </button>
+                            </footer>
+                          </div>
+                        }
                       }
-                      <span>
-                        <strong>{{ candidate.book.summary.title }}</strong>
-                        <small>{{
-                          candidate.book.summary.primaryAuthor || 'Unknown author'
-                        }}</small>
-                        <small
-                          >{{ candidate.matchScore }}% match · {{ candidate.classification }}</small
-                        >
-                      </span>
-                    </button>
-                  }
-                </div>
-              } @else {
-                <p class="muted">No reliable Google Books match yet.</p>
-              }
+                    }
 
-              @if (selectedCandidate(detection); as candidate) {
-                @if (resolution(detection.id); as applied) {
-                  <p class="resolution-message" role="status">
-                    <i class="ph ph-check-circle" aria-hidden="true"></i>
-                    {{ applied.message }}
-                  </p>
-                } @else if (candidate.classification === 'NEW') {
-                  <label class="include-book">
-                    <input
-                      type="checkbox"
-                      [checked]="includedNewBooks()[detection.id]"
-                      (change)="toggleNewBook(detection.id, $event)"
-                    />
-                    Add this edition to the selected shelf
-                  </label>
-                } @else if (candidate.classification === 'EXACT_EDITION') {
-                  <p class="resolution-message">
-                    <i class="ph ph-books" aria-hidden="true"></i>
-                    Already in your library; its location will be associated when saved.
-                  </p>
-                } @else {
-                  <p class="edition-warning">
-                    The physical edition differs. Replacing keeps shelves, status, rating, and
-                    notes, but resets edition-specific reading progress.
-                  </p>
-                  @for (item of candidate.libraryMatches; track item.id) {
-                    <div class="edition-comparison">
-                      <div>
-                        @if (cover(item.book.summary)) {
-                          <img [src]="cover(item.book.summary)" alt="Current edition cover" />
-                        }
-                        <span
-                          ><small>Current</small
-                          ><strong>{{ item.book.summary.title }}</strong></span
-                        >
-                      </div>
-                      <i class="ph ph-arrow-right" aria-hidden="true"></i>
-                      <div>
-                        @if (cover(candidate.book.summary)) {
-                          <img [src]="cover(candidate.book.summary)" alt="Detected edition cover" />
-                        }
-                        <span
-                          ><small>Detected</small
-                          ><strong>{{
-                            candidate.book.summary.publisher || 'Unknown publisher'
-                          }}</strong></span
-                        >
-                      </div>
-                      <footer>
-                        <button
-                          class="secondary-button"
-                          type="button"
-                          (click)="useLibraryEdition(detection, item, false)"
-                        >
-                          Keep current + associate
-                        </button>
-                        <button
-                          class="primary-button"
-                          type="button"
-                          (click)="useLibraryEdition(detection, item, true)"
-                        >
-                          Replace + associate
-                        </button>
-                      </footer>
-                    </div>
-                  }
+                    @if (candidateMatchState(detection.id) !== 'LOADING') {
+                      <button
+                        class="text-button"
+                        type="button"
+                        (click)="openSearchForScan(detection)"
+                      >
+                        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+                        Search for more options or editions
+                      </button>
+
+                      @if (
+                        searchContext()?.kind === 'SCAN' &&
+                        searchContext()?.detectionId === detection.id
+                      ) {
+                        <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
+                      }
+                    }
+                  </article>
                 }
-              }
-
-              <button class="text-button" type="button" (click)="openSearchForScan(detection.id)">
-                <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
-                Search for the correct book
-              </button>
-            </article>
+              </div>
+            </section>
           } @empty {
             <div class="empty-state empty-state--compact">
               <h3>No readable spines found</h3>
@@ -275,10 +345,6 @@
           }
         </div>
       </div>
-
-      @if (searchContext()?.kind === 'SCAN') {
-        <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
-      }
 
       <section class="apply-panel">
         @if (newBookCount() > 0 && shelves().length > 0) {
@@ -386,17 +452,20 @@
                   {{ detection.libraryItemId ? 'Associated with library' : 'Needs association' }}
                 </small>
               </div>
-              <button class="text-button" type="button" (click)="openSearchForSaved(detection.id)">
-                {{ detection.libraryItemId ? 'Change' : 'Find book' }}
+              <button class="text-button" type="button" (click)="openSearchForSaved(detection)">
+                Search for more options or editions
               </button>
+              @if (
+                searchContext()?.kind === 'SAVED' && searchContext()?.detectionId === detection.id
+              ) {
+                <div class="saved-detection-search">
+                  <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
+                </div>
+              }
             </li>
           }
         </ol>
       </div>
-
-      @if (searchContext()?.kind === 'SAVED') {
-        <ng-container *ngTemplateOutlet="searchPanel"></ng-container>
-      }
 
       <div class="photo-management">
         <app-form-control label="Photo name" [control]="scanForm.detailLabel" />
@@ -411,8 +480,8 @@
   <section class="manual-search" aria-labelledby="manual-search-heading">
     <header>
       <div>
-        <p class="eyebrow">Manual match</p>
-        <h3 id="manual-search-heading">Search Google Books</h3>
+        <p class="eyebrow">Google Books</p>
+        <h3 id="manual-search-heading">More options and editions</h3>
       </div>
       <button
         class="icon-button"

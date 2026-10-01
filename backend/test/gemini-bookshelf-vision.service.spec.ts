@@ -1,18 +1,14 @@
 import {
   HttpException,
-  Logger,
   ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 
 import { GeminiBookshelfVisionService } from '../src/bookshelves/gemini-bookshelf-vision.service';
 
 describe('GeminiBookshelfVisionService', () => {
-  const config = (key = 'test-key', overrides: Record<string, unknown> = {}) =>
+  const config = (key = 'test-key') =>
     ({
       get: jest.fn((name: string) => {
         const values: Record<string, unknown> = {
@@ -20,8 +16,6 @@ describe('GeminiBookshelfVisionService', () => {
           GEMINI_API_KEY: key,
           GEMINI_MODEL: 'gemini-3.5-flash',
           GEMINI_REQUEST_TIMEOUT_MS: 90_000,
-          NODE_ENV: 'test',
-          ...overrides,
         };
         return values[name];
       }),
@@ -95,7 +89,6 @@ describe('GeminiBookshelfVisionService', () => {
       'data: [DONE]',
       '',
     ].join('\n');
-    const debugSpy = jest.spyOn(Logger.prototype, 'debug').mockImplementation();
     const fetchMock = jest
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
@@ -130,11 +123,6 @@ describe('GeminiBookshelfVisionService', () => {
     expect(JSON.stringify(body)).toContain('"mime_type":"image/jpeg"');
     expect(JSON.stringify(body)).toContain(image.buffer.toString('base64'));
     expect(JSON.stringify(body)).not.toMatch(/"(?:minimum|maximum|maxItems)"/);
-    expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Gemini stream line: data:'));
-    expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Gemini response dump:'));
-    expect(debugSpy).toHaveBeenCalledWith(
-      expect.stringContaining(`Gemini concatenated model output:\n${output}`),
-    );
   });
 
   it('fails without making a request when the API key is missing', async () => {
@@ -142,48 +130,6 @@ describe('GeminiBookshelfVisionService', () => {
     const service = new GeminiBookshelfVisionService(config(''));
     await expect(service.analyze(image)).rejects.toBeInstanceOf(ServiceUnavailableException);
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('writes raw response lines and the concatenated model output to a trace file', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'bookshelf-gemini-stream-'));
-    const logPath = join(directory, 'gemini-bookshelf-stream.log');
-    const output = JSON.stringify({
-      books: [
-        {
-          authors: [],
-          bounding_box: { height: 900, rotation_degrees: 0, width: 50, x: 20, y: 50 },
-          confidence: 80,
-          isbn10: null,
-          isbn13: null,
-          publisher: null,
-          spine_text: 'DUNE',
-          title: 'Dune',
-        },
-      ],
-    });
-    const responseBody = JSON.stringify({
-      status: 'completed',
-      steps: [{ content: [{ text: output, type: 'text' }], type: 'model_output' }],
-    });
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(responseBody, { status: 200 }));
-
-    try {
-      await new GeminiBookshelfVisionService(
-        config('test-key', {
-          GEMINI_STREAM_LOG_PATH: logPath,
-          NODE_ENV: 'development',
-        }),
-      ).analyze(image);
-
-      const trace = await readFile(logPath, 'utf8');
-      expect(trace).toContain(`STREAM ${responseBody}`);
-      expect(trace).toContain(`----- CONCATENATED MODEL OUTPUT -----\n${output}`);
-      expect(trace).toContain('PARSED detections=1');
-      expect(trace).toContain('SUCCESS detections=1');
-      expect(trace).toContain('END');
-    } finally {
-      await rm(directory, { force: true, recursive: true });
-    }
   });
 
   it('maps rate limits and safety blocks to stable public errors', async () => {

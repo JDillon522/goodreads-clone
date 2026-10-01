@@ -4,6 +4,9 @@ import { ApiClient } from '../api/api-client';
 import type {
   AssociateBookshelfDetectionRequest,
   BookshelfAnalysisResponse,
+  BookshelfBookLocation,
+  BookshelfCandidateMatchRequest,
+  BookshelfCandidateMatchResponse,
   BookshelfCandidateSearchResponse,
   BookshelfDetectionResponse,
   BookshelfPhotoDetail,
@@ -45,6 +48,13 @@ export class Bookshelves {
     });
   }
 
+  public match(request: BookshelfCandidateMatchRequest): Promise<BookshelfCandidateMatchResponse> {
+    return this.api.post<BookshelfCandidateMatchResponse, BookshelfCandidateMatchRequest>(
+      '/api/bookshelf-scans/match',
+      request,
+    );
+  }
+
   public save(
     image: File,
     label: string,
@@ -59,6 +69,12 @@ export class Bookshelves {
 
   public list(): Promise<BookshelfPhotoSummary[]> {
     return this.api.get<BookshelfPhotoSummary[]>('/api/bookshelf-photos');
+  }
+
+  public locations(libraryItemId: string): Promise<BookshelfBookLocation[]> {
+    return this.api.get<BookshelfBookLocation[]>(
+      `/api/bookshelf-photos/library-item/${libraryItemId}/locations`,
+    );
   }
 
   public get(id: string): Promise<BookshelfPhotoDetail> {

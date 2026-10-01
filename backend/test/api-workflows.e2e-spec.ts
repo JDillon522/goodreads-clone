@@ -464,6 +464,24 @@ describe('Bookshelf API workflows', () => {
     const guest = await request<GuestResponse>('/guest/session', { method: 'POST' });
     createdGuestSessionIds.push(guest.sessionId);
     await requestExpect('/bookshelf-photos', 401, { token: guest.guestToken });
+    await requestExpect('/bookshelf-scans/match', 401, {
+      body: {
+        detectionId: '77aa72ca-b879-4ea6-8b29-e702f0f10f3b',
+        observedAuthors: [],
+        observedIsbn10: null,
+        observedIsbn13: null,
+        observedPublisher: null,
+        observedSpineText: 'TEST SPINE',
+        observedTitle: null,
+      },
+      method: 'POST',
+      token: guest.guestToken,
+    });
+    await requestExpect('/bookshelf-scans/match', 400, {
+      body: { detectionId: 'not-a-uuid' },
+      method: 'POST',
+      token: accessToken,
+    });
     await requestExpect('/bookshelf-scans/analyze', 400, {
       method: 'POST',
       token: accessToken,
@@ -518,12 +536,23 @@ describe('Bookshelf API workflows', () => {
     });
     expect(photos.map((photo) => photo.id)).toContain(saved.id);
 
-    const image = await fetch(`${apiBaseUrl}/bookshelf-photos/${saved.id}/thumbnail`, {
+    const thumbnail = await fetch(`${apiBaseUrl}/bookshelf-photos/${saved.id}/thumbnail`, {
       headers: { authorization: `Bearer ${accessToken}` },
     });
-    expect(image.status).toBe(200);
-    expect(image.headers.get('content-type')).toContain('image/webp');
-    expect((await image.arrayBuffer()).byteLength).toBeGreaterThan(0);
+    expect(thumbnail.status).toBe(200);
+    expect(thumbnail.headers.get('content-type')).toContain('image/webp');
+    const thumbnailBytes = Buffer.from(await thumbnail.arrayBuffer());
+    expect(thumbnailBytes.subarray(0, 4).toString('ascii')).toBe('RIFF');
+    expect(thumbnail.headers.get('content-length')).toBe(String(thumbnailBytes.byteLength));
+
+    const original = await fetch(`${apiBaseUrl}/bookshelf-photos/${saved.id}/image`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    expect(original.status).toBe(200);
+    expect(original.headers.get('content-type')).toContain('image/jpeg');
+    const originalBytes = Buffer.from(await original.arrayBuffer());
+    expect(originalBytes.equals(jpeg)).toBe(true);
+    expect(original.headers.get('content-length')).toBe(String(jpeg.byteLength));
 
     const renamed = await request<BookshelfPhotoResponse>(`/bookshelf-photos/${saved.id}`, {
       body: { label: 'Renamed E2E shelf' },

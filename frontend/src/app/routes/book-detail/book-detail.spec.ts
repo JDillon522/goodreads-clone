@@ -3,9 +3,15 @@ import { TestBed } from '@angular/core/testing';
 import { convertToParamMap, ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 
-import type { LibraryItemResponse, ShelfResponse } from '../../core/api/api.types';
+import type {
+  BookshelfBookLocation,
+  LibraryItemResponse,
+  ShelfResponse,
+} from '../../core/api/api.types';
 import { Books as BooksService } from '../../core/books/books';
+import { Bookshelves } from '../../core/bookshelves/bookshelves';
 import { Library as LibraryService } from '../../core/library/library';
+import { SessionStore } from '../../core/session/session-store';
 import { Shelves } from '../../core/shelves/shelves';
 import { Theme } from '../../core/theme/theme';
 import { BookDetail } from './book-detail';
@@ -157,6 +163,26 @@ class MockTheme {
   public readonly useBookAsCustomTheme = vi.fn().mockResolvedValue(undefined);
 }
 
+class MockSessionStore {
+  public readonly isSignedIn = signal(true);
+}
+
+class MockBookshelves {
+  public readonly locations = vi.fn(async (): Promise<BookshelfBookLocation[]> => [
+    {
+      boundingBox: { height: 600, rotationDegrees: 0, width: 80, x: 100, y: 120 },
+      detectionId: 'detection-1',
+      imageHeight: 800,
+      imageWidth: 1200,
+      photoCreatedAt: timestamp,
+      photoId: 'photo-1',
+      photoLabel: 'Office shelf',
+      position: 2,
+    },
+  ]);
+  public readonly image = vi.fn(async () => new Blob(['thumbnail'], { type: 'image/webp' }));
+}
+
 class MockBooks {
   public readonly series = vi.fn(async () => ({
     bookId: 'book-1',
@@ -238,13 +264,20 @@ class MockBooks {
 
 describe('BookDetail', () => {
   let books: MockBooks;
+  let bookshelves: MockBookshelves;
   let library: MockLibrary;
   let theme: MockTheme;
 
   beforeEach(async () => {
     books = new MockBooks();
+    bookshelves = new MockBookshelves();
     library = new MockLibrary();
     theme = new MockTheme();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: vi.fn(() => 'blob:bookshelf-thumbnail'),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
 
     await TestBed.configureTestingModule({
       imports: [BookDetail],
@@ -255,7 +288,9 @@ describe('BookDetail', () => {
           useValue: { paramMap: of(convertToParamMap({ id: 'item-1' })) },
         },
         { provide: BooksService, useValue: books },
+        { provide: Bookshelves, useValue: bookshelves },
         { provide: LibraryService, useValue: library },
+        { provide: SessionStore, useClass: MockSessionStore },
         { provide: Shelves, useClass: MockShelves },
         { provide: Theme, useValue: theme },
       ],
@@ -307,6 +342,25 @@ describe('BookDetail', () => {
     expect(controls.querySelector('.status-panel')).not.toBeNull();
     expect(controls.querySelector('.shelves-panel')).not.toBeNull();
     expect(controls.querySelector('.progress-panel')).not.toBeNull();
+  });
+
+  it('shows the physical bookshelf location with only this book highlighted', async () => {
+    const fixture = TestBed.createComponent(BookDetail);
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const location = element.querySelector<HTMLAnchorElement>('.location-card')!;
+    const region = location.querySelector<HTMLElement>('.location-region')!;
+
+    expect(bookshelves.locations).toHaveBeenCalledWith('item-1');
+    expect(bookshelves.image).toHaveBeenCalledWith('photo-1', true);
+    expect(location.textContent).toContain('Office shelf');
+    expect(location.getAttribute('href')).toBe(
+      '/app/bookshelves?photo=photo-1&detection=detection-1',
+    );
+    expect(location.querySelectorAll('.location-region')).toHaveLength(1);
+    expect(region.style.left).toBe('10%');
+    expect(region.style.top).toBe('12%');
   });
 
   it('replaces the saved edition while keeping the library item route', async () => {

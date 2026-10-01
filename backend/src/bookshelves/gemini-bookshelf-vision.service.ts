@@ -7,9 +7,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'node:crypto';
-import { appendFile, mkdir } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
 
 import type { ValidatedBookshelfImage } from './bookshelf-image.service';
 
@@ -88,11 +85,8 @@ ISBN and publisher values must come from visible evidence only, never memory.`;
 export class GeminiBookshelfVisionService {
   private readonly apiKey: null | string;
   private readonly baseUrl: string;
-  private readonly debugResponses: boolean;
-  private readonly fileTracingEnabled: boolean;
   private readonly logger = new Logger(GeminiBookshelfVisionService.name);
   public readonly model: string;
-  private readonly streamLogPath: string;
   private readonly timeoutMs: number;
 
   public constructor(config: ConfigService) {
@@ -103,13 +97,6 @@ export class GeminiBookshelfVisionService {
     );
     this.model = config.get<string>('GEMINI_MODEL')?.trim() || 'gemini-3.5-flash';
     this.timeoutMs = config.get<number>('GEMINI_REQUEST_TIMEOUT_MS') ?? 90_000;
-    const nodeEnvironment = config.get<string>('NODE_ENV') ?? 'development';
-    this.debugResponses = nodeEnvironment !== 'production';
-    this.fileTracingEnabled = nodeEnvironment !== 'production' && nodeEnvironment !== 'test';
-    this.streamLogPath = resolve(
-      process.cwd(),
-      config.get<string>('GEMINI_STREAM_LOG_PATH')?.trim() || 'logs/gemini-bookshelf-stream.log',
-    );
   }
 
   public async analyze(image: ValidatedBookshelfImage): Promise<VisionBookshelfDetection[]> {
@@ -117,31 +104,11 @@ export class GeminiBookshelfVisionService {
       throw new ServiceUnavailableException('Bookshelf scanning is not configured.');
     }
 
-    const trace = new GeminiStreamTrace(
-      this.fileTracingEnabled,
-      this.streamLogPath,
-      randomUUID(),
-      (error) => this.logger.warn(`Could not write Gemini stream trace: ${describeError(error)}`),
-    );
-    trace.write(
-      `BEGIN model=${this.model} image=${image.width}x${image.height} mime=${image.mimeType}`,
-    );
-
-    try {
-      const detections = await this.performAnalysis(image, trace, this.apiKey);
-      trace.write(`SUCCESS detections=${detections.length}`);
-      await trace.finish();
-      return detections;
-    } catch (error) {
-      trace.write(`FAILURE ${describeError(error)}`);
-      await trace.finish();
-      throw error;
-    }
+    return this.performAnalysis(image, this.apiKey);
   }
 
   private async performAnalysis(
     image: ValidatedBookshelfImage,
-    trace: GeminiStreamTrace,
     apiKey: string,
   ): Promise<VisionBookshelfDetection[]> {
     let response: Response;
@@ -188,20 +155,9 @@ export class GeminiBookshelfVisionService {
     let payload: unknown;
 
     try {
-      const providerResponse = await readGeminiResponse(response, (line) => {
-        trace.write(`STREAM ${line}`);
-        if (this.debugResponses) {
-          this.logger.debug(`Gemini stream line: ${line}`);
-        }
-      });
+      const providerResponse = await readGeminiResponse(response);
       payload = providerResponse.payload;
       concatenatedText = providerResponse.concatenatedText;
-      trace.writeBlock('CONCATENATED MODEL OUTPUT', concatenatedText);
-      if (this.debugResponses) {
-        this.logger.debug(`Gemini response dump:\n${providerResponse.raw}`);
-        this.logger.debug(`Gemini concatenated model output:\n${concatenatedText}`);
-      }
-      await trace.flush();
     } catch (error) {
       this.logger.warn(`Gemini response stream was invalid: ${describeError(error)}`);
       throw new ServiceUnavailableException('Bookshelf analysis returned invalid data.');
@@ -244,9 +200,7 @@ export class GeminiBookshelfVisionService {
     }
 
     try {
-      const detections = normalizeVisionOutput(JSON.parse(outputText));
-      trace.write(`PARSED detections=${detections.length}`);
-      return detections;
+      return normalizeVisionOutput(JSON.parse(outputText));
     } catch (error) {
       this.logger.warn(`Gemini bookshelf output was invalid: ${describeError(error)}`);
       throw new ServiceUnavailableException('Bookshelf analysis returned invalid data.');
@@ -383,10 +337,9 @@ function providerErrorReason(value: unknown): null | string {
 
 async function readGeminiResponse(
   response: Response,
-  onLine: (line: string) => void,
-): Promise<{ concatenatedText: string; payload: unknown; raw: string }> {
+): Promise<{ concatenatedText: string; payload: unknown }> {
   if (!response.body) {
-    return { concatenatedText: '', payload: null, raw: '' };
+    return { concatenatedText: '', payload: null };
   }
 
   const reader = response.body.getReader();
@@ -412,33 +365,28 @@ async function readGeminiResponse(
     while (newlineIndex >= 0) {
       const line = pending.slice(0, newlineIndex).replace(/\r$/, '');
       pending = pending.slice(newlineIndex + 1);
-      captureProviderLine(line, events, onLine);
+      captureProviderLine(line, events);
       newlineIndex = pending.indexOf('\n');
     }
   }
 
   if (pending) {
-    captureProviderLine(pending.replace(/\r$/, ''), events, onLine);
+    captureProviderLine(pending.replace(/\r$/, ''), events);
   }
 
   if (events.length > 0) {
-    return { ...assembleStreamedInteraction(events), raw };
+    return assembleStreamedInteraction(events);
   }
 
   const payload: unknown = raw.trim() ? JSON.parse(raw) : null;
-  return { concatenatedText: interactionOutputText(payload) ?? '', payload, raw };
+  return { concatenatedText: interactionOutputText(payload) ?? '', payload };
 }
 
-function captureProviderLine(
-  line: string,
-  events: unknown[],
-  onLine: (line: string) => void,
-): void {
+function captureProviderLine(line: string, events: unknown[]): void {
   if (!line) {
     return;
   }
 
-  onLine(line);
   if (!line.startsWith('data:')) {
     return;
   }
@@ -494,67 +442,8 @@ function assembleStreamedInteraction(events: unknown[]): {
 
   return {
     concatenatedText,
-    payload: {
-      ...completedInteraction,
-      steps: [
-        {
-          content: [{ text: concatenatedText, type: 'text' }],
-          type: 'model_output',
-        },
-      ],
-    },
+    payload: completedInteraction,
   };
-}
-
-class GeminiStreamTrace {
-  private failureReported = false;
-  private queue: Promise<void>;
-
-  public constructor(
-    private readonly enabled: boolean,
-    private readonly path: string,
-    private readonly requestId: string,
-    private readonly onFailure: (error: unknown) => void,
-  ) {
-    this.queue = enabled
-      ? mkdir(dirname(path), { recursive: true }).then(() => undefined)
-      : Promise.resolve();
-  }
-
-  public write(message: string): void {
-    this.append(`[${new Date().toISOString()}] [${this.requestId}] ${message}\n`);
-  }
-
-  public writeBlock(label: string, value: string): void {
-    this.append(
-      `[${new Date().toISOString()}] [${this.requestId}] ----- ${label} -----\n${value}\n` +
-        `[${new Date().toISOString()}] [${this.requestId}] ----- END ${label} -----\n`,
-    );
-  }
-
-  public async flush(): Promise<void> {
-    await this.queue;
-  }
-
-  public async finish(): Promise<void> {
-    this.write('END');
-    await this.flush();
-  }
-
-  private append(value: string): void {
-    if (!this.enabled) {
-      return;
-    }
-
-    this.queue = this.queue
-      .then(() => appendFile(this.path, value, 'utf8'))
-      .catch((error: unknown) => {
-        if (!this.failureReported) {
-          this.failureReported = true;
-          this.onFailure(error);
-        }
-      });
-  }
 }
 
 function textContentParts(value: unknown): string[] {

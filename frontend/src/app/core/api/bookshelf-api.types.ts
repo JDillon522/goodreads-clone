@@ -430,8 +430,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Analyze one bookshelf photo and resolve likely Google Books matches. */
+        /** Analyze one bookshelf photo and immediately return visual detections. */
         post: operations["analyze"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookshelf-scans/match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve one visual spine detection through Google Books. */
+        post: operations["match"];
         delete?: never;
         options?: never;
         head?: never;
@@ -467,6 +484,23 @@ export interface paths {
         put?: never;
         /** Explicitly save a reviewed bookshelf photo and detection manifest. */
         post: operations["save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookshelf-photos/library-item/{libraryItemId}/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List saved physical shelf locations for one library item. */
+        get: operations["locations"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1420,12 +1454,58 @@ export interface components {
             boundingBox: components["schemas"]["BookshelfBoundingBoxDto"];
             candidates: components["schemas"]["BookshelfCandidateDto"][];
         };
+        BookshelfProviderIssueDto: {
+            /**
+             * @example GOOGLE_BOOKS
+             * @enum {string}
+             */
+            provider: "GOOGLE_BOOKS";
+            /**
+             * @example UNAVAILABLE
+             * @enum {string}
+             */
+            code: "RATE_LIMITED" | "UNAVAILABLE";
+            /** @example Google Books is temporarily unavailable. Some matches need review. */
+            message: string;
+        };
         BookshelfAnalysisResponseDto: {
             detections: components["schemas"]["BookshelfScanDetectionDto"][];
             /** @example gemini-3.5-flash */
             model: string;
             /** @example 8 */
             count: number;
+            providerIssues: components["schemas"]["BookshelfProviderIssueDto"][];
+        };
+        BookshelfCandidateMatchRequestDto: {
+            /**
+             * Format: uuid
+             * @example 77aa72ca-b879-4ea6-8b29-e702f0f10f3b
+             */
+            detectionId: string;
+            /** @example THE LEFT HAND OF DARKNESS — URSULA K. LE GUIN */
+            observedSpineText: string;
+            /** @example The Left Hand of Darkness */
+            observedTitle?: string | null;
+            /**
+             * @example [
+             *       "Ursula K. Le Guin"
+             *     ]
+             */
+            observedAuthors: string[];
+            /** @example Ace Books */
+            observedPublisher?: string | null;
+            /** @example 0441478123 */
+            observedIsbn10?: string | null;
+            /** @example 9780441478125 */
+            observedIsbn13?: string | null;
+        };
+        BookshelfCandidateMatchResponseDto: {
+            /**
+             * Format: uuid
+             * @example 77aa72ca-b879-4ea6-8b29-e702f0f10f3b
+             */
+            detectionId: string;
+            candidates: components["schemas"]["BookshelfCandidateDto"][];
         };
         BookshelfCandidateSearchResponseDto: {
             /** @example the left hand of darkness ursula le guin */
@@ -1517,6 +1597,26 @@ export interface components {
              * @example 2026-07-12T12:00:00.000Z
              */
             updatedAt: string;
+        };
+        BookshelfBookLocationDto: {
+            /** Format: uuid */
+            detectionId: string;
+            /** Format: uuid */
+            photoId: string;
+            /** @example Office case, middle shelf */
+            photoLabel: string;
+            /** @example 4032 */
+            imageWidth: number;
+            /** @example 3024 */
+            imageHeight: number;
+            /** @example 4 */
+            position: number;
+            boundingBox: components["schemas"]["BookshelfBoundingBoxDto"];
+            /**
+             * Format: date-time
+             * @example 2026-07-12T12:00:00.000Z
+             */
+            photoCreatedAt: string;
         };
         UpdateBookshelfPhotoRequestDto: {
             /** @example Office case, middle shelf */
@@ -2821,7 +2921,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description The Gemini or Google Books rate limit was reached. */
+            /** @description The Gemini rate limit was reached. */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -2829,6 +2929,50 @@ export interface operations {
                 content?: never;
             };
             /** @description Image analysis is unavailable or misconfigured. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    match: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookshelfCandidateMatchRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfCandidateMatchResponseDto"];
+                };
+            };
+            /** @description The visual detection payload is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Google Books rate limit was reached. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Google Books is temporarily unavailable. */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -2867,6 +3011,20 @@ export interface operations {
             };
             /** @description The manual search query is invalid. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Google Books rate limit was reached. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Google Books is temporarily unavailable. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2912,6 +3070,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BookshelfPhotoDetailDto"];
+                };
+            };
+        };
+    };
+    locations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                libraryItemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookshelfBookLocationDto"][];
                 };
             };
         };

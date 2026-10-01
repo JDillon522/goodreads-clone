@@ -8,6 +8,7 @@ import { PrismaService } from '../database/prisma.service';
 import { LibraryService } from '../library/library.service';
 import {
   AssociateBookshelfDetectionRequestDto,
+  BookshelfBookLocationDto,
   BookshelfDetectionResponseDto,
   BookshelfPhotoDetailDto,
   BookshelfPhotoSummaryDto,
@@ -92,6 +93,52 @@ export class BookshelfPhotoService {
 
   public async get(userId: string, photoId: string): Promise<BookshelfPhotoDetailDto> {
     return toPhotoDetail(await this.getOwnedPhoto(userId, photoId));
+  }
+
+  public async locations(
+    userId: string,
+    libraryItemId: string,
+  ): Promise<BookshelfBookLocationDto[]> {
+    await this.imageLibrary.getLibraryItem(userOwnerContext(userId), libraryItemId);
+    const detections = await this.prisma.bookshelfDetection.findMany({
+      orderBy: [{ photo: { createdAt: 'desc' } }, { position: 'asc' }],
+      select: {
+        height: true,
+        id: true,
+        photo: {
+          select: {
+            createdAt: true,
+            id: true,
+            imageHeight: true,
+            imageWidth: true,
+            label: true,
+          },
+        },
+        position: true,
+        rotationDegrees: true,
+        width: true,
+        x: true,
+        y: true,
+      },
+      where: { libraryItemId, photo: { userId } },
+    });
+
+    return detections.map((detection) => ({
+      boundingBox: {
+        height: detection.height,
+        rotationDegrees: detection.rotationDegrees,
+        width: detection.width,
+        x: detection.x,
+        y: detection.y,
+      },
+      detectionId: detection.id,
+      imageHeight: detection.photo.imageHeight,
+      imageWidth: detection.photo.imageWidth,
+      photoCreatedAt: detection.photo.createdAt.toISOString(),
+      photoId: detection.photo.id,
+      photoLabel: detection.photo.label,
+      position: detection.position,
+    }));
   }
 
   public async image(

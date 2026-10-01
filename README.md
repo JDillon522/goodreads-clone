@@ -46,7 +46,9 @@ Backend ownership flows use a shared owner context so authenticated users and gu
 Bookshelf-photo scanning is intentionally signed-in-only because it spends a server-owned Gemini
 API key and stores user-owned media. Gemini identifies visible spine text and normalized image
 coordinates; Google Books remains the sole authority for ISBNs, editions, covers, and reusable book
-metadata. Unsaved scan images remain browser-held and are not written to Postgres.
+metadata. Detected spines render before edition lookup, and the browser orchestrates paced,
+one-at-a-time candidate requests through the backend rather than exposing provider credentials.
+Unsaved scan images remain browser-held and are not written to Postgres.
 
 ## Tech Stack
 

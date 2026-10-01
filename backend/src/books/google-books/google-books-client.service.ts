@@ -114,39 +114,63 @@ export class GoogleBooksClientService {
       url.searchParams.set('key', this.apiKey);
     }
 
-    let response: Response;
+    const maximumAttempts = 3;
 
-    try {
-      response = await fetch(url, {
-        headers: {
-          Accept: 'application/json',
-        },
-        signal: AbortSignal.timeout(this.requestTimeoutMs),
-      });
-    } catch (error) {
-      this.logger.warn(`Google Books request failed: ${describeFetchFailure(error)}`);
-      throw new ServiceUnavailableException('Google Books request failed.');
+    for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
+      let response: Response;
+
+      try {
+        response = await fetch(url, {
+          headers: {
+            Accept: 'application/json',
+          },
+          signal: AbortSignal.timeout(this.requestTimeoutMs),
+        });
+      } catch (error) {
+        if (attempt < maximumAttempts - 1) {
+          await wait(retryDelayMs(null, attempt));
+          continue;
+        }
+
+        this.logger.warn(`Google Books request failed: ${describeFetchFailure(error)}`);
+        throw new ServiceUnavailableException('Google Books request failed.');
+      }
+
+      const payload = await readJson(response);
+
+      if (response.status === 404) {
+        throw new NotFoundException('Google Books volume was not found.');
+      }
+
+      const rateLimited = isRateLimitResponse(response.status, payload);
+      const retryable = rateLimited || response.status >= 500;
+
+      if (retryable && attempt < maximumAttempts - 1) {
+        const delayMs = retryDelayMs(response, attempt);
+        this.logger.warn(
+          `Google Books returned ${response.status}; retrying attempt ${attempt + 2} of ${maximumAttempts} in ${delayMs}ms.`,
+        );
+        await wait(delayMs);
+        continue;
+      }
+
+      if (rateLimited) {
+        throw new HttpException('Google Books rate limit reached.', 429);
+      }
+
+      if (!response.ok) {
+        this.logger.warn(`Google Books returned unavailable status ${response.status}.`);
+        throw new ServiceUnavailableException('Google Books returned an unavailable response.');
+      }
+
+      if (!isRecord(payload)) {
+        throw new ServiceUnavailableException('Google Books returned an invalid response.');
+      }
+
+      return payload;
     }
 
-    if (response.status === 404) {
-      throw new NotFoundException('Google Books volume was not found.');
-    }
-
-    if (response.status === 429) {
-      throw new HttpException('Google Books rate limit reached.', 429);
-    }
-
-    if (!response.ok) {
-      throw new ServiceUnavailableException('Google Books returned an unavailable response.');
-    }
-
-    const payload: unknown = await response.json();
-
-    if (!isRecord(payload)) {
-      throw new ServiceUnavailableException('Google Books returned an invalid response.');
-    }
-
-    return payload;
+    throw new ServiceUnavailableException('Google Books request failed.');
   }
 }
 
@@ -200,6 +224,54 @@ function describeFetchFailure(error: unknown): string {
 
 function isRecord(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isRateLimitResponse(status: number, payload: unknown): boolean {
+  if (status === 429) {
+    return true;
+  }
+
+  if (status !== 403 || !isRecord(payload) || !isRecord(payload['error'])) {
+    return false;
+  }
+
+  const reasons = Array.isArray(payload['error']['errors']) ? payload['error']['errors'] : [];
+  return reasons.some(
+    (error) =>
+      isRecord(error) &&
+      typeof error['reason'] === 'string' &&
+      /(?:rateLimit|quota|userRateLimit)/i.test(error['reason']),
+  );
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+function retryDelayMs(response: Response | null, attempt: number): number {
+  const retryAfter = response?.headers.get('retry-after');
+
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return Math.min(seconds * 1000, 15_000);
+    }
+
+    const retryAt = Date.parse(retryAfter);
+    if (Number.isFinite(retryAt)) {
+      return Math.min(Math.max(retryAt - Date.now(), 0), 15_000);
+    }
+  }
+
+  return attempt === 0 ? 2_000 : 5_000;
+}
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function isVolumeCandidate(

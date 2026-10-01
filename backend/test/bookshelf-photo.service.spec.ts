@@ -40,11 +40,12 @@ describe('BookshelfPhotoService', () => {
   const update = jest.fn();
   const deletePhoto = jest.fn();
   const updateDetection = jest.fn();
+  const findDetectionMany = jest.fn();
   const getOrSyncGoogleVolume = jest.fn();
   const toBookMetadata = jest.fn();
   const getLibraryItem = jest.fn();
   const prisma = {
-    bookshelfDetection: { findFirst, update: updateDetection },
+    bookshelfDetection: { findFirst, findMany: findDetectionMany, update: updateDetection },
     bookshelfPhoto: { create, delete: deletePhoto, findFirst, findMany, update },
   } as unknown as PrismaService;
   const service = new BookshelfPhotoService(
@@ -194,6 +195,43 @@ describe('BookshelfPhotoService', () => {
     );
     expect(findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 'other-photo', userId: 'user-1' } }),
+    );
+  });
+
+  it('returns owner-scoped physical locations for a library item', async () => {
+    findDetectionMany.mockResolvedValue([
+      {
+        height: 760,
+        id: 'detection-1',
+        photo: {
+          createdAt: now,
+          id: 'photo-1',
+          imageHeight: 800,
+          imageWidth: 1200,
+          label: 'Office shelf',
+        },
+        position: 2,
+        rotationDegrees: 0,
+        width: 90,
+        x: 100,
+        y: 80,
+      },
+    ]);
+
+    await expect(service.locations('user-1', 'item-1')).resolves.toEqual([
+      expect.objectContaining({
+        boundingBox: { height: 760, rotationDegrees: 0, width: 90, x: 100, y: 80 },
+        detectionId: 'detection-1',
+        photoId: 'photo-1',
+        photoLabel: 'Office shelf',
+      }),
+    ]);
+    expect(getLibraryItem).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'user', userId: 'user-1' }),
+      'item-1',
+    );
+    expect(findDetectionMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { libraryItemId: 'item-1', photo: { userId: 'user-1' } } }),
     );
   });
 });

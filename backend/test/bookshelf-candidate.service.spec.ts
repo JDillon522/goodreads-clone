@@ -1,3 +1,5 @@
+import { ServiceUnavailableException } from '@nestjs/common';
+
 import { BooksService } from '../src/books/books.service';
 import { BookshelfCandidateService } from '../src/bookshelves/bookshelf-candidate.service';
 import { LibraryService } from '../src/library/library.service';
@@ -58,6 +60,31 @@ function stringOverride(value: unknown, fallback: string): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+const observation = {
+  authors: ['Ursula K. Le Guin'],
+  confidence: 90,
+  height: 800,
+  isbn10: null,
+  isbn13: '9780441478125',
+  publisher: null,
+  rotationDegrees: 0,
+  spineText: 'THE LEFT HAND OF DARKNESS',
+  title: 'The Left Hand of Darkness',
+  width: 80,
+  x: 100,
+  y: 50,
+};
+
+const matchRequest = {
+  detectionId: '77aa72ca-b879-4ea6-8b29-e702f0f10f3b',
+  observedAuthors: observation.authors,
+  observedIsbn10: observation.isbn10,
+  observedIsbn13: observation.isbn13,
+  observedPublisher: observation.publisher,
+  observedSpineText: observation.spineText,
+  observedTitle: observation.title,
+};
+
 describe('BookshelfCandidateService', () => {
   const searchBooks = jest.fn();
   const listLibraryItems = jest.fn();
@@ -72,7 +99,26 @@ describe('BookshelfCandidateService', () => {
     listLibraryItems.mockResolvedValue([]);
   });
 
-  it('uses visible ISBN first and returns no more than three savable candidates', async () => {
+  it('returns visual detections without querying Google Books or the library', () => {
+    const result = service.buildAnalysis('gemini-3.5-flash', [observation]);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        count: 1,
+        detections: [
+          expect.objectContaining({
+            candidates: [],
+            observedTitle: 'The Left Hand of Darkness',
+          }),
+        ],
+        providerIssues: [],
+      }),
+    );
+    expect(searchBooks).not.toHaveBeenCalled();
+    expect(listLibraryItems).not.toHaveBeenCalled();
+  });
+
+  it('uses visible ISBN in a client-initiated match and returns at most three candidates', async () => {
     searchBooks.mockResolvedValue({
       items: [
         book(),
@@ -83,30 +129,14 @@ describe('BookshelfCandidateService', () => {
       ],
     });
 
-    const result = await service.buildAnalysis('user-1', 'gemini-3.5-flash', [
-      {
-        authors: ['Ursula K. Le Guin'],
-        confidence: 90,
-        height: 800,
-        isbn10: null,
-        isbn13: '9780441478125',
-        publisher: null,
-        rotationDegrees: 0,
-        spineText: 'THE LEFT HAND OF DARKNESS',
-        title: 'The Left Hand of Darkness',
-        width: 80,
-        x: 100,
-        y: 50,
-      },
-    ]);
+    const result = await service.match('user-1', matchRequest);
 
     expect(searchBooks).toHaveBeenCalledWith(
       expect.objectContaining({ query: 'isbn:9780441478125' }),
     );
-    expect(result.detections[0].candidates).toHaveLength(3);
-    expect(
-      result.detections[0].candidates.every((candidate) => candidate.classification === 'NEW'),
-    ).toBe(true);
+    expect(result.detectionId).toBe(matchRequest.detectionId);
+    expect(result.candidates).toHaveLength(3);
+    expect(result.candidates.every((candidate) => candidate.classification === 'NEW')).toBe(true);
   });
 
   it('distinguishes exact ISBN ownership from a different edition of the same work', async () => {
@@ -134,5 +164,28 @@ describe('BookshelfCandidateService', () => {
         items: [expect.objectContaining({ classification: 'DIFFERENT_EDITION' })],
       }),
     );
+  });
+
+  it('surfaces provider failures from a client-initiated match request', async () => {
+    searchBooks.mockRejectedValueOnce(
+      new ServiceUnavailableException('Google Books returned an unavailable response.'),
+    );
+
+    await expect(
+      service.match('user-1', { ...matchRequest, observedIsbn13: null }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
+  });
+
+  it('does not launch Google matches for the other detections in an analysis', () => {
+    const result = service.buildAnalysis('gemini-3.5-flash', [
+      observation,
+      { ...observation, spineText: 'THE DISPOSSESSED', title: 'The Dispossessed' },
+      { ...observation, spineText: 'EARTHSEA', title: 'Earthsea' },
+    ]);
+
+    expect(result.detections).toHaveLength(3);
+    expect(result.detections.every((detection) => detection.candidates.length === 0)).toBe(true);
+    expect(searchBooks).not.toHaveBeenCalled();
+    expect(listLibraryItems).not.toHaveBeenCalled();
   });
 });

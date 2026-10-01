@@ -48,12 +48,13 @@ Guest sessions are temporary, session-scoped demo libraries. A guest token expir
 
 Bookshelf scans require a signed-in user access token; guest tokens are rejected. The backend sends
 one validated JPEG, PNG, or WebP image to the Gemini Interactions API with `store: false`, then
-resolves extracted spine text through Google Books. Analysis results are ephemeral. A photo and
-its normalized spine coordinates are stored as Postgres bytes only after the user explicitly saves
-the reviewed scan. Authenticated image endpoints keep the binary data out of JSON and public URLs.
-Gemini responses use SSE streaming: provider lines and the full raw response are emitted through
-Nest debug logging outside production, while text deltas are reassembled before strict
-application-side validation.
+returns the extracted spine text and normalized coordinates immediately. The browser then requests
+one owner-aware Google Books match at a time through `POST /api/bookshelf-scans/match`; this keeps
+provider traffic paced while retaining server-side caching and library comparison. Analysis results
+are ephemeral. A photo and its normalized spine coordinates are stored as Postgres bytes only after
+the user explicitly saves the reviewed scan. Authenticated image endpoints keep the binary data out
+of JSON and public URLs. Gemini SSE text deltas are reassembled before strict application-side
+validation; raw provider responses are not retained or logged.
 
 Runtime settings live in the root `.env` and are grouped by app area. Backend-specific values include:
 

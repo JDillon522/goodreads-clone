@@ -14,6 +14,7 @@ import { form, max, maxLength, min, required, submit } from '@angular/forms/sign
 import type {
   BookCardResponse,
   BookSeriesResponse,
+  BookshelfBookLocation,
   LibraryItemResponse,
   LibraryItemStatus,
   NormalizedBook,
@@ -24,7 +25,9 @@ import type {
   UpdateProgressRequest,
 } from '../../core/api/api.types';
 import { Books as BooksService } from '../../core/books/books';
+import { Bookshelves } from '../../core/bookshelves/bookshelves';
 import { Library as LibraryService } from '../../core/library/library';
+import { SessionStore } from '../../core/session/session-store';
 import { Shelves } from '../../core/shelves/shelves';
 import { Theme } from '../../core/theme/theme';
 import { UiFormControl } from '../../shared/ui/form-control/form-control';
@@ -37,6 +40,7 @@ import { UiFormControl } from '../../shared/ui/form-control/form-control';
  * multi-shelf membership in sync with the global shelf list.
  */
 type RatingFormValue = 'none' | '1' | '2' | '3' | '4' | '5';
+type BookLocationCard = BookshelfBookLocation & { thumbnailUrl: string };
 
 @Component({
   selector: 'app-book-detail',
@@ -47,10 +51,12 @@ type RatingFormValue = 'none' | '1' | '2' | '3' | '4' | '5';
 })
 export class BookDetail {
   private readonly books = inject(BooksService);
+  private readonly bookshelves = inject(Bookshelves);
   private readonly destroyRef = inject(DestroyRef);
   private readonly library = inject(LibraryService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly session = inject(SessionStore);
   private readonly shelvesService = inject(Shelves);
   private readonly theme = inject(Theme);
   private readonly progressModel = signal({
@@ -61,6 +67,7 @@ export class BookDetail {
   private readonly reviewModel = signal({ rating: 'none' as RatingFormValue, notes: '' });
   private readonly statusModel = signal({ status: 'WANT_TO_READ' as LibraryItemStatus });
   private readonly shelfMembershipModel = signal({ shelfId: '' });
+  private readonly locationObjectUrls = new Set<string>();
 
   protected readonly item = signal<LibraryItemResponse | null>(null);
   protected readonly allShelves = signal<ShelfResponse[]>([]);
@@ -74,6 +81,9 @@ export class BookDetail {
   protected readonly series = signal<BookSeriesResponse | null>(null);
   protected readonly relatedBooks = signal<RelatedBookResponse[]>([]);
   protected readonly similarEditions = signal<NormalizedBook[]>([]);
+  protected readonly bookLocations = signal<BookLocationCard[]>([]);
+  protected readonly isLoadingLocations = signal(false);
+  protected readonly locationsError = signal<string | null>(null);
   protected readonly isLoadingRelations = signal(false);
   protected readonly relationsError = signal<string | null>(null);
   protected readonly replacingEditionId = signal<string | null>(null);
@@ -111,6 +121,7 @@ export class BookDetail {
    * Reloads shelves whenever shelf mutations happen elsewhere and reloads the item when the route id changes.
    */
   public constructor() {
+    this.destroyRef.onDestroy(() => this.revokeLocationUrls());
     effect(() => {
       this.shelvesService.version();
       void this.loadShelves();
@@ -469,6 +480,7 @@ export class BookDetail {
       });
       this.ensureSelectedMembershipShelf();
       void this.loadBookRelations(item.book.id);
+      void this.loadBookLocations(item.id);
     } catch {
       this.error.set('Book could not be loaded.');
     } finally {
@@ -485,6 +497,50 @@ export class BookDetail {
     } catch {
       this.error.set('Shelves could not be loaded.');
     }
+  }
+
+  private async loadBookLocations(libraryItemId: string): Promise<void> {
+    if (!this.session.isSignedIn()) {
+      this.revokeLocationUrls();
+      this.bookLocations.set([]);
+      this.locationsError.set(null);
+      this.isLoadingLocations.set(false);
+      return;
+    }
+
+    this.isLoadingLocations.set(true);
+    this.locationsError.set(null);
+    this.revokeLocationUrls();
+    this.bookLocations.set([]);
+
+    try {
+      const locations = await this.bookshelves.locations(libraryItemId);
+      const cards = await Promise.all(
+        locations.map(async (location) => ({
+          ...location,
+          thumbnailUrl: this.createLocationUrl(
+            await this.bookshelves.image(location.photoId, true),
+          ),
+        })),
+      );
+      this.bookLocations.set(cards);
+    } catch {
+      this.bookLocations.set([]);
+      this.locationsError.set('Physical bookshelf locations could not be loaded.');
+    } finally {
+      this.isLoadingLocations.set(false);
+    }
+  }
+
+  private createLocationUrl(image: Blob): string {
+    const url = URL.createObjectURL(image);
+    this.locationObjectUrls.add(url);
+    return url;
+  }
+
+  private revokeLocationUrls(): void {
+    for (const url of this.locationObjectUrls) URL.revokeObjectURL(url);
+    this.locationObjectUrls.clear();
   }
   /**
    * Loads series, related books, and similar editions without blocking the editable forms.
